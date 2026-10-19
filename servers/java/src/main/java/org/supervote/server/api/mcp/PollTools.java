@@ -91,12 +91,18 @@ public class PollTools {
             required = false) Poll.ResultsShown resultsShown,
         @McpToolParam(description = "With AFTER_BALLOTS: how many ballots before results show.", required = false)
         Long resultsAfterBallots,
+        @McpToolParam(description = """
+            How voters see the options: AS_WRITTEN (the default), ALPHABETICAL
+            (sorted A to Z, numbers by value) or SHUFFLED (in a random order of
+            their own each time they look).""", required = false)
+        Poll.OptionOrder optionOrder,
         @McpToolParam(description = "Answer a one-time token that hands the poll to its person.", required = false)
         Boolean handover) {
         var voter = caller.get();
         var request = new CreatePollRequest(title, options,
             votingSystem == null ? Poll.VotingSystem.MAJORITY_JUDGMENT : votingSystem,
-            Poll.Visibility.UNLISTED, invitationOnly, showVoterNames, resultsShown, resultsAfterBallots, handover);
+            Poll.Visibility.UNLISTED, invitationOnly, showVoterNames, resultsShown, resultsAfterBallots, optionOrder,
+            handover);
         var poll = creations.create(request, voter.id(), caller.network());
         return views.view(poll, voter, null, polls.handoverTokenOf(poll, voter.id()).orElse(null));
     }

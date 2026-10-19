@@ -56,6 +56,13 @@ It is only used to place polls, ballots and voters in the
 server makes no use of addresses, and names no country. A name it does not
 know, or none, counts in the totals only.
 
+A request that another website's page made is refused before it is anyone's:
+`403`, `/problems/cross-site`, with no cookie set. Browsers say so in
+`Sec-Fetch-Site: cross-site`; following a link (a `GET` navigation) is let
+through, and clients that are not browsers send no such header. Without this,
+another site could have its visitors' browsers try join codes, barring their
+networks from codes for a day, or hand each of them an identity.
+
 A bearer token comes before the cookie, and no cookie is set when one is sent.
 A bearer token this server could not have issued answers `401` with
 `WWW-Authenticate: Bearer`, rather than quietly becoming a new voter the way a
@@ -89,6 +96,10 @@ send a credential casting ballots as a stranger is not.
 | `GET` | `/llms.txt` | this API for agents, in Markdown ([llmstxt.org](https://llmstxt.org)) |
 | `GET` | `/actuator/health` | `{"status":"UP"}`: readiness probe |
 
+Answers under `/api` carry `Cache-Control: no-store` unless the table says
+otherwise: most hold the caller's own ballot, polls or invitations, which no
+cache should keep, the browser's own included.
+
 A poll's `id` is its **share token**: 22 url-safe characters, unguessable. It
 is the only identifier that leaves the server, and it appears in the web
 address of the poll (`/p/{id}`). Holding it is what gives access to an
@@ -116,6 +127,7 @@ A poll as the calling voter sees it.
   "showVoterNames": true,                // chosen at creation
   "resultsShown": "AFTER_BALLOTS",       // chosen at creation: LIVE, AFTER_BALLOTS or AFTER_CLOSING
   "resultsAfterBallots": 3,              // AFTER_BALLOTS only: ballots before the tallies show
+  "optionOrder": "AS_WRITTEN",           // chosen at creation: AS_WRITTEN, ALPHABETICAL or SHUFFLED
   "createdAt": "2026-09-24T13:58:35.129057Z",
   "closedAt": null,                      // set once voting is closed, for good
   "expiresAt": "2026-10-24T13:58:35.129057Z", // when the server deletes it
@@ -162,6 +174,19 @@ ballots move them.
 Options come in the poll's own order, never sorted: that order is what a
 ballot's bytes are positions in. Read `rank` to order them, and `rank == 1` for
 the winner - several options at rank 1 are ex aequo.
+
+`optionOrder` says how voters see the options, since the first places can
+draw more support than the others:
+
+- `AS_WRITTEN`: as the creator wrote them.
+- `ALPHABETICAL`: sorted A to Z when the poll was created, which is then the
+  poll's order: letters whatever their case and accents, and numbers by their
+  value (`Room 9` before `Room 10`, `9:30` before `10:00`, and dates written
+  year first, `2026-10-24`, in calendar order).
+- `SHUFFLED`: as written in the poll, and shown to each voter in a random
+  order of their own, drawn again on each visit. The web app also keeps
+  options tied in the results in that order. A client showing a person the
+  options of a `SHUFFLED` poll shuffles them too.
 
 The server ranks, and sends the counts it ranked from, so the ranking can be
 checked rather than believed. It is computed in one place
@@ -286,19 +311,28 @@ appearing as the tallies move would say where that ballot came from.
 POST /api/polls
 { "title": "Where do we eat?", "options": ["Ramen", "Tacos"],
   "votingSystem": "MAJORITY_JUDGMENT", "visibility": "UNLISTED", "invitationOnly": false,
-  "showVoterNames": true, "resultsShown": "AFTER_BALLOTS", "resultsAfterBallots": 5 }
+  "showVoterNames": true, "resultsShown": "AFTER_BALLOTS", "resultsAfterBallots": 5,
+  "optionOrder": "SHUFFLED" }
 ```
 
 Every field is required but `invitationOnly` and `showVoterNames` (false
 when left out), `resultsShown` (left out: `LIVE`, or `AFTER_CLOSING` if the
 poll shows names or takes invitations, since a name appearing, or an
-invitation used, as a ballot arrives shows who chose what) and
+invitation used, as a ballot arrives shows who chose what),
 `resultsAfterBallots` (`AFTER_BALLOTS` only, and then at least 3: with
-fewer, the results are the ballots). Public
+fewer, the results are the ballots) and `optionOrder` (`AS_WRITTEN` when
+left out). Public
 polls are refused while `publicPolls` is off: they will need a signed-in
-creator. Title and options are trimmed. There must be 2 to
-`maxOptions` options, none empty, none longer than `maxOptionLength`, and no two
-the same (ignoring case).
+creator. There must be 2 to `maxOptions` options, none empty, none longer
+than `maxOptionLength`, and no two the same, ignoring case.
+
+Titles, options and names are kept as people will read them: spaces, tabs and
+line breaks become single spaces, none are kept around them, and characters
+are composed one way (NFC), so that an "é" typed two ways is one letter.
+Invisible characters are refused (controls, bidi overrides, which make text
+read in another order than it is written, and zero widths, which make two
+options look alike), but not the joiners that Persian words and emoji
+sequences need; two options differing only by a joiner are the same.
 
 The answer says how many more polls the caller's network may create before
 its day ends (see [Fair use](#fair-use)):
@@ -527,6 +561,7 @@ to a machine, and is what to branch on.
 | `/problems/not-poll-creator` | `403` | Only the poll's creator can do that |
 | `/problems/not-invited` | `403` | Only invited people can vote on this poll |
 | `/problems/handover-unavailable` | `403` | That handover token is spent, or not this poll's |
+| `/problems/cross-site` | `403` | Another website's page made the request (see [Identity](#identity)) |
 | `/problems/poll-not-found` | `404` | No poll has that id or join code (or it was deleted) |
 | `/problems/poll-closed` | `409` | The poll is closed |
 | `/problems/invitation-used` | `409` | Someone has already voted with that invitation |

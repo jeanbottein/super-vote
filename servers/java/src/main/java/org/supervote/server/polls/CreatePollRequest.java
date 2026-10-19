@@ -5,8 +5,9 @@ import java.util.List;
 /**
  * A new poll. Every field is required but invitationOnly and showVoterNames
  * (false when left out), resultsShown (when left out: live unless the poll
- * shows names or takes invitations) and resultsAfterBallots (AFTER_BALLOTS
- * only); PollService says what is wrong and why.
+ * shows names or takes invitations), resultsAfterBallots (AFTER_BALLOTS
+ * only) and optionOrder (AS_WRITTEN when left out); PollService says what is
+ * wrong and why.
  *
  * handover: answer with a one-time token that makes whoever brings it the
  * poll's creator. A client creating a poll for somebody else - an agent asked
@@ -22,5 +23,6 @@ public record CreatePollRequest(
     Boolean showVoterNames,
     Poll.ResultsShown resultsShown,
     Long resultsAfterBallots,
+    Poll.OptionOrder optionOrder,
     Boolean handover
 ) {}

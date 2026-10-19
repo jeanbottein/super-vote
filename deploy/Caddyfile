@@ -22,6 +22,9 @@
 		# (clients/web/src/app/contentSecurityPolicy.test.ts keeps them in step).
 		Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-NiP4PN1Ip4U9p3WU2wr9c1bguCRqLCQkzqfDuaqELi4='; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
 		X-Content-Type-Options nosniff
+		# Other sites' pages can neither reach into a super-vote window they opened nor read its files.
+		Cross-Origin-Opener-Policy same-origin
+		Cross-Origin-Resource-Policy same-origin
 		# A poll's address is its key: no other site learns it from a link followed.
 		Referrer-Policy no-referrer
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"

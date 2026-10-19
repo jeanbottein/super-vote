@@ -13,7 +13,8 @@ import java.util.List;
  *
  * The id is the share token - the only identifier that leaves the server. The
  * join code is its short stand-in, to type on a phone. While resultsShown
- * keeps them back, the options carry no tallies.
+ * keeps them back, the options carry no tallies. The options come in the
+ * poll's order; optionOrder says how its voters see them.
  *
  * handover is the token that makes its bearer the poll's creator, for a client
  * that created the poll for somebody else and now sends it to them. It is only
@@ -30,6 +31,7 @@ public record PollView(
     boolean showVoterNames,
     Poll.ResultsShown resultsShown,
     Long resultsAfterBallots,
+    Poll.OptionOrder optionOrder,
     Instant createdAt,
     Instant closedAt,
     Instant expiresAt,

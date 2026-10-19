@@ -93,6 +93,7 @@ public class PollViewService {
             poll.showVoterNames(),
             poll.resultsShown(),
             poll.resultsAfterBallots(),
+            poll.optionOrder(),
             poll.createdAt(),
             poll.closedAt(),
             polls.expiryOf(poll),

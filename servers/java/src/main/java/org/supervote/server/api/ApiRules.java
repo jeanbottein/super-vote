@@ -29,6 +29,16 @@ public final class ApiRules {
         ballot is a PUT and needs no key: it replaces the caller's ballot, so
         sending it twice changes nothing.""";
 
+    public static final String OPTIONS = """
+        A poll's options come in the poll's own order, never sorted: a
+        ballot's choices are positions in it. Its "optionOrder" says how
+        voters see them, since the first places can draw more support:
+        AS_WRITTEN, as the creator wrote them; ALPHABETICAL, sorted A to Z when
+        the poll was created (numbers by their value: 2 before 10), which is
+        then the poll's order; SHUFFLED, in a random order of each voter's
+        own, drawn again each time they look. Show a person the options of a
+        SHUFFLED poll in an order you shuffled, never as listed.""";
+
     public static final String BALLOTS = """
         A ballot is cast, revised and withdrawn by the same request: PUT
         replaces the caller's whole ballot, and an empty one withdraws it. Send
@@ -85,7 +95,7 @@ public final class ApiRules {
         /problems/not-invited, /problems/invitation-used,
         /problems/poll-not-found, /problems/not-poll-creator,
         /problems/unknown-voter, /problems/handover-unavailable,
-        /problems/invalid-request, /problems/collision,
+        /problems/cross-site, /problems/invalid-request, /problems/collision,
         /problems/too-many-polls, /problems/too-many-wrong-codes,
         /problems/server-error); its "detail" is a sentence written for a
         person to read. A collision answers 409 with Retry-After: sending the

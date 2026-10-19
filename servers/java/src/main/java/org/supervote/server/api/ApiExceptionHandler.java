@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.supervote.server.common.InvalidRequestException;
+import org.supervote.server.identity.CrossSiteRequestException;
 import org.supervote.server.identity.UnknownVoterException;
 import org.supervote.server.polls.HandoverUnavailableException;
 import org.supervote.server.polls.InvitationUsedException;
@@ -80,6 +81,11 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
             .header(HttpHeaders.WWW_AUTHENTICATE, "Bearer")
             .body(problem(HttpStatus.UNAUTHORIZED, e.getMessage(), ProblemType.UNKNOWN_VOTER));
+    }
+
+    @ExceptionHandler
+    ProblemDetail crossSite(CrossSiteRequestException e) {
+        return problem(HttpStatus.FORBIDDEN, e.getMessage(), ProblemType.CROSS_SITE);
     }
 
     @ExceptionHandler

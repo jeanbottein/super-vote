@@ -82,6 +82,7 @@ class LlmsTxtController {
     private static String rules(RateLimits limits) {
         return String.join("\n\n",
             "**Identity.** " + ApiRules.IDENTITY,
+            "**Options.** " + ApiRules.OPTIONS,
             "**Ballots.** " + ApiRules.BALLOTS,
             "**Invitations.** " + ApiRules.INVITATIONS,
             "**Results.** " + ApiRules.RESULTS,

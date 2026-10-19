@@ -32,13 +32,21 @@ import java.util.Optional;
  * same token as {@code Authorization: Bearer}, which beats the cookie and
  * takes no cookie back.
  *
- * POST /api/voters is left out: it mints identities, so it needs none.
+ * Before anything, a request another website's page made is refused, as its
+ * browser tells (Fetch Metadata, Sec-Fetch-Site: cross-site): without a
+ * cookie it would still try join codes from its visitor's network, which a
+ * few wrong ones bar for a day, and hand each visitor an identity, counted in
+ * the statistics. Following a link (a GET navigation) is let through, and so
+ * is every client that is not a browser, which sends no such header.
+ *
+ * POST /api/voters mints identities, so it is given none.
  */
 @Component
 public class VoterIdentityFilter extends OncePerRequestFilter {
 
     private static final Duration COOKIE_LIFETIME = Duration.ofDays(365);
     private static final String BEARER = "Bearer ";
+    private static final String MINTING = "/api/voters";
 
     private final VoterSecret secret;
     private final StatisticsService statistics;
@@ -53,24 +61,32 @@ public class VoterIdentityFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        var uri = request.getRequestURI();
-        return !uri.startsWith("/api/") || uri.equals("/api/voters");
+        return !request.getRequestURI().startsWith("/api/");
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
         throws ServletException, IOException {
-        String token;
         try {
-            token = tokenOf(request, response);
-        } catch (UnknownVoterException e) {
+            refuseOtherSites(request);
+            if (!request.getRequestURI().equals(MINTING)) {
+                request.setAttribute(VoterIdentity.ATTRIBUTE, new Voter(tokenOf(request, response), secret));
+            }
+        } catch (CrossSiteRequestException | UnknownVoterException e) {
             // A filter throws outside the dispatcher, where @RestControllerAdvice
             // cannot see it: hand it to the same resolver so one place shapes every error.
             resolver.resolveException(request, response, null, e);
             return;
         }
-        request.setAttribute(VoterIdentity.ATTRIBUTE, new Voter(token, secret));
         chain.doFilter(request, response);
+    }
+
+    private static void refuseOtherSites(HttpServletRequest request) {
+        var followingALink = "navigate".equals(request.getHeader("Sec-Fetch-Mode"))
+            && "GET".equals(request.getMethod());
+        if ("cross-site".equals(request.getHeader("Sec-Fetch-Site")) && !followingALink) {
+            throw new CrossSiteRequestException();
+        }
     }
 
     private String tokenOf(HttpServletRequest request, HttpServletResponse response) {

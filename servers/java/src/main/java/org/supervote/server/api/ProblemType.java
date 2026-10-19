@@ -25,6 +25,9 @@ enum ProblemType {
     /** Only the poll's creator may do that. */
     NOT_POLL_CREATOR("not-poll-creator"),
 
+    /** Another website's page made the request; a browser says so, and it is refused. */
+    CROSS_SITE("cross-site"),
+
     /** This poll takes invitations, and the caller brought none that works. */
     NOT_INVITED("not-invited"),
 
