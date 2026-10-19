@@ -295,10 +295,15 @@ shown to people as is: write it as a sentence for them.
 - **Ballots and names have no foreign key to their poll**: a deleted poll's
   can be billions, so `PollRetention` removes them in batches, from
   `poll_removal`, which `PollService` fills in the deleting transaction.
-- **Nothing is deployed yet: the schema is one migration**, `V1__init.sql`,
-  rewritten in place when it changes. Delete development databases after
-  such a change (`rm -rf data`, with `./dev.sh` stopped). From the first
-  deployment on, only add migrations.
+- **Migrations are only ever added** (`V2__option_order.sql`, `V3__...`),
+  never edited once committed: Flyway applies the new ones at startup, on
+  every database, development ones and production alike, and refuses to
+  start if a migration it applied has changed (its checksum). Since
+  2026-10-19 nobody deletes data for a schema change. Write each so that the
+  rows already there stay valid (a new `NOT NULL` column needs a `DEFAULT`),
+  portable to H2 and PostgreSQL, and check it with `MigrationsTest` when it
+  touches existing rows. Flyway, not Liquibase: Liquibase Community is under
+  the Functional Source License since 5.0, Flyway's core stays Apache 2.0.
 - **A migration renamed or removed stays in `target/classes`**: `./mvnw test`
   then fails with "Found more than one migration with version N". Delete that
   one file there; a `clean` would pull the classes from under a running

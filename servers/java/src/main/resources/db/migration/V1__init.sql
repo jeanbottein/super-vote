@@ -41,10 +41,6 @@ CREATE TABLE poll (
     show_voter_names      BOOLEAN      NOT NULL,
     results_shown         VARCHAR(16)  NOT NULL,
     results_after_ballots BIGINT,
-    -- How voters see the options: AS_WRITTEN, ALPHABETICAL (sorted when the
-    -- poll was created, so poll_option.position is that order) or SHUFFLED
-    -- (each voter's client shuffles them). The first places draw support.
-    option_order          VARCHAR(16)  NOT NULL,
     created_at            TIMESTAMP WITH TIME ZONE NOT NULL,
     -- NULL while the poll accepts ballots.
     closed_at             TIMESTAMP WITH TIME ZONE,

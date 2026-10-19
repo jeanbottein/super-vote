@@ -421,10 +421,11 @@ databases: H2 in development, PostgreSQL in production
 names are singular and unquoted and entities have no `@Table`: see the note at
 the top of `V1__init.sql`. Ballots, the change log, tallies and invitations
 are written with `JdbcClient` rather than entities: their keys are two
-columns, and folding updates counters in batches. Nothing has been deployed
-yet, so `V1__init.sql` is the whole schema, rewritten in place when it
-changes, and development databases are deleted (`rm -rf data`). From the
-first deployment on, only add migrations.
+columns, and folding updates counters in batches. A change to the schema is
+a new migration, never an edited one: Flyway applies what a database lacks
+at startup, in order, and keeps the rows already there, so neither a
+development database nor production loses anything (`MigrationsTest` checks
+an upgrade).
 
 On PostgreSQL, give the connection a lock timeout
 (`?options=-c%20lock_timeout%3D2s`), as H2 has by default: a ballot that waits
