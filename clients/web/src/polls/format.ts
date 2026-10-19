@@ -59,3 +59,13 @@ export function timeAgo(isoDate: string, now = Date.now()): string {
   }
   return 'just now';
 }
+
+/**
+ * "5 hours", "1 minute": the wait until a moment, rounded up as the server
+ * words it (RateLimitedException.inWords), so that trying again then works.
+ */
+export function waitUntil(at: number, now = Date.now()): string {
+  const minutes = Math.max(1, Math.ceil((at - now) / 60_000));
+  const [count, unit] = minutes < 60 ? [minutes, 'minute'] : [Math.ceil(minutes / 60), 'hour'];
+  return `${count} ${count === 1 ? unit : `${unit}s`}`;
+}

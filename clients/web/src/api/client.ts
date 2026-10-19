@@ -143,7 +143,7 @@ export const joinPoll = (code: string) => request<PollSummary>('GET', `/api/join
 /** Where the poll's ballots come from, as of the last hour; nothing while its results are kept back. */
 export const getPollPlaces = (id: string) => request<PollPlaces>('GET', `${pollPath(id)}/places`);
 
-/** The new poll, and how many more this connection may create today. */
+/** The new poll, and how many more this connection may create before its day ends. */
 export async function createPoll(poll: NewPoll): Promise<{ poll: Poll; pollsLeft: PollsLeft | null }> {
   const response = await call('POST', '/api/polls', { body: poll });
   return { poll: (await response.json()) as Poll, pollsLeft: pollsLeftIn(response.headers) };

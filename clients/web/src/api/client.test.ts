@@ -68,7 +68,7 @@ describe('the API client', () => {
     expect(JSON.parse(init?.body as string)).toEqual(lunch);
   });
 
-  it('says how many more polls this connection may create today, from the RateLimit fields', async () => {
+  it('says how many more polls this connection may create, from the RateLimit fields', async () => {
     fetchMock.mockResolvedValue(Response.json({ id: 'abc' }, {
       status: 201,
       headers: { 'RateLimit-Policy': '"polls";q=20;w=86400', RateLimit: '"polls";r=4;t=3600' },

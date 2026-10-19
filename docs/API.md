@@ -300,8 +300,8 @@ creator. Title and options are trimmed. There must be 2 to
 `maxOptions` options, none empty, none longer than `maxOptionLength`, and no two
 the same (ignoring case).
 
-The answer says how many more polls the caller's network may create today
-(see [Fair use](#fair-use)):
+The answer says how many more polls the caller's network may create before
+its day ends (see [Fair use](#fair-use)):
 
 ```
 RateLimit-Policy: "polls";q=20;w=86400

@@ -80,7 +80,7 @@ public class PollController {
      * first one made instead of making another.
      *
      * The answer says how many more polls the caller's network may create
-     * today, so that a person can be warned before running out.
+     * before its day ends, so that a person can be warned before running out.
      */
     @PostMapping
     public ResponseEntity<PollView> create(@RequestBody CreatePollRequest request,

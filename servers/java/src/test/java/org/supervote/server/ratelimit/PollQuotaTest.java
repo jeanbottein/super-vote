@@ -1,6 +1,8 @@
 package org.supervote.server.ratelimit;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.Duration;
 
@@ -34,9 +36,21 @@ class PollQuotaTest {
         assertThatExceptionOfType(TooManyPollsException.class)
             .isThrownBy(() -> quota.take(office))
             .satisfies(refused -> assertThat(refused.retryAfter()).isBetween(Duration.ofHours(23), Duration.ofDays(1)))
-            .withMessageStartingWith("3 polls have already been created today from this connection.")
+            .withMessageStartingWith("3 polls have already been created from this connection in the last 24 hours.")
             .withMessageEndingWith("you can create more in 24 hours.");
         assertThat(quota.allowance(office).remaining()).isZero();
+    }
+
+    /** A collision is safe to retry: the poll it rolled back must not count. */
+    @Test
+    void aPollWhoseTransactionRollsBackIsGivenBack() {
+        quota.take(office);
+
+        inATransactionThatEnds(TransactionSynchronization.STATUS_ROLLED_BACK, () -> quota.take(office));
+        assertThat(quota.allowance(office).remaining()).isEqualTo(2);
+
+        inATransactionThatEnds(TransactionSynchronization.STATUS_COMMITTED, () -> quota.take(office));
+        assertThat(quota.allowance(office).remaining()).isEqualTo(1);
     }
 
     @Test
@@ -48,5 +62,15 @@ class PollQuotaTest {
         quota.take(home);
 
         assertThat(quota.allowance(home).remaining()).isEqualTo(2);
+    }
+
+    private static void inATransactionThatEnds(int status, Runnable work) {
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            work.run();
+            TransactionSynchronizationManager.getSynchronizations().forEach(done -> done.afterCompletion(status));
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 }

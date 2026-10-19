@@ -154,14 +154,8 @@ public class PollService {
         if (!JOIN_CODE.matcher(code).matches()) {
             throw new PollNotFoundException(NO_POLL_WITH_THIS_CODE);
         }
-        wrongCodes.check(network);
-        var poll = polls.findByJoinCode(code);
-        if (poll.isEmpty()) {
-            wrongCodes.wrong(network);
-            throw new PollNotFoundException(NO_POLL_WITH_THIS_CODE);
-        }
-        wrongCodes.right(network);
-        return poll.get();
+        return wrongCodes.lookUp(network, () -> polls.findByJoinCode(code))
+            .orElseThrow(() -> new PollNotFoundException(NO_POLL_WITH_THIS_CODE));
     }
 
     /**

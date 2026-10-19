@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -48,6 +52,39 @@ class WrongCodesTest {
         assertThatExceptionOfType(TooManyWrongCodesException.class).isThrownBy(() -> wrongCodes.check(classroom));
     }
 
+    /** Checked, looked up and counted apart, every guess of a burst would pass the check before any was counted. */
+    @Test
+    void aBurstOfGuessesIsCountedLikeOneGuessAfterAnother() throws InterruptedException {
+        var lookups = new AtomicInteger();
+        var start = new CountDownLatch(1);
+        try (var guessers = Executors.newVirtualThreadPerTaskExecutor()) {
+            for (int i = 0; i < 50; i++) {
+                guessers.submit(() -> {
+                    start.await();
+                    return wrongCodes.lookUp(classroom, () -> {
+                        lookups.incrementAndGet();
+                        sleep();
+                        return Optional.empty();
+                    });
+                });
+            }
+            start.countDown();
+        }
+
+        assertThat(lookups).hasValue(5);
+    }
+
+    @Test
+    void aCodeLookedUpCountsAsRightOrWrong() {
+        for (int i = 0; i < 4; i++) {
+            assertThat(wrongCodes.lookUp(classroom, Optional::empty)).isEmpty();
+        }
+        assertThat(wrongCodes.lookUp(classroom, () -> Optional.of("poll"))).contains("poll");
+        assertThat(wrongCodes.lookUp(classroom, Optional::empty)).isEmpty();
+
+        assertThatNoException().isThrownBy(() -> wrongCodes.check(classroom));
+    }
+
     @Test
     void oneNetworksWrongCodesAreNotAnothers() {
         wrong(5);
@@ -76,6 +113,14 @@ class WrongCodesTest {
         assertThat(tried.isPast(dayAfter.minusSeconds(1))).isFalse();
         assertThat(tried.isPast(dayAfter)).isTrue();
         assertThat(tried.bar(dayAfter.plusSeconds(60)).isPast(dayAfter)).isFalse();
+    }
+
+    private static void sleep() {
+        try {
+            Thread.sleep(2);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private void wrong(int times) {

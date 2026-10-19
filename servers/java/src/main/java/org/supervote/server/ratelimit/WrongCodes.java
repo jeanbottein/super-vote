@@ -5,7 +5,10 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Join codes a network tried that lead to no poll. A code is short enough to
@@ -17,19 +20,42 @@ import java.util.concurrent.TimeUnit;
  * connection, where a few people mistype the code on the screen, is not
  * barred; the count over the day stops a guesser who slips right codes in
  * between.
+ *
+ * A network's lookups run one at a time: checked, looked up and counted
+ * apart, a burst of parallel guesses would all pass the check before the
+ * first of them was counted.
  */
 @Component
 public class WrongCodes {
 
     private final RateLimits limits;
     private final RecentNetworks<Tries> tries = new RecentNetworks<>();
+    /** Locks shared out among networks: a lookup waits for its own network's, rarely another's. */
+    private final Object[] lookups = Stream.generate(Object::new).limit(256).toArray();
 
     WrongCodes(RateLimits limits) {
         this.limits = limits;
     }
 
+    /**
+     * What a code leads to, looked up for a network unless it is barred from
+     * codes, and counted: a code leading nowhere is a wrong one.
+     */
+    public <T> Optional<T> lookUp(Network network, Supplier<Optional<T>> lookup) {
+        synchronized (lookups[Math.floorMod(network.hashCode(), lookups.length)]) {
+            check(network);
+            var found = lookup.get();
+            if (found.isPresent()) {
+                right(network);
+            } else {
+                wrong(network);
+            }
+            return found;
+        }
+    }
+
     /** Refuses a network barred from codes. */
-    public synchronized void check(Network network) {
+    synchronized void check(Network network) {
         var now = Instant.now();
         var tried = tries.get(network);
         if (tried != null && tried.barredAt(now)) {
@@ -37,11 +63,11 @@ public class WrongCodes {
         }
     }
 
-    public synchronized void right(Network network) {
+    synchronized void right(Network network) {
         tries.computeIfPresent(network, (key, tried) -> tried.right());
     }
 
-    public synchronized void wrong(Network network) {
+    synchronized void wrong(Network network) {
         var now = Instant.now();
         var tried = tries.getOrDefault(network, Tries.none(now)).wrong(now);
         var tooMany = tried.inARow() >= limits.wrongCodesInARow()

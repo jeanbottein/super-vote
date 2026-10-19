@@ -1,11 +1,11 @@
-import { lazy, Suspense } from 'react';
-import { Link, useLocation, useParams } from 'react-router';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import type { Poll, PollsLeft } from '../api/types';
 import AppName from '../ui/AppName';
 import Notice from '../ui/Notice';
 import BallotSection from './BallotSection';
 import DevBallotFeeder from './DevBallotFeeder';
-import { formatDate, timeAgo, VISIBILITY_NAMES, VOTING_SYSTEM_NAMES } from './format';
+import { formatDate, timeAgo, VISIBILITY_NAMES, VOTING_SYSTEM_NAMES, waitUntil } from './format';
 import Invitations from './Invitations';
 import { handoverIn, invitationIn } from './links';
 import OwnerActions from './OwnerActions';
@@ -20,7 +20,7 @@ const PollPlacesSection = lazy(() => import('../statistics/PollPlacesSection'));
 /** Fewer ballots than a place needs to show (StatisticsService.VISIBLE): nothing to ask for. */
 const FEWEST_PLACED = 3;
 
-/** The last polls a connection may create today come with a warning, so that running out is no surprise. */
+/** The last polls a connection may create in its day come with a warning, so that running out is no surprise. */
 const LAST_POLLS = 5;
 
 /**
@@ -45,9 +45,18 @@ const home = <Link className="button primary" to="/">Back to the home page</Link
 
 function PollScreen({ id, invitation }: { id: string; invitation: string | null }) {
   const { poll, error, deleted, connection, setPoll } = usePoll(id, invitation);
-  const arrival = useLocation().state as { created?: boolean; pollsLeft?: PollsLeft | null } | null;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const arrival = location.state as { created?: boolean; pollsLeft?: PollsLeft | null } | null;
   const justCreated = arrival?.created === true;
-  const pollsLeft = arrival?.pollsLeft ?? null;
+  // Kept for this visit only: a reload or a step back would show a count since gone stale.
+  const [pollsLeft] = useState(arrival?.pollsLeft ?? null);
+  const arrivedWithPollsLeft = arrival?.pollsLeft !== undefined;
+  useEffect(() => {
+    if (arrivedWithPollsLeft) {
+      navigate(location, { replace: true, state: { created: justCreated } });
+    }
+  }, [arrivedWithPollsLeft, justCreated, location, navigate]);
 
   if (deleted) {
     return <Notice title="This poll was deleted" action={home}><p>It was deleted, and its results with it.</p></Notice>;
@@ -104,8 +113,8 @@ function PollsLeftHint({ pollsLeft: { count, perDay, resetsAt } }: { pollsLeft: 
   return (
     <p className="hint" data-tone="warning">
       {count === 0
-        ? `That was your last poll for now: you can create more ${timeAgo(new Date(resetsAt).toISOString())}.`
-        : `You can create ${count} more ${count === 1 ? 'poll' : 'polls'} today.`}
+        ? `That was your last poll for now: you can create more in ${waitUntil(resetsAt)}.`
+        : `You can create ${count} more ${count === 1 ? 'poll' : 'polls'} in the next ${waitUntil(resetsAt)}.`}
       {' '}As <AppName />'s resources are limited, each connection can create {perDay} polls a day, to be fair to
       everyone.
     </p>

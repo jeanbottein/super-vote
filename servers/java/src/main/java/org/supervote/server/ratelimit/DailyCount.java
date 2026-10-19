@@ -21,6 +21,10 @@ record DailyCount(Instant since, int count) {
         return new DailyCount(since, count + 1);
     }
 
+    DailyCount minusOne() {
+        return new DailyCount(since, Math.max(0, count - 1));
+    }
+
     Instant ends() {
         return since.plus(DAY);
     }

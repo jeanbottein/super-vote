@@ -1,6 +1,6 @@
 import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { InitialEntry } from 'react-router';
+import { useLocation, type InitialEntry } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ApiError, castBallot, closePoll, deletePoll, getPoll, watchPoll, type PollWatcher,
@@ -37,6 +37,10 @@ afterEach(() => {
 });
 
 const openPoll = (entry: InitialEntry = '/p/abc') => renderAt(entry, [{ path: '/p/:id', element: <PollPage /> }]);
+
+function HistoryState() {
+  return <output data-testid="history-state">{JSON.stringify(useLocation().state)}</output>;
+}
 
 const scaleOf = (option: string) => screen.getByRole('radiogroup', { name: option });
 
@@ -83,14 +87,27 @@ describe('a poll page', () => {
     expect(within(dialog).getByRole('button', { name: 'Copied' })).toBeInTheDocument();
   });
 
-  it('warns its creator when it was one of the last polls their connection may create today', async () => {
+  it('warns its creator when it was one of the last polls their connection may create in its day', async () => {
     vi.mocked(getPoll).mockResolvedValue({ ...lunch, isMine: true });
-    openPoll({ pathname: '/p/abc', state: { created: true, pollsLeft: { count: 4, perDay: 20, resetsAt: Date.now() } } });
+    const resetsAt = Date.now() + 5 * 3_600_000;
+    openPoll({ pathname: '/p/abc', state: { created: true, pollsLeft: { count: 4, perDay: 20, resetsAt } } });
 
-    expect(await screen.findByText(/You can create 4 more polls today\./)).toHaveTextContent(
-      "You can create 4 more polls today. As super-vote's resources are limited, each connection can create 20 polls "
-      + 'a day, to be fair to everyone.',
+    expect(await screen.findByText(/You can create 4 more polls in the next 5 hours\./)).toHaveTextContent(
+      "You can create 4 more polls in the next 5 hours. As super-vote's resources are limited, each connection can "
+      + 'create 20 polls a day, to be fair to everyone.',
     );
+  });
+
+  /** A reload, or a step back to the page, would otherwise show a count since gone stale. */
+  it('keeps the polls left out of the history once it showed them', async () => {
+    vi.mocked(getPoll).mockResolvedValue({ ...lunch, isMine: true });
+    const resetsAt = Date.now() + 5 * 3_600_000;
+    renderAt({ pathname: '/p/abc', state: { created: true, pollsLeft: { count: 4, perDay: 20, resetsAt } } }, [
+      { path: '/p/:id', element: <><PollPage /><HistoryState /></> },
+    ]);
+
+    expect(await screen.findByText(/You can create 4 more polls/)).toBeInTheDocument();
+    expect(screen.getByTestId('history-state')).toHaveTextContent('{"created":true}');
   });
 
   it('tells its creator when they can create polls again, once they have none left', async () => {

@@ -68,9 +68,9 @@ class RateLimitApiTest {
             assertThat(Long.parseLong(refused.getResponse().getHeader(HttpHeaders.RETRY_AFTER)))
                 .isBetween(23 * 3600L, 24 * 3600L + 1);
             assertThat(refused).bodyJson().extractingPath("$.detail").isEqualTo(
-                "3 polls have already been created today from this connection. To be fair to everyone, as "
-                    + "super-vote's resources are limited, each connection can create 3 polls a day: you can "
-                    + "create more in 24 hours.");
+                "3 polls have already been created from this connection in the last 24 hours. To be fair to "
+                    + "everyone, as super-vote's resources are limited, each connection can create 3 polls a day: "
+                    + "you can create more in 24 hours.");
         }
 
         @Test
@@ -118,7 +118,8 @@ class RateLimitApiTest {
             var refused = callTool(office, "create_poll", LUNCH);
 
             assertThat(isError(refused)).isTrue();
-            assertThat(text(refused)).contains("3 polls have already been created today from this connection.");
+            assertThat(text(refused))
+                .contains("3 polls have already been created from this connection in the last 24 hours.");
         }
     }
 
