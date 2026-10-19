@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { checkPollForm, filledOptions, offeredVotingSystems, optionRows } from './pollForm';
+import { en } from '../i18n/en';
+import { fr } from '../i18n/fr';
+import { checkPollForm, filledOptions, offeredVotingSystems, optionRows, tidy } from './pollForm';
 
 const limits = {
   maxOptions: 4, maxTitleLength: 10, maxOptionLength: 6, maxVoterNameLength: 40, maxInvitations: 1000, pollLifetimeDays: 30,
@@ -12,13 +14,15 @@ const form = (title: string, options: string[], resultsAfterBallots?: string) =>
   resultsAfterBallots: resultsAfterBallots ?? '',
 });
 
+const say = en.newPoll.problems;
+
 describe('checkPollForm', () => {
   it('accepts a title and two distinct options', () => {
-    expect(checkPollForm(form('Lunch?', ['Ramen', 'Tacos']), limits)).toEqual({});
+    expect(checkPollForm(form('Lunch?', ['Ramen', 'Tacos']), limits, say)).toEqual({});
   });
 
   it('ignores blank rows', () => {
-    expect(checkPollForm(form('Lunch?', ['Ramen', ' ', 'Tacos', '']), limits)).toEqual({});
+    expect(checkPollForm(form('Lunch?', ['Ramen', ' ', 'Tacos', '']), limits, say)).toEqual({});
     expect(filledOptions([' Ramen ', '', 'Tacos'])).toEqual(['Ramen', 'Tacos']);
   });
 
@@ -29,19 +33,38 @@ describe('checkPollForm', () => {
     ['Lunch?', ['A', 'B', 'C', 'D', 'E'], { options: 'A poll can have at most 4 options.' }],
     ['Lunch?', ['Ramen', 'Burritos'], { options: 'An option can be at most 6 characters long.' }],
     ['Lunch?', ['Ramen', 'ramen'], { options: '"ramen" is listed twice. Each option must be different.' }],
+    // The server's rules: an "é" typed two ways is one letter, a joiner nobody sees makes no other option.
+    ['Lunch?', ['Café', 'Cafe\u0301'], { options: '"Café" is listed twice. Each option must be different.' }],
+    ['Lunch?', ['Ramen', 'Ra\u200Dmen'], { options: '"Ra\u200Dmen" is listed twice. Each option must be different.' }],
+    ['Lunch?', ['Yes', 'Yes\u200B'], { options: 'An option can only hold visible characters.' }],
+    ['\u202ELunch?', ['Ramen', 'Tacos'], { title: 'A title can only hold visible characters.' }],
   ])('explains what is wrong with "%s" and %j', (title, options, problems) => {
-    expect(checkPollForm(form(title, options), limits)).toEqual(problems);
+    expect(checkPollForm(form(title, options), limits, say)).toEqual(problems);
   });
 
   it.each(['', '2', '3.5', '1e30'])('refuses to show the results after "%s" ballots', (ballots) => {
-    expect(checkPollForm(form('Lunch?', ['Ramen', 'Tacos'], ballots), limits)).toEqual({
+    expect(checkPollForm(form('Lunch?', ['Ramen', 'Tacos'], ballots), limits, say)).toEqual({
       resultsAfterBallots: 'Choose a whole number of ballots, at least 3.',
     });
   });
 
   it('shows the results after 3 ballots or more, billions included', () => {
-    expect(checkPollForm(form('Lunch?', ['Ramen', 'Tacos'], '3'), limits)).toEqual({});
-    expect(checkPollForm(form('Lunch?', ['Ramen', 'Tacos'], '5000000000'), limits)).toEqual({});
+    expect(checkPollForm(form('Lunch?', ['Ramen', 'Tacos'], '3'), limits, say)).toEqual({});
+    expect(checkPollForm(form('Lunch?', ['Ramen', 'Tacos'], '5000000000'), limits, say)).toEqual({});
+  });
+
+  it('says what is wrong in the language it is given', () => {
+    expect(checkPollForm(form(' ', ['Ramen']), limits, fr.newPoll.problems)).toEqual({
+      title: 'Donnez une question à votre sondage.',
+      options: 'Ajoutez au moins deux options.',
+    });
+  });
+});
+
+describe('tidy', () => {
+  it('keeps text as everyone will read it, as the server keeps it', () => {
+    expect(tidy('  Where\n do we\teat? ')).toBe('Where do we eat?');
+    expect(tidy('Cafe\u0301\u00a0 du coin')).toBe('Café du coin');
   });
 });
 
@@ -72,6 +95,6 @@ describe('offeredVotingSystems', () => {
       publicUrl: null,
     };
 
-    expect(offeredVotingSystems(info).map((choice) => choice.value)).toEqual(['MAJORITY_JUDGMENT']);
+    expect(offeredVotingSystems(info)).toEqual(['MAJORITY_JUDGMENT']);
   });
 });

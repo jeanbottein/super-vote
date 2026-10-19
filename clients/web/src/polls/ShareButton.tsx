@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Poll } from '../api/types';
+import { useI18n } from '../i18n/i18n';
 import { ShareIcon } from '../ui/icons';
 import { pollUrl } from './links';
 import ShareDialog from './ShareDialog';
@@ -11,25 +12,24 @@ interface ShareButtonProps {
 
 /** The poll's link and join code, to share. */
 export default function ShareButton({ poll, className = 'button secondary' }: ShareButtonProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <button type="button" className={className} onClick={() => setOpen(true)}>
-        <ShareIcon /> Share
+        <ShareIcon /> {t.share.share}
       </button>
       <ShareDialog
         open={open}
         onClose={() => setOpen(false)}
-        title="Share this poll"
+        title={t.share.title}
         hint={<>
-          {poll.invitationOnly
-            ? 'Anyone with the code or the link can see the poll. Only the people you invite can vote.'
-            : 'Anyone with the code or the link can vote.'}
-          {poll.visibility === 'UNLISTED' && ' The poll is not listed anywhere else.'}
+          {poll.invitationOnly ? t.share.invitedOnly : t.share.anyone}
+          {poll.visibility === 'UNLISTED' && ` ${t.share.unlisted}`}
         </>}
         url={pollUrl(poll.id)}
-        linkLabel="Link to the poll"
+        linkLabel={t.share.linkLabel}
         subject={poll.title}
         joinCode={poll.joinCode}
       />

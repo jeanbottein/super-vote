@@ -1,4 +1,5 @@
 import type { ResultsShown, ServerInfo, Visibility, VotingSystem } from '../api/types';
+import type { Messages } from '../i18n/en';
 
 type Limits = ServerInfo['limits'];
 
@@ -19,28 +20,45 @@ export interface PollFormProblems {
   resultsAfterBallots?: string;
 }
 
-/** The options that were filled in, trimmed. Blank rows are just ignored. */
-export function filledOptions(options: string[]): string[] {
-  return options.map((option) => option.trim()).filter((option) => option !== '');
+/** Tabs, line breaks and every Unicode space. */
+const SPACES = /[\s\p{Z}]+/gu;
+/** Controls, bidi overrides and zero widths, but the joiners Persian words and emoji sequences need. */
+const INVISIBLE = /(?![‌‍])[\p{Cc}\p{Cf}]/u;
+const JOINERS = /[‌‍]/g;
+
+/**
+ * Text as everyone will read it, as the server keeps it: composed one way
+ * (NFC), with single spaces between its words and none around them.
+ */
+export function tidy(text: string): string {
+  return text.normalize('NFC').replace(SPACES, ' ').trim();
 }
 
-/** The same rules the server applies, checked before sending so mistakes show at once. */
+/** The options that were filled in, tidied. Blank rows are just ignored. */
+export function filledOptions(options: string[]): string[] {
+  return options.map(tidy).filter((option) => option !== '');
+}
+
+/** The same rules the server applies (PollService), checked before sending so mistakes show at once. */
 export function checkPollForm(
-  { title, options, resultsShown, resultsAfterBallots }: PollForm, limits: Limits,
+  { title, options, resultsShown, resultsAfterBallots }: PollForm, limits: Limits, say: Messages['newPoll']['problems'],
 ): PollFormProblems {
   const problems: PollFormProblems = {};
 
-  const trimmedTitle = title.trim();
-  if (trimmedTitle === '') {
-    problems.title = 'Give your poll a title.';
-  } else if (trimmedTitle.length > limits.maxTitleLength) {
-    problems.title = `A title can be at most ${limits.maxTitleLength} characters long.`;
+  const tidyTitle = tidy(title);
+  if (tidyTitle === '') {
+    problems.title = say.titleMissing;
+  } else if (tidyTitle.length > limits.maxTitleLength) {
+    problems.title = say.titleTooLong(limits.maxTitleLength);
+  } else if (INVISIBLE.test(tidyTitle)) {
+    problems.title = say.titleInvisible;
   }
 
   const labels = filledOptions(options);
   const seen = new Set<string>();
+  // Two options that differ only by case, or by a joiner nobody sees, would look alike on the ballot.
   const repeated = labels.find((label) => {
-    const key = label.toLowerCase();
+    const key = label.replace(JOINERS, '').toLowerCase();
     if (seen.has(key)) {
       return true;
     }
@@ -48,19 +66,21 @@ export function checkPollForm(
     return false;
   });
   if (labels.length < 2) {
-    problems.options = 'Add at least two options.';
+    problems.options = say.tooFewOptions;
   } else if (labels.length > limits.maxOptions) {
-    problems.options = `A poll can have at most ${limits.maxOptions} options.`;
+    problems.options = say.tooManyOptions(limits.maxOptions);
   } else if (labels.some((label) => label.length > limits.maxOptionLength)) {
-    problems.options = `An option can be at most ${limits.maxOptionLength} characters long.`;
+    problems.options = say.optionTooLong(limits.maxOptionLength);
+  } else if (labels.some((label) => INVISIBLE.test(label))) {
+    problems.options = say.optionInvisible;
   } else if (repeated) {
-    problems.options = `"${repeated}" is listed twice. Each option must be different.`;
+    problems.options = say.optionTwice(repeated);
   }
 
   const ballots = Number(resultsAfterBallots);
   if (resultsShown === 'AFTER_BALLOTS' && (resultsAfterBallots.trim() === '' || !Number.isSafeInteger(ballots)
     || ballots < MIN_RESULTS_AFTER_BALLOTS)) {
-    problems.resultsAfterBallots = `Choose a whole number of ballots, at least ${MIN_RESULTS_AFTER_BALLOTS}.`;
+    problems.resultsAfterBallots = say.resultsAfterBallots(MIN_RESULTS_AFTER_BALLOTS);
   }
 
   return problems;
@@ -82,16 +102,16 @@ export function optionRows(options: string[], maxOptions: number): string[] {
   return rows;
 }
 
-export function offeredVotingSystems(info: ServerInfo): { value: VotingSystem; label: string }[] {
+export function offeredVotingSystems(info: ServerInfo): VotingSystem[] {
   return [
-    info.features.majorityJudgment && { value: 'MAJORITY_JUDGMENT' as const, label: 'Majority judgment' },
-    info.features.approvalVoting && { value: 'APPROVAL' as const, label: 'Approval' },
-  ].filter((choice) => choice !== false);
+    info.features.majorityJudgment && 'MAJORITY_JUDGMENT' as const,
+    info.features.approvalVoting && 'APPROVAL' as const,
+  ].filter((system) => system !== false);
 }
 
-export function offeredVisibilities(info: ServerInfo): { value: Visibility; label: string }[] {
+export function offeredVisibilities(info: ServerInfo): Visibility[] {
   return [
-    info.features.publicPolls && { value: 'PUBLIC' as const, label: 'Public' },
-    info.features.unlistedPolls && { value: 'UNLISTED' as const, label: 'Private' },
-  ].filter((choice) => choice !== false);
+    info.features.publicPolls && 'PUBLIC' as const,
+    info.features.unlistedPolls && 'UNLISTED' as const,
+  ].filter((visibility) => visibility !== false);
 }

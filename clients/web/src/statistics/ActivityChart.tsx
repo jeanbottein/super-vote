@@ -1,21 +1,17 @@
 import { useState, type PointerEvent } from 'react';
 import type { Activity, Statistics } from '../api/types';
-import { formatCount } from '../utils/formatCount';
+import { useI18n } from '../i18n/i18n';
 
 interface ActivityChartProps {
   days: Statistics['days'];
   /** The day the statistics were published, the chart's last. */
   asOf: string;
   measure: keyof Activity;
-  /** What is counted, in the plural: "visitors". */
-  noun: string;
 }
 
 const DAYS = 90;
 const BAR = 10; // each day's width, in the chart's units
 const HEIGHT = 120;
-
-const dayFormat = new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 
 /** The last 90 UTC days, oldest first, those without any counted as nothing. */
 export function lastDays(days: Statistics['days'], asOf: string): (Activity & { day: string })[] {
@@ -30,14 +26,15 @@ export function lastDays(days: Statistics['days'], asOf: string): (Activity & { 
 }
 
 /** One bar per day; point at one, or tap it, to read it. */
-export default function ActivityChart({ days, asOf, measure, noun }: ActivityChartProps) {
+export default function ActivityChart({ days, asOf, measure }: ActivityChartProps) {
+  const { t } = useI18n();
   const series = lastDays(days, asOf);
   const [pointed, setPointed] = useState<number | null>(null);
   const largest = Math.max(1, ...series.map((day) => day[measure]));
   const total = series.reduce((sum, day) => sum + day[measure], 0);
   const busiest = series.reduce((best, day) => (day[measure] > best[measure] ? day : best), series[0]);
   const shown = series[pointed ?? DAYS - 1];
-  const label = (day: { day: string }) => dayFormat.format(new Date(day.day + 'T00:00:00Z'));
+  const { count: counted, noun } = t.statistics.measures[measure];
 
   const point = (event: PointerEvent<SVGSVGElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
@@ -49,14 +46,14 @@ export default function ActivityChart({ days, asOf, measure, noun }: ActivityCha
   return (
     <figure className="activity-chart">
       <p className="activity-chart-reading" aria-live="polite">
-        <strong>{formatCount(shown[measure])}</strong> {noun} on {label(shown)}
+        {t.statistics.onDay(t.number(shown[measure]), noun(shown[measure]), t.day(shown.day))}
       </p>
       <svg
         viewBox={`0 0 ${DAYS * BAR} ${HEIGHT}`}
         preserveAspectRatio="none"
         role="img"
-        aria-label={`${formatCount(total)} ${noun} over the last ${DAYS} days`
-          + (total > 0 ? `, the most on ${label(busiest)}: ${formatCount(busiest[measure])}.` : '.')}
+        aria-label={t.statistics.overLastDays(counted(total), DAYS)
+          + (total > 0 ? t.statistics.busiest(t.day(busiest.day), t.number(busiest[measure])) : '.')}
         onPointerDown={point}
         onPointerMove={(event) => (event.pointerType === 'mouse' || event.buttons) && point(event)}
         onPointerLeave={() => setPointed(null)}
@@ -72,9 +69,9 @@ export default function ActivityChart({ days, asOf, measure, noun }: ActivityCha
         <line className="activity-chart-axis" x1="0" x2={DAYS * BAR} y1={HEIGHT - 0.5} y2={HEIGHT - 0.5} />
       </svg>
       <figcaption className="activity-chart-scale">
-        <span>{label(series[0])}</span>
-        <span>Top line: {formatCount(largest)}</span>
-        <span>{label(series[DAYS - 1])}</span>
+        <span>{t.day(series[0].day)}</span>
+        <span>{t.statistics.topLine(t.number(largest))}</span>
+        <span>{t.day(series[DAYS - 1].day)}</span>
       </figcaption>
     </figure>
   );

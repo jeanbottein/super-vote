@@ -1,7 +1,8 @@
 import { useId } from 'react';
 import type { Mention } from '../../../api/types';
+import { useI18n } from '../../../i18n/i18n';
 import type { MajorityJudgmentBallotProps } from './MajorityJudgmentBallot';
-import { MENTION_NAMES, MENTIONS_BEST_FIRST } from './mentions';
+import { MENTIONS_BEST_FIRST } from './mentions';
 import './mentions.css';
 import './mj-ballot.css';
 
@@ -9,6 +10,7 @@ import './mj-ballot.css';
 export default function MajorityJudgmentDropdownBallot(
   { options, ballot, onChange, disabled }: MajorityJudgmentBallotProps,
 ) {
+  const { t } = useI18n();
   const id = useId();
 
   return (
@@ -26,9 +28,9 @@ export default function MajorityJudgmentDropdownBallot(
               disabled={disabled}
               onChange={(event) => onChange({ ...ballot, [option.id]: event.target.value as Mention })}
             >
-              <option value="" disabled>Choose a mention…</option>
+              <option value="" disabled>{t.ballot.chooseAMention}</option>
               {MENTIONS_BEST_FIRST.map((mention) => (
-                <option key={mention} value={mention}>{MENTION_NAMES[mention]}</option>
+                <option key={mention} value={mention}>{t.mentions[mention]}</option>
               ))}
             </select>
           </div>

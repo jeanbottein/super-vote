@@ -6,7 +6,7 @@ import type { NewPoll } from './types';
 
 const lunch: NewPoll = {
   title: 'Lunch?', options: ['Ramen', 'Tacos'], votingSystem: 'APPROVAL', visibility: 'UNLISTED',
-  invitationOnly: false, showVoterNames: false, resultsShown: 'LIVE', resultsAfterBallots: null,
+  invitationOnly: false, showVoterNames: false, resultsShown: 'LIVE', resultsAfterBallots: null, optionOrder: 'AS_WRITTEN',
 };
 
 describe('the API client', () => {
@@ -136,28 +136,30 @@ describe('the API client', () => {
     await expect(deletePoll('abc')).resolves.toBeUndefined();
   });
 
-  it('reports the problem detail written by the server', async () => {
+  it('reports the problem the server answered: its type, its sentence, and when to try again', async () => {
     fetchMock.mockResolvedValue(Response.json(
-      { status: 409, detail: 'This poll is closed and no longer accepts ballots.' },
-      { status: 409, headers: { 'Content-Type': 'application/problem+json' } },
+      { type: '/problems/too-many-polls', status: 429, detail: 'You can create more in 5 hours.' },
+      { status: 429, headers: { 'Content-Type': 'application/problem+json', 'Retry-After': '18000' } },
     ));
 
     const error = await castBallot('abc', { judgments: {} }).catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(ApiError);
-    expect(error).toMatchObject({ status: 409, message: 'This poll is closed and no longer accepts ballots.' });
+    expect(error).toMatchObject({
+      status: 429, type: '/problems/too-many-polls', message: 'You can create more in 5 hours.', retryAfter: 18000,
+    });
   });
 
   it('explains failures that come without a problem document', async () => {
     fetchMock.mockResolvedValue(new Response('<html>Bad gateway</html>', { status: 502 }));
 
-    await expect(getPoll('abc')).rejects.toMatchObject({ status: 502, message: expect.stringContaining('502') });
+    await expect(getPoll('abc')).rejects.toMatchObject({ status: 502, type: null, message: '' });
   });
 
   it('says so when the server cannot be reached', async () => {
     fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
 
-    await expect(getPoll('abc')).rejects.toMatchObject({ status: 0, message: expect.stringContaining('cannot be reached') });
+    await expect(getPoll('abc')).rejects.toMatchObject({ status: 0 });
   });
 });
 

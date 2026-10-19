@@ -1,3 +1,4 @@
+import { useI18n } from '../../../i18n/i18n';
 import './approval.css';
 
 interface ApprovalBallotProps {
@@ -10,11 +11,12 @@ interface ApprovalBallotProps {
 
 /** A checkbox per option: approve every option you would be happy with. */
 export default function ApprovalBallot({ options, approved, onChange, disabled }: ApprovalBallotProps) {
+  const { t } = useI18n();
   const chosen = new Set(approved);
 
   return (
     <fieldset className="approval-ballot" disabled={disabled}>
-      <legend className="visually-hidden">Options you approve</legend>
+      <legend className="visually-hidden">{t.ballot.optionsYouApprove}</legend>
       {options.map((option) => (
         <label key={option.id} className="approval-choice">
           <input

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
+import { useI18n } from '../i18n/i18n';
 import { CloseIcon } from './icons';
 
 type ToastKind = 'info' | 'error';
@@ -15,6 +16,7 @@ const ToastContext = createContext<ShowToast | null>(null);
 
 /** Short messages that come and go on their own; errors stay a little longer. */
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const { t } = useI18n();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const lastId = useRef(0);
 
@@ -35,7 +37,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((toast) => (
           <div key={toast.id} className="toast" data-kind={toast.kind} role={toast.kind === 'error' ? 'alert' : 'status'}>
             <span>{toast.message}</span>
-            <button type="button" className="icon-button" aria-label="Dismiss" onClick={() => dismiss(toast.id)}>
+            <button type="button" className="icon-button" aria-label={t.dismiss} onClick={() => dismiss(toast.id)}>
               <CloseIcon />
             </button>
           </div>

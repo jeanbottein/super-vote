@@ -1,11 +1,13 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { flushSync } from 'react-dom';
-import { createInvitations, errorMessage, listInvitations, revokeInvitation } from '../api/client';
+import { createInvitations, listInvitations, revokeInvitation } from '../api/client';
 import type { Invitation, InvitationPage, Poll } from '../api/types';
+import type { Messages } from '../i18n/en';
+import { errorMessage } from '../i18n/errorMessage';
+import { useI18n } from '../i18n/i18n';
 import Confirmation from '../ui/Confirmation';
 import { CheckIcon, CloseIcon, ShareIcon } from '../ui/icons';
 import { useToast } from '../ui/Toasts';
-import { formatCount } from '../utils/formatCount';
 import { invitationUrl } from './links';
 import ShareDialog from './ShareDialog';
 import { useServerInfo } from './useServerInfo';
@@ -21,6 +23,7 @@ const MAX_PAGE = 1000;
  * is read again as ballots come in.
  */
 export default function Invitations({ poll }: { poll: Poll }) {
+  const { t } = useI18n();
   const { limits } = useServerInfo();
   const showToast = useToast();
   const titleId = useId();
@@ -45,14 +48,14 @@ export default function Invitations({ poll }: { poll: Poll }) {
       },
       (error: unknown) => {
         if (active) {
-          showToast(errorMessage(error), 'error');
+          showToast(errorMessage(error, t), 'error');
         }
       },
     );
     return () => {
       active = false;
     };
-  }, [poll.id, poll.totalBallots, shown, changes, showToast]);
+  }, [poll.id, poll.totalBallots, shown, changes, showToast, t]);
 
   async function invite(event: FormEvent) {
     event.preventDefault();
@@ -63,7 +66,7 @@ export default function Invitations({ poll }: { poll: Poll }) {
       setLabel('');
       setChanges((count) => count + 1);
     } catch (error) {
-      showToast(errorMessage(error), 'error');
+      showToast(errorMessage(error, t), 'error');
     } finally {
       setAdding(false);
     }
@@ -74,41 +77,38 @@ export default function Invitations({ poll }: { poll: Poll }) {
       await revokeInvitation(poll.id, number);
       setChanges((count) => count + 1);
     } catch (error) {
-      showToast(errorMessage(error), 'error');
+      showToast(errorMessage(error, t), 'error');
     }
   }
 
   return (
     <section className="panel invitations" aria-labelledby={titleId}>
       <div className="section-header">
-        <h2 id={titleId}>Invitations</h2>
-        {page !== null && page.count > 0 && <span className="invitation-count">{summary(page)}</span>}
+        <h2 id={titleId}>{t.invitations.heading}</h2>
+        {page !== null && page.count > 0 && <span className="invitation-count">{summary(page, t)}</span>}
       </div>
-      <p className="hint">
-        Only the people you invite can vote. Send each one a link of their own, which holds one ballot. You see which
-        links were used, never what anyone chose. You can vote yourself without one.
-      </p>
+      <p className="hint">{t.invitations.hint}</p>
       {open && (
         <form className="invite-form" onSubmit={invite}>
-          <label htmlFor={inputId}>Invite someone</label>
+          <label htmlFor={inputId}>{t.invitations.inviteSomeone}</label>
           <div className="invite-row">
             <input
               id={inputId}
               value={label}
               maxLength={limits.maxVoterNameLength}
-              placeholder="Name or nickname (optional)"
+              placeholder={t.invitations.namePlaceholder}
               autoComplete="off"
               enterKeyHint="done"
               onChange={(event) => setLabel(event.target.value)}
             />
             <button type="submit" className="button primary" disabled={adding}>
-              {adding ? 'Inviting…' : 'Invite'}
+              {adding ? t.invitations.inviting : t.invitations.invite}
             </button>
           </div>
         </form>
       )}
       {page === null
-        ? <p className="empty" aria-busy="true">Loading the invitations…</p>
+        ? <p className="empty" aria-busy="true">{t.invitations.loading}</p>
         : page.invitations.length > 0 && (
           <ul className="invitation-list">
             {page.invitations.map((invitation) => (
@@ -123,34 +123,34 @@ export default function Invitations({ poll }: { poll: Poll }) {
           </ul>
         )}
       {page?.next != null && (shown < MAX_PAGE
-        ? <button type="button" className="button secondary" onClick={() => setShown(shown + PAGE)}>Show more</button>
-        : <p className="hint">The newest {formatCount(MAX_PAGE)} are shown.</p>)}
+        ? <button type="button" className="button secondary" onClick={() => setShown(shown + PAGE)}>{t.invitations.showMore}</button>
+        : <p className="hint">{t.invitations.newestShown(MAX_PAGE)}</p>)}
       <ShareDialog
         open={sharing !== null}
         onClose={() => setSharing(null)}
-        title={sharing?.label ? `Invitation for ${sharing.label}` : nameOf(sharing)}
-        hint="Send this link to this person only. It holds one ballot, which only the browser they vote from can change."
+        title={sharing?.label ? t.invitations.invitationFor(sharing.label) : nameOf(sharing, t)}
+        hint={t.invitations.shareHint}
         url={sharing ? invitationUrl(poll.id, sharing.token) : ''}
-        linkLabel="Link of the invitation"
+        linkLabel={t.invitations.linkLabel}
         subject={poll.title}
-        message={`You are invited to vote on “${poll.title}”. This link is for you alone.`}
+        message={t.invitations.message(poll.title)}
       />
     </section>
   );
 }
 
 /** "3 of 10 used" once every invitation is shown; until then, how many there are. */
-function summary(page: InvitationPage): string {
+function summary(page: InvitationPage, t: Messages): string {
   if (page.next !== null) {
-    return `${formatCount(page.count)} invitations`;
+    return t.invitations.count(page.count);
   }
   const used = page.invitations.filter((invitation) => invitation.used).length;
-  return `${formatCount(used)} of ${formatCount(page.count)} used`;
+  return t.invitations.used(used, page.count);
 }
 
 /** Whom it is for, or, if the creator did not say, its number. */
-function nameOf(invitation: Invitation | null): string {
-  return invitation?.label ?? `Invitation ${invitation?.number ?? ''}`;
+function nameOf(invitation: Invitation | null, t: Messages): string {
+  return invitation?.label ?? t.invitations.invitationNumber(invitation?.number ?? 0);
 }
 
 interface InvitationRowProps {
@@ -162,11 +162,12 @@ interface InvitationRowProps {
 }
 
 function InvitationRow({ invitation, pollOpen, onShare, onRevoke }: InvitationRowProps) {
+  const { t } = useI18n();
   const confirmId = useId();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const revokeButton = useRef<HTMLButtonElement>(null);
-  const name = nameOf(invitation);
+  const name = nameOf(invitation, t);
 
   /** Back to the button that asked, so that keyboard and screen reader users keep their place. */
   function keep() {
@@ -186,16 +187,16 @@ function InvitationRow({ invitation, pollOpen, onShare, onRevoke }: InvitationRo
       <div className="invitation-text">
         <span className="invitation-name" data-anonymous={invitation.label === null}>{name}</span>
         <span className="invitation-status">
-          {invitation.used ? <><CheckIcon /> Used</> : 'Not used yet'}
+          {invitation.used ? <><CheckIcon /> {t.invitations.isUsed}</> : t.invitations.notUsedYet}
         </span>
       </div>
-      <button type="button" className="icon-button" aria-label={`Share the link for ${name}`} onClick={onShare}>
+      <button type="button" className="icon-button" aria-label={t.invitations.share(name)} onClick={onShare}>
         <ShareIcon />
       </button>
       {pollOpen && (invitation.used
         ? <span className="icon-button-placeholder" aria-hidden="true" /> // keeps the share buttons in line
         : <button
-          type="button" className="icon-button" ref={revokeButton} aria-label={`Take back the link for ${name}`}
+          type="button" className="icon-button" ref={revokeButton} aria-label={t.invitations.takeBack(name)}
           onClick={() => setConfirming(true)}
         >
           <CloseIcon />
@@ -203,10 +204,10 @@ function InvitationRow({ invitation, pollOpen, onShare, onRevoke }: InvitationRo
       {confirming && (
         <Confirmation
           id={confirmId}
-          question="Take back this invitation? Its link will stop working."
+          question={t.invitations.takeBackQuestion}
           busy={busy}
-          keep="Keep it"
-          confirm="Take it back"
+          keep={t.invitations.keep}
+          confirm={t.invitations.takeItBack}
           tone="danger"
           onKeep={keep}
           onConfirm={confirm}

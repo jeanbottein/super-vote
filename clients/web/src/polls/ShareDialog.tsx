@@ -1,5 +1,6 @@
 import { QRCodeSVG } from 'qrcode.react';
 import { useId, useRef, useState, type ReactNode } from 'react';
+import { useI18n } from '../i18n/i18n';
 import Dialog from '../ui/Dialog';
 import { MailIcon, ShareIcon } from '../ui/icons';
 import { formatJoinCode } from './format';
@@ -28,6 +29,7 @@ interface ShareDialogProps {
  */
 export default function ShareDialog(props: ShareDialogProps) {
   const { open, onClose, title, hint, url, linkLabel, subject, message, joinCode } = props;
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const inputId = useId();
@@ -48,18 +50,18 @@ export default function ShareDialog(props: ShareDialogProps) {
       <p className="hint">{hint}</p>
       {joinCode && (
         <div className="share-code">
-          <span className="share-code-label">Join code</span>
+          <span className="share-code-label">{t.share.joinCode}</span>
           <strong className="join-code">{formatJoinCode(joinCode)}</strong>
-          <span className="hint">to enter at {window.location.host}</span>
+          <span className="hint">{t.share.toEnterAt(window.location.host)}</span>
         </div>
       )}
       <label className="visually-hidden" htmlFor={inputId}>{linkLabel}</label>
       <div className="share-link">
         <input id={inputId} ref={input} value={url} readOnly onFocus={(event) => event.target.select()} />
-        <button type="button" className="button primary" onClick={copy}>{copied ? 'Copied' : 'Copy'}</button>
+        <button type="button" className="button primary" onClick={copy}>{copied ? t.share.copied : t.share.copy}</button>
       </div>
       <div className="share-qr">
-        <QRCodeSVG value={url} size={192} marginSize={2} title={`QR code for ${url}`} />
+        <QRCodeSVG value={url} size={192} marginSize={2} title={t.share.qrCode(url)} />
       </div>
       {'share' in navigator && (
         <button
@@ -67,14 +69,14 @@ export default function ShareDialog(props: ShareDialogProps) {
           className="button secondary wide"
           onClick={() => navigator.share({ title: subject, text: message, url }).catch(() => {})}
         >
-          <ShareIcon /> Share through an app
+          <ShareIcon /> {t.share.throughAnApp}
         </button>
       )}
       <a
         className="button secondary wide"
         href={`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}
       >
-        <MailIcon /> Send by email
+        <MailIcon /> {t.share.byEmail}
       </a>
     </Dialog>
   );

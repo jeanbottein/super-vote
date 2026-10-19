@@ -34,7 +34,7 @@ describe('the app', () => {
   it('opens on the home page, with no way back from there', async () => {
     openAt('/');
 
-    expect(await screen.findByText('Polls you create will appear here.')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Decide together, fairly.' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Home' })).not.toBeInTheDocument();
   });
 
@@ -69,6 +69,20 @@ describe('the app', () => {
       .toHaveAttribute('href', 'https://doi.org/10.1073/pnas.0702634104');
     expect(screen.getAllByRole('link', { name: /source code/i })[0])
       .toHaveAttribute('href', 'https://github.com/jeanbottein/super-vote');
+  });
+
+  it('says what is kept, who sees what, and what super-vote is not for, from every page', async () => {
+    openAt('/new');
+
+    // The form says it too, beside the warning that super-vote is not for official votes.
+    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Privacy and limits' })).toBeInTheDocument();
+    await userEvent.click(within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Privacy and limits' }));
+
+    expect(await screen.findByRole('heading', { name: 'Privacy and limits', level: 1 })).toBeInTheDocument();
+    for (const heading of ['What it is for', 'What is kept, and for how long', 'Who sees what', 'Limits to know']) {
+      expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
+    }
+    expect(screen.getByText(/until it is deleted, 30 days after it was created at the latest/)).toBeInTheDocument();
   });
 
   it('says when there is nothing at an address', () => {
@@ -109,5 +123,31 @@ describe('the settings', () => {
     fireEvent.click(settings); // the backdrop is part of the dialog element itself
 
     expect(screen.queryByRole('dialog', { name: 'Settings' })).not.toBeInTheDocument();
+  });
+});
+
+describe('the language', () => {
+  it("is the device's until one is chosen, in Settings, where each is named in its own words", async () => {
+    openAt('/');
+    expect(document.documentElement.lang).toBe('en');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    await userEvent.click(within(screen.getByRole('dialog', { name: 'Settings' })).getByRole('radio', { name: 'Français' }));
+
+    expect(screen.getByRole('dialog', { name: 'Réglages' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Décider ensemble, équitablement.' })).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('fr');
+    expect(loadPreferences().language).toBe('fr');
+  });
+
+  it('can be switched back from the foot of every page', async () => {
+    localStorage.setItem('super-vote.preferences', JSON.stringify({ language: 'fr' }));
+    openAt('/new');
+    expect(screen.getByRole('heading', { name: 'Nouveau sondage' })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'English' }));
+
+    expect(screen.getByRole('heading', { name: 'New poll' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Français' })).toHaveAttribute('lang', 'fr');
   });
 });

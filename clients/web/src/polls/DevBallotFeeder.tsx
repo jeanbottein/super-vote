@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { castBallotAsNewVoter, errorMessage } from '../api/client';
+import { castBallotAsNewVoter } from '../api/client';
 import type { BallotRequest, Poll } from '../api/types';
 import { MENTIONS_BEST_FIRST } from '../features/VotingSystem/MajorityJudgment/mentions';
+import { errorMessage } from '../i18n/errorMessage';
+import { useI18n } from '../i18n/i18n';
 import { useToast } from '../ui/Toasts';
 
 /**
@@ -9,6 +11,7 @@ import { useToast } from '../ui/Toasts';
  * random ballots to watch the results move, each from a new anonymous voter.
  */
 export default function DevBallotFeeder({ poll }: { poll: Poll }) {
+  const { t } = useI18n();
   const showToast = useToast();
   const [count, setCount] = useState(20);
   const [cast, setCast] = useState<number | null>(null);
@@ -20,7 +23,7 @@ export default function DevBallotFeeder({ poll }: { poll: Poll }) {
         await castBallotAsNewVoter(poll.id, randomBallot(poll));
       }
     } catch (error) {
-      showToast(errorMessage(error), 'error');
+      showToast(errorMessage(error, t), 'error');
     } finally {
       setCast(null);
     }
@@ -28,18 +31,18 @@ export default function DevBallotFeeder({ poll }: { poll: Poll }) {
 
   return (
     <section className="panel dev-tool">
-      <h2>Ballot feeder <span className="badge">dev only</span></h2>
+      <h2>{t.feeder.heading} <span className="badge">{t.feeder.devOnly}</span></h2>
       <div className="button-row">
         <input
           type="number"
           min={1}
           max={500}
           value={count}
-          aria-label="Number of random ballots"
+          aria-label={t.feeder.count}
           onChange={(event) => setCount(Number(event.target.value))}
         />
         <button type="button" className="button secondary" disabled={cast !== null} onClick={feed}>
-          {cast === null ? 'Cast random ballots' : `Casting ${cast} of ${count}…`}
+          {cast === null ? t.feeder.cast : t.feeder.casting(cast, count)}
         </button>
       </div>
     </section>

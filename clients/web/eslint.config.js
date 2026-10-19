@@ -13,4 +13,12 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // French typography puts no-break spaces before colons and inside « » (src/i18n/fr.test.ts): in what the
+    // messages say, never in their code.
+    files: ['src/i18n/*.tsx'],
+    rules: {
+      'no-irregular-whitespace': ['error', { skipStrings: true, skipTemplates: true, skipJSXText: true }],
+    },
+  },
 ]);

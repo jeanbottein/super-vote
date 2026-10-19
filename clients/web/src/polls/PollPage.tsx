@@ -1,16 +1,18 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
+import { ApiError } from '../api/client';
 import type { Poll, PollsLeft } from '../api/types';
-import AppName from '../ui/AppName';
+import { errorMessage } from '../i18n/errorMessage';
+import { useI18n } from '../i18n/i18n';
 import Notice from '../ui/Notice';
 import BallotSection from './BallotSection';
 import DevBallotFeeder from './DevBallotFeeder';
-import { formatDate, timeAgo, VISIBILITY_NAMES, VOTING_SYSTEM_NAMES, waitUntil } from './format';
 import Invitations from './Invitations';
 import { handoverIn, invitationIn } from './links';
 import OwnerActions from './OwnerActions';
 import ResultsSection, { resultsKeptBack } from './ResultsSection';
 import ShareButton from './ShareButton';
+import { newSeed, shownOptions } from './shownOptions';
 import { useHandover } from './useHandover';
 import { usePoll } from './usePoll';
 
@@ -29,22 +31,24 @@ const LAST_POLLS = 5;
  * handover link the token that makes you the poll's creator.
  */
 export default function PollPage() {
+  const { t } = useI18n();
   const { id = '' } = useParams();
   const hash = useLocation().hash;
   const invitation = invitationIn(hash);
   const handover = useHandover(id, handoverIn(hash));
 
   if (handover === 'taking') {
-    return <p className="panel">Taking this poll over...</p>;
+    return <p className="panel">{t.poll.takingOver}</p>;
   }
   // Keyed, so that moving to another poll, or another invitation, starts from a clean slate.
   return <PollScreen key={`${id}#${invitation}`} id={id} invitation={invitation} />;
 }
 
-const home = <Link className="button primary" to="/">Back to the home page</Link>;
-
 function PollScreen({ id, invitation }: { id: string; invitation: string | null }) {
-  const { poll, error, deleted, connection, setPoll } = usePoll(id, invitation);
+  const { t } = useI18n();
+  const { poll, failure, deleted, connection, setPoll } = usePoll(id, invitation);
+  // Drawn once per visit: a shuffled poll's options keep one order while the page is open.
+  const [seed] = useState(newSeed);
   const location = useLocation();
   const navigate = useNavigate();
   const arrival = location.state as { created?: boolean; pollsLeft?: PollsLeft | null } | null;
@@ -58,51 +62,51 @@ function PollScreen({ id, invitation }: { id: string; invitation: string | null 
     }
   }, [arrivedWithPollsLeft, justCreated, location, navigate]);
 
+  const home = <Link className="button primary" to="/">{t.backHome}</Link>;
   if (deleted) {
-    return <Notice title="This poll was deleted" action={home}><p>It was deleted, and its results with it.</p></Notice>;
+    return <Notice title={t.poll.deleted} action={home}><p>{t.poll.deletedText}</p></Notice>;
   }
-  if (error?.status === 404) {
-    return <Notice title="Poll not found" action={home}><p>The link may be incomplete, or the poll was deleted.</p></Notice>;
+  if (failure instanceof ApiError && failure.status === 404) {
+    return <Notice title={t.poll.notFound} action={home}><p>{t.poll.notFoundText}</p></Notice>;
   }
-  if (error) {
+  if (failure !== null) {
     return (
       <Notice
-        title="The poll could not be loaded"
-        action={<button type="button" className="button primary" onClick={() => window.location.reload()}>Try again</button>}
+        title={t.poll.notLoaded}
+        action={<button type="button" className="button primary" onClick={() => window.location.reload()}>{t.tryAgain}</button>}
       >
-        <p>{error.message}</p>
+        <p>{errorMessage(failure, t)}</p>
       </Notice>
     );
   }
   if (!poll) {
-    return <p className="panel empty" aria-busy="true">Loading the poll…</p>;
+    return <p className="panel empty" aria-busy="true">{t.poll.loadingPoll}</p>;
   }
 
+  const options = shownOptions(poll.options, poll.optionOrder, seed);
   return (
     <>
-      <title>{`${poll.title} · super-vote`}</title>
+      <title>{t.poll.title(poll.title)}</title>
       <PollHeader poll={poll} />
       {justCreated && poll.isMine && poll.totalBallots === 0 && (poll.invitationOnly
-        ? <p className="panel callout">
-          <span><strong>Your poll is ready.</strong> Invite people below: each gets a link of their own.</span>
-        </p>
+        ? <p className="panel callout"><span>{t.poll.readyToInvite}</span></p>
         : <section className="panel callout">
-          <p><strong>Your poll is ready.</strong> Share its link to collect ballots.</p>
+          <p>{t.poll.readyToShare}</p>
           <ShareButton poll={poll} className="button primary" />
         </section>)}
       {pollsLeft && pollsLeft.count < LAST_POLLS && <PollsLeftHint pollsLeft={pollsLeft} />}
       {poll.closedAt
-        ? <p className="panel callout">Voting closed {timeAgo(poll.closedAt)}. These are the final results.</p>
-        : <BallotSection poll={poll} invitation={invitation} onCast={setPoll} />}
+        ? <p className="panel callout">{t.poll.closedAgo(t.timeAgo(poll.closedAt))}</p>
+        : <BallotSection poll={poll} options={options} invitation={invitation} onCast={setPoll} />}
       {poll.isMine && poll.invitationOnly && <Invitations poll={poll} />}
-      <ResultsSection poll={poll} connection={connection} />
+      <ResultsSection poll={poll} options={options} connection={connection} />
       {!resultsKeptBack(poll) && poll.totalBallots >= FEWEST_PLACED && (
         <Suspense fallback={null}>
           {/* Asked again when the poll closes, which may be when it shows its places. */}
           <PollPlacesSection key={poll.closedAt ?? 'open'} pollId={poll.id} />
         </Suspense>
       )}
-      <p className="hint expiry">This poll and its ballots will be deleted on {formatDate(poll.expiresAt)}.</p>
+      <p className="hint expiry">{t.poll.deletedOn(t.date(poll.expiresAt))}</p>
       {poll.isMine && <OwnerActions poll={poll} onChange={setPoll} />}
       {import.meta.env.DEV && poll.isMine && !poll.invitationOnly && <DevBallotFeeder poll={poll} />}
     </>
@@ -110,28 +114,28 @@ function PollScreen({ id, invitation }: { id: string; invitation: string | null 
 }
 
 function PollsLeftHint({ pollsLeft: { count, perDay, resetsAt } }: { pollsLeft: PollsLeft }) {
+  const { t } = useI18n();
+  const wait = t.waitUntil(resetsAt);
   return (
     <p className="hint" data-tone="warning">
-      {count === 0
-        ? `That was your last poll for now: you can create more in ${waitUntil(resetsAt)}.`
-        : `You can create ${count} more ${count === 1 ? 'poll' : 'polls'} in the next ${waitUntil(resetsAt)}.`}
-      {' '}As <AppName />'s resources are limited, each connection can create {perDay} polls a day, to be fair to
-      everyone.
+      {count === 0 ? t.poll.lastPoll(wait) : t.poll.pollsLeft(count, wait)}
+      {' '}{t.poll.fairShare(perDay)}
     </p>
   );
 }
 
 function PollHeader({ poll }: { poll: Poll }) {
+  const { t } = useI18n();
   return (
     <section className="poll-header">
       <h1>{poll.title}</h1>
       <div className="poll-header-row">
         <p className="poll-meta">
-          <span>{VOTING_SYSTEM_NAMES[poll.votingSystem]}</span>
-          <span>{VISIBILITY_NAMES[poll.visibility]}</span>
-          {poll.invitationOnly && <span>By invitation</span>}
-          <span>Created {timeAgo(poll.createdAt)}</span>
-          {poll.closedAt && <span className="badge">Closed</span>}
+          <span>{t.votingSystems[poll.votingSystem]}</span>
+          <span>{t.visibilities[poll.visibility]}</span>
+          {poll.invitationOnly && <span>{t.poll.byInvitation}</span>}
+          <span>{t.poll.created(t.timeAgo(poll.createdAt))}</span>
+          {poll.closedAt && <span className="badge">{t.poll.closed}</span>}
         </p>
         <ShareButton poll={poll} />
       </div>

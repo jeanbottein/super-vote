@@ -46,6 +46,7 @@ export function lunchPoll(changes: Partial<Poll> = {}): Poll {
     showVoterNames: false,
     resultsShown: 'LIVE',
     resultsAfterBallots: null,
+    optionOrder: 'AS_WRITTEN',
     createdAt: '2026-09-24T10:00:00Z',
     closedAt: null,
     expiresAt: '2026-10-24T10:00:00Z',

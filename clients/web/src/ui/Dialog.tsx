@@ -1,4 +1,5 @@
 import { useId, useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useI18n } from '../i18n/i18n';
 import { CloseIcon } from './icons';
 
 interface DialogProps {
@@ -17,6 +18,7 @@ interface DialogProps {
  * so it never shows empty.
  */
 export default function Dialog({ open, onClose, title, children }: DialogProps) {
+  const { t } = useI18n();
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -45,7 +47,7 @@ export default function Dialog({ open, onClose, title, children }: DialogProps) 
         <div className="dialog-body">
           <div className="dialog-header">
             <h2 id={titleId}>{title}</h2>
-            <button type="button" className="icon-button" aria-label="Close" onClick={onClose}>
+            <button type="button" className="icon-button" aria-label={t.close} onClick={onClose}>
               <CloseIcon />
             </button>
           </div>
