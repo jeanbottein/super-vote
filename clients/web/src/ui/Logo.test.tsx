@@ -14,10 +14,10 @@ describe('the logo', () => {
     const { container } = render(<><Logo /><Logo /></>);
     const [first, second] = container.querySelectorAll('svg');
 
-    expect(ids(first)).toHaveLength(9); // paper, frame, slot, five bands, the hexagon's clip
+    expect(ids(first)).toHaveLength(4); // paper, frame, the two halves
     expect(ids(first).filter((id) => ids(second).includes(id))).toEqual([]);
     for (const svg of [first, second]) {
-      expect(references(svg)).toHaveLength(9);
+      expect(references(svg)).toHaveLength(4);
       expect(references(svg).every((id) => ids(svg).includes(id))).toBe(true);
     }
   });

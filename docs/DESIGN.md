@@ -30,14 +30,21 @@ act, a result is a fact.
 
 ## The logo
 
-The mark is the owner's `icon.svg` at the repository root, an Inkscape file
-and the source of truth: a hexagonal ballot box whose bands are the mentions'
-colours, red at the top to green at the bottom, with the ballot's slot across
-the yellow band.
+The mark is the owner's `icon.svg` at the repository root, the source of
+truth: a hexagon whose frame draws an S, for super-vote. The S runs over the
+hexagon's whole top, round its corner, across its middle, then over its whole
+bottom, round the opposite corner, standing apart from the two sides. On one
+side of it the hexagon is green, on the other red, as on a majority judgment
+scale: lightest along the S's middle stroke, the median, where half the
+ballots lie on either side, and darkest in the far corners. The S is three
+times as thick as the sides (15 and 5), so that it still reads at 16 px in a
+browser tab; their outer edges are flush, every corner of the outline is
+rounded alike, and the two halves keep the same gap from both, round the S's
+ends too.
 
 | Where | File | How |
 |---|---|---|
-| Header, Home | `src/ui/Logo.tsx` | Inline SVG. Its frame and the paper between the bands take the `--logo-*` tokens, so on a dark page it has a light frame and dark paper, the original's inverse. The bands and the slot keep the owner's colours. |
+| Header, Home | `src/ui/Logo.tsx` | Inline SVG. Its frame and the paper around the halves take the `--logo-*` tokens, so on a dark page it has a light frame and dark paper, the original's inverse. The greens and reds keep the owner's colours. |
 | Browser tab | `public/favicon.svg` | Square viewBox, and its own `prefers-color-scheme: dark` variant for dark browser chrome. |
 | Safari before 26 | `public/favicon-32.png` | 32 px, transparent: Safari only shows SVG favicons since 26. |
 | iOS home screen | `public/apple-touch-icon.png` | 180 px on white: iOS paints transparency black, and rounds the corners itself. |
@@ -48,12 +55,14 @@ the yellow band.
 - In running text the name is `<AppName />`, which keeps it on one line: a
   line ending in "super-" reads as two words. The header's name may still
   wrap below 280 px, rather than push the buttons off screen.
-- 30 px wide in the header, 64 px on Home. Not below 24 px, where the gaps
-  between the bands close up. Keep a quarter of its width clear around it.
-- Never recolour the bands, stretch it, outline it, or set it on anything but
-  the page's own surfaces.
+- 30 px wide in the header, 64 px on Home. Not below 24 px except as the
+  favicon: smaller, the gaps around the S close up. Keep a quarter of its
+  width clear around it.
+- Never recolour its greens and reds, stretch it, outline it, or set it on
+  anything but the page's own surfaces.
 - To change it: `Logo.tsx` and `favicon.svg` both hold the drawing of
-  `icon.svg` without the editor's data (sodipodi and inkscape attributes, path
+  `icon.svg` (the paper, the two halves, the S and the two sides), without
+  anything an editor adds (Inkscape's sodipodi and inkscape attributes, path
   effects, gradients pointing at other gradients). Copy the new path data into
   both; keep the tight viewBox (`-15 14 230 202`) for the inline mark and the
   square one (`-16 -1 232 232`) for the favicon; render the two PNGs from the
@@ -115,8 +124,8 @@ from both.
 **Above the page and the brand:** `--backdrop` (behind dialogs); `--toast` and
 `--toast-fg`, inverted (a dark toast on a light page, a light one on a dark
 page); `--shadow-color`, from which `--shadow-1` to `--shadow-3` are made;
-`--glow-red`, `--glow-yellow`, `--glow-green`, the logo's bands as a faint
-light over the top of each page (about a third opaque in light, under a tenth
+`--glow-red`, `--glow-yellow`, `--glow-green`, the logo's lightest red and
+green, with yellow between them, as a faint light over the top of each page (about a third opaque in light, under a tenth
 in dark), gone by 480 px so that ballots and results sit on plain surfaces;
 `--logo-frame-start`, `--logo-frame-end`, `--logo-paper-start`,
 `--logo-paper-end`, the mark's frame and paper.
@@ -255,7 +264,8 @@ lines.
   translucent over a blur: back on the left (not on Home), the brand in the
   middle, Settings on the right. Toasts sit just under it.
 - A poll's page: its title on the page itself (not in a card), any callout,
-  the ballot, the invitations (the creator's), the results, when the poll will
+  the polls its creator has left for the day when few are (a warning hint), the
+  ballot, the invitations (the creator's), the results, when the poll will
   be deleted, the creator's actions, and in development the ballot feeder.
 
 ## Components

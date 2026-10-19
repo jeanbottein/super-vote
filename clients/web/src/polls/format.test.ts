@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ballotCount, timeAgo } from './format';
+import { ballotCount, timeAgo, waitUntil } from './format';
 
 describe('timeAgo', () => {
   const now = Date.parse('2026-09-24T12:00:00Z');
@@ -13,6 +13,25 @@ describe('timeAgo', () => {
     ['2025-09-24T12:00:00Z', 'last year'],
   ])('reads %s as "%s"', (date, expected) => {
     expect(timeAgo(date, now)).toBe(expected);
+  });
+});
+
+describe('waitUntil', () => {
+  const now = Date.parse('2026-09-24T12:00:00Z');
+
+  it.each([
+    [1_000, '1 minute'],
+    [60_000, '1 minute'],
+    [61_000, '2 minutes'],
+    [3_600_000, '1 hour'],
+    [5 * 3_600_000 + 60_000, '6 hours'],
+    [24 * 3_600_000, '24 hours'],
+  ])('rounds a wait of %i ms up, to "%s", so that it is never too soon', (wait, expected) => {
+    expect(waitUntil(now + wait, now)).toBe(expected);
+  });
+
+  it('says at least a minute, even for a moment past', () => {
+    expect(waitUntil(now - 5_000, now)).toBe('1 minute');
   });
 });
 
