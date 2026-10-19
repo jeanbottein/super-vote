@@ -15,8 +15,10 @@ ports and adapters, no interface per implementation, no mapper per boundary.
 The MVP is for groups deciding together: private polls shared by link or join
 code, or by invitation (one link per voter, sent by the creator), optional
 voter names shown as a cloud, results live, delayed or at close (the
-creator's choice), ballots unlinkable at rest, polls deleted after 30 days,
-public polls off until accounts. Under it, one poll must scale to billions of
+creator's choice), options as written, A to Z or shuffled per voter (the
+creator's choice too), ballots unlinkable at rest, polls deleted after 30
+days, public polls off until accounts. The web app speaks English and French;
+the server, its errors and everything agents read stay English. Under it, one poll must scale to billions of
 ballots (docs/ROADMAP.md, "Scale"): never let a request's cost grow with a
 poll's size. Next phases (in order): deployment on
 OVHcloud with PostgreSQL, accounts and social sign-in, installable web app,
@@ -28,8 +30,17 @@ those areas.
 ```bash
 ./dev.sh               # server :8080 + web app :5173 (proxies /api to :8080)
 ./dev.sh server|client # one half
-./dev.sh test          # everything CI should run
+./dev.sh test          # what CI runs, but PostgreSQL (.github/workflows/ci.yml)
 ```
+
+CI (`.github/`): `ci.yml` (server tests on H2 and on PostgreSQL, web lint,
+types, tests, build), `codeql.yml` (security-and-quality queries on the
+workflows, Java, TypeScript, Python), `dependencies.yml` (dependency review
+on pull requests; the server's Maven tree submitted from `main`, so that
+Dependabot sees transitive CVEs), `scorecard.yml`, `dependabot.yml`. The
+main branch's ruleset requires them before merging. Actions are pinned by
+commit SHA with the version in a comment: keep it so (Dependabot bumps them),
+and `actionlint` the workflows before pushing.
 
 Server (`servers/java`, Java 25, Maven wrapper; Maven itself is not needed):
 
@@ -67,7 +78,7 @@ row per ballot, one byte per option, for every voting system; the tallies,
 folded from a change log; `Mention`), `api` (controllers, `PollViewService`,
 DTOs, error mapping; the only module that knows both polls and ballots, and
 what a ballot's bytes mean: `BallotFormat`),
-`identity` (voter cookie), `live` (`PollStream`, server-sent events),
+`identity` (voter cookie; refuses requests other sites' pages make), `live` (`PollStream`, server-sent events),
 `statistics` (usage by time zone, day and poll, `StatisticsService`),
 `ratelimit` (what one network may do in a day: `PollQuota`, `WrongCodes`,
 `Network`), `common`
@@ -81,10 +92,12 @@ not a record, or anything imports Reactor (ArchUnit).
 
 **Client**: `src/api` is the only code that talks to the server.
 `src/polls` holds the screens and their hooks (`usePoll`: load, then watch;
-`useBallot`: live or envelope ballot). `src/features/VotingSystem/*` holds
+`useBallot`: live or envelope ballot; `shownOptions`: a shuffled poll's order
+for this visit). `src/features/VotingSystem/*` holds
 presentational ballots and results per voting system. `src/ui` holds shared
-pieces, `src/preferences` the voter's settings, `src/app` the shell and routes
-(`/`, `/new`, `/p/:id`, `/about`, `/statistics`). `src/statistics` holds the
+pieces, `src/preferences` the voter's settings, `src/i18n` everything people
+read (`en.tsx`, `fr.tsx`, `useI18n`, `errorMessage`), `src/app` the shell
+and routes (`/`, `/new`, `/p/:id`, `/about`, `/privacy`, `/statistics`). `src/statistics` holds the
 statistics page, its chart and world map, and a poll's places, loaded only
 when opened. How it looks (tokens, light/dark and
 themes, components, contrast) is `docs/DESIGN.md`: read it before changing a
@@ -97,7 +110,9 @@ server, which is never published. `deploy/README.md` covers the VPS.
 **Contract**: `docs/API.md`. Mirror every DTO change in
 `clients/web/src/api/types.ts`. A poll's `id` is its share token, the only id
 that leaves the server. Errors are RFC 9457 problem documents whose `detail` is
-shown to people as is: write it as a sentence for them.
+an English sentence for a person or an agent: write it as one. The web app
+words what people read from the `type` instead (`errorMessage`), in their
+language. Security, what is protected and what is not: `docs/SECURITY.md`.
 
 ## Rules that are easy to break
 
@@ -127,6 +142,23 @@ shown to people as is: write it as a sentence for them.
   are: a held-back poll's order would say who is winning.
 - **Options go out in the poll's own order, never sorted.** That order is what
   a ballot's bytes are positions in. `rank` is how a client orders them.
+  `optionOrder` is how voters see them: an `ALPHABETICAL` poll was sorted
+  once, at creation (`NaturalOrder`: case and accents aside, numbers by value),
+  so its order *is* A to Z; a `SHUFFLED` one is shown in an order drawn per
+  visit (`shownOptions`, seeded once per page), for the ballot and for ties in
+  the results alike, and never reshuffled by a live update. Only the display
+  moves: ballots name options by id, and exports keep the poll's order.
+- **Everything people read is in `src/i18n`**: `en.tsx` is the source, each
+  translation (`fr.tsx`) is typed by it, so a missing or extra message does
+  not compile. No sentence in a component: add it to both files. Messages are
+  strings, elements, or functions of plain values; numbers, dates and plurals
+  go through `format.ts` (Intl). French follows its typography, which
+  `fr.test.ts` enforces: no-break spaces before `:` and inside « », narrow
+  ones before `; ! ?`, the apostrophe ’, and gender-neutral wording. The
+  server never translates (the owner's decision, 2026-10-19): its sentences
+  are English for agents and machine clients, and the web app words each
+  problem `type` itself, showing the server's `detail` only for
+  `invalid-request`, which the forms prevent by checking the same rules.
 - **Every fetch sends credentials**, and so does `EventSource`: identity is an
   HttpOnly cookie. Without it, every request is a new voter, silently. (The
   dev ballot feeder leaves it out on purpose: `castBallotAsNewVoter`.)
@@ -164,6 +196,14 @@ shown to people as is: write it as a sentence for them.
   publishes. A time zone or region shows once it counts 3 (`VISIBLE`), and a
   poll's places only when its results show: sooner or smaller, they could
   point at someone.
+- **Text is tidied the same way on both sides**: titles, options and names are
+  NFC, single-spaced, and refuse invisible characters but the joiners
+  (`PollService.tidy`, mirrored by `pollForm.ts`'s `tidy` for the form's own
+  checks). Change one, change the other.
+- **Other sites' pages are refused** (`VoterIdentityFilter`: `Sec-Fetch-Site:
+  cross-site`, unless a `GET` navigation), as `/problems/cross-site`; and API
+  answers are `Cache-Control: no-store` unless their endpoint sets its own
+  (`PrivateAnswers`). Anything personal must not opt out.
 - **Limits are per network, in memory, and applied in `PollService`**: a
   poll counts against its network's day once it is valid (`PollQuota`), and
   only a well-formed join code that leads nowhere counts as wrong
@@ -346,6 +386,19 @@ shown to people as is: write it as a sentence for them.
   hash** (`deploy/Caddyfile`). Change the script and
   `src/app/contentSecurityPolicy.test.ts` fails with the new hash; that test
   is why Vite's `server.fs.allow` includes `../../deploy`.
+- **ESLint refuses irregular whitespace**, but French needs no-break spaces:
+  `eslint.config.js` lets `src/i18n/*.tsx` hold them in strings, templates and
+  JSX text, never in code. A test stubbing `navigator` must keep
+  `navigator.languages` (`deviceLanguage` reads it): `Object.create(navigator,
+  { languages: { value: [...] } })`, since `Object.assign` cannot set a getter.
+- **`useI18n` works outside `PreferencesProvider`** (the device's language):
+  component tests render components alone, and the language falls back to
+  jsdom's `en-US`.
+- **The results graph's words are translated, nothing else of it** (the owner
+  asked for French throughout, 2026-10-19): mention names, labels and
+  percentages come from the messages; its axis ticks use `results.tick`,
+  compact in every language, since French's space before % made them touch
+  on a narrow card.
 - **Tests wait for their fold** (`super-vote.fold-patience: 10s`), so a ballot's
   answer counts it; in production the wait is 250 ms. The server's tests
   also pass on PostgreSQL: see `servers/java/README.md`.

@@ -17,6 +17,7 @@ the codebase as simple as it found it: add what the phase needs, no more.
 | 5c | Invitation polls: the creator sends each voter a link of their own, good for one ballot in the browser that first votes with it, and sees which links were used, never what anyone chose. Links are signed, not stored: a billion invitations cost a counter |
 | 5d | A backend agents can use: voter tokens as bearer tokens, `Idempotency-Key` on the two creating POSTs, invitations named a hundred at a time with their links, a cacheable `GET /api/polls/{id}/results`, a one-time handover so a poll made for someone becomes theirs, machine-readable problem types, OpenAPI at `/v3/api-docs`, and the same services as MCP tools at `/api/mcp`. The ranking moved to the server, so the winner is in the results and the GMJ math has one home |
 | 5e | Ready for the internet: limits by network, in memory (20 polls a day, said in the `RateLimit` fields and warned of from the last five; join codes refused for a day after 5 wrong in a row or 20 in a day, links never), the client's address read from the proxy, the edge configuration (`deploy/Caddyfile`: HTTPS only, one origin, security headers, body limit), and super-vote described for agents (`/llms.txt`, and in each page's `<head>`) |
+| 5f | Ready for the first users: CI on every pull request (server on H2 and PostgreSQL, web), CodeQL security-and-quality scans, dependency review and the server's Maven tree submitted so Dependabot sees transitive CVEs, Scorecard, a security policy and threat model (docs/SECURITY.md), and branch rules requiring them; the web app in English and French (typed messages, French typography, errors worded from problem types; the server stays English); the option order chosen by the creator (as written, A to Z by natural order, or shuffled per voter and visit); a home page that explains super-vote and its limits, with a wide layout on desktop; a privacy and limits page; requests from other sites refused, API answers never cached, invisible characters refused in options; schema changes as added migrations only |
 
 ## Next
 
@@ -26,12 +27,13 @@ Before accounts, which need an HTTPS domain: super-vote.org, the project's
 own. A small OVHcloud VPS in France is enough (the native image serves on
 about 100 MB): Docker Compose with Caddy (automatic Let's Encrypt certificates)
 in front of the server and PostgreSQL, and a nightly `pg_dump` to OVH Object
-Storage. GitHub Actions runs the tests, builds the image, pushes it to GHCR
-and deploys it.
+Storage. GitHub Actions already runs the tests and the scans on every pull
+request (phase 5f); left: building the image, pushing it to GHCR and
+deploying it.
 
-- **PostgreSQL**: supported already, and the test suite passes on it (see
-  the server's README). Left for CI: a PostgreSQL profile (a service
-  container, or Testcontainers). The connection URL sets a lock timeout
+- **PostgreSQL**: supported already, and the test suite passes on it, in CI
+  too (a service container, phase 5f). Schema changes are migrations added,
+  never rewritten: Flyway upgrades every database at startup. The connection URL sets a lock timeout
   (`?options=-c%20lock_timeout%3D2s`). Locally H2 stays, so nothing needs
   installing.
 - **Startup and memory**: measured in [PERFORMANCE.md](PERFORMANCE.md). The
@@ -65,7 +67,9 @@ and deploys it.
   Access logs keep no request bodies, and only for a short time. Backups
   stay logical (`pg_dump`): a physical copy keeps which transaction wrote
   each row, and with it which name goes with which ballot.
-- **Legal pages** (France and the EU; a checklist, not legal advice). The voter
+- **Legal pages** (France and the EU; a checklist, not legal advice). The
+  privacy page is written (`/privacy`, phase 5f), with GitHub issues as its
+  contact; left are the publisher's notice and the record of processing. The voter
   cookie and voter names are personal data, so GDPR applies already: a privacy
   page (what is stored, why, for how long, your rights, a contact address;
   and plainly, that ballots are unlinkable at rest but the server operator

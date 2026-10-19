@@ -50,8 +50,8 @@ from a private address only.
 |---|---|
 | OVHcloud's network (anti-DDoS, included) | floods, before they reach the VPS |
 | The VPS's firewall | everything but SSH, 80 and 443 |
-| Caddy | plain HTTP (HSTS), slow clients (timeouts), bodies over 64 KB, injected scripts and framing (Content Security Policy), a poll's address passed on to other sites (`Referrer-Policy: no-referrer`), unlisted polls in search engines (`X-Robots-Tag: noindex` on `/p/*`) |
-| The server | a network creating more than 20 polls a day, or guessing join codes ([docs/API.md](../docs/API.md#fair-use)); and identity, invitations and ballots ([docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md#identity)) |
+| Caddy | plain HTTP (HSTS), slow clients (timeouts), bodies over 64 KB, injected scripts and framing (Content Security Policy), other sites' windows and reads (`Cross-Origin-Opener-Policy`, `-Resource-Policy`), a poll's address passed on to other sites (`Referrer-Policy: no-referrer`), unlisted polls in search engines (`X-Robots-Tag: noindex` on `/p/*`) |
+| The server | a network creating more than 20 polls a day, or guessing join codes ([docs/API.md](../docs/API.md#fair-use)); requests other sites' pages make; personal answers left in caches (`no-store`); and identity, invitations and ballots ([docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md#identity)). The whole picture: [docs/SECURITY.md](../docs/SECURITY.md) |
 
 Nothing that grants anything can be guessed: a poll's link holds 128 random
 bits, a voter's token 256, an invitation or a handover a 128-bit signature. A

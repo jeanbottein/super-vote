@@ -46,7 +46,7 @@ code, in nine modules, one per package under `org.supervote.server`:
 | `polls` | `common`, `ratelimit` | `Poll`, `PollOption`, `PollService`: every rule about polls; who may vote, in `InvitationService` and `InvitationLinks` |
 | `ballots` | nothing | ballots, one byte per option; their tallies (`TallyService`); `Mention` |
 | `api` | everything | controllers, the services that join polls and ballots, DTOs, the ranking, error mapping, and the MCP tools |
-| `identity` | `common`, `statistics` | the voter token - cookie or bearer - and `VoterIdentityFilter` |
+| `identity` | `common`, `statistics` | the voter token - cookie or bearer - and `VoterIdentityFilter`, which refuses what other sites' pages ask |
 | `statistics` | `polls` | `StatisticsService`: polls, ballots and voters by time zone, day and poll, published hourly |
 | `live` | nothing | `PollStream`: server-sent events |
 | `idempotency` | `common` | doing a request's work once per `Idempotency-Key` |
@@ -104,6 +104,19 @@ not enough to act as a voter. The cookie is
 `HttpOnly` (scripts cannot read it) and `SameSite=Lax` (other sites cannot send
 it with a `POST`, `PUT`, `PATCH` or `DELETE`), and no CORS is enabled, which is
 what protects against cross-site request forgery.
+
+Before anything, the filter refuses a request another website's page made,
+as its browser says (Fetch Metadata, `Sec-Fetch-Site: cross-site`), unless
+it is a person following a link (a `GET` navigation): `403`,
+`/problems/cross-site`, and no cookie. The cookie already keeps other sites
+from acting as a voter; this keeps them from having their visitors' browsers
+try join codes, which would bar those visitors' networks from codes for a
+day, or hand each of them an identity. Clients that are not browsers send no
+such header.
+
+What the API answers is often the caller's own, their ballot above all, so
+no cache keeps it, the browser's included: `Cache-Control: no-store`, unless
+an endpoint answers the same to everyone and says so (`PrivateAnswers`).
 
 Accounts will plug in at the same place: the filter will resolve a signed-in
 account first and the anonymous token second (see [ROADMAP.md](ROADMAP.md)).
@@ -196,6 +209,24 @@ later and shuffled (a job that adds a poll's new names every minute, in
 random order), with the trade-off that a name shows up a minute late. Not
 worth it yet; revisit before names matter more (public polls, accounts).
 
+### The order of the options
+
+The first places on a list draw more support than the others, so a poll's
+creator chooses how its voters see the options (`Poll.OptionOrder`):
+
+- `AS_WRITTEN`, the creator's order.
+- `ALPHABETICAL`, sorted once, when the poll is created (`NaturalOrder`):
+  letters whatever their case and accents (a root collator), and the numbers
+  in a label by their value, so that "Room 9" comes before "Room 10", times
+  and dates written year first in their order. That is then the poll's order.
+- `SHUFFLED`: kept as written, and shown to each voter in an order drawn for
+  the visit (`shownOptions`: a seed drawn when the page opens, and a seeded
+  Fisher-Yates, so every order is as likely). The ballot and the results use
+  it, ties included, and live updates never reshuffle it.
+
+Either way the options travel in the poll's order: a ballot's bytes are
+positions in it, and ballots name options by id. Only what is shown moves.
+
 ### Names and join codes
 
 A creator can make a poll show names. Voters then may give one with their
@@ -204,6 +235,13 @@ shown to everyone on the poll as a cloud under the results: the first 100
 names in alphabetical order, then how many more voted. Its key matches no
 ballot row (see [Anonymity](#anonymity)). Withdrawing the ballot takes the name
 away.
+
+Titles, options and names are tidied as people read them, by the same
+rules on the server (`PollService.tidy`) and in the form (`pollForm.ts`):
+composed one way (NFC), single spaces, and no invisible characters but the
+joiners Persian words and emoji sequences need. Bidi overrides would make
+text read in another order than it is written, and zero widths would make
+two options look alike.
 
 A join code is drawn at random from 31 characters without look-alikes
 (887 million codes), unique among polls. It is shorter than the 128-bit share
@@ -460,7 +498,7 @@ counter), but someone has to hand each link to its person.
 
 `ApiExceptionHandler` turns domain exceptions into RFC 9457 problem documents
 whose `detail` can be shown to people as is: `InvalidRequestException` → 400,
-`NotPollCreatorException` → 403, `PollNotFoundException` → 404,
+`NotPollCreatorException` and `CrossSiteRequestException` → 403, `PollNotFoundException` → 404,
 `PollClosedException`, simultaneous ballots and lock time-outs → 409 ("try
 again"), `TooManyPollsException` and `TooManyWrongCodesException` → 429 with
 `Retry-After`. Spring MVC's own errors use the same format, and anything
@@ -486,6 +524,8 @@ details.
   the MCP tools; `BehindAProxyTest`: the client's address and scheme, read
   from the proxy's headers over a real socket.
 - `LlmsTxtTest`: what an agent reads at `/llms.txt`.
+- `MigrationsTest`: a database holding polls, migrated from an older version
+  to the latest, keeps them.
 - Unit tests for what needs no server: the ballot format (`BallotFormatTest`),
   a voter's keys, the mentions, the configuration's limits, the error mapping,
   networks and the rate limits' counts.
@@ -503,7 +543,8 @@ tokens do the job.
 ```
 src/
   index.tsx            entry: applies saved preferences, renders <App>
-  app/                 the shell: routes, header, settings, not-found page
+  app/                 the shell: routes, header, footer, settings, about, privacy, not-found pages
+  i18n/                what people read: en.tsx (the source), fr.tsx, useI18n, Intl formatting, errorMessage
   api/                 the only code that talks to the server (fetch + EventSource)
   polls/               the screens (home, new poll, poll) and their hooks
   statistics/          the statistics page, its chart and world map, a poll's places; loaded when opened
@@ -529,11 +570,31 @@ the same way `api` composes polls and ballots on the server.
 | `/new` | create a poll |
 | `/p/:id` | a poll: your ballot, the live results, and the creator's controls |
 | `/about` | how results are decided, the research behind it, the source code |
+| `/privacy` | what is kept and for how long, who sees what, what super-vote is not for |
 | `/statistics` | polls, ballots and visitors: totals, the last 90 days, and a map of time zones |
 
 A poll's page address is its share link. An invitation's link adds the
 invitation in the fragment (`#invitation=...`), which the page passes to the
 server in a header.
+
+### Languages
+
+The web app speaks English and French, and its people read nothing else:
+every sentence is a message in `src/i18n`, English in `en.tsx` and French in
+`fr.tsx`, typed by the English so that a translation missing a message, or
+holding one too many, does not compile. A message is a string, an element,
+or a function of plain values; numbers, dates, relative times and plurals go
+through the browser's `Intl` for the language (`format.ts`). `useI18n()`
+answers the language chosen in Settings, or the first of the device's that
+the app speaks, and `<html lang>` follows it.
+
+The server does not translate: its sentences are English, for agents and
+machine clients as much as for people, and stable. The web app words a
+refused request itself, from the problem's `type`, which is the contract
+(`errorMessage`), and shows the server's sentence only for `invalid-request`,
+whose rule the forms check before sending. Adding a language is a file
+(`<language>.tsx`, typed `Messages`), an entry in `LANGUAGES`, and the
+typography test's rules if it has its own.
 
 ### Data flow on a poll page
 
@@ -606,10 +667,12 @@ lightness, lighter is better, readable whatever colours a person can tell apart.
 
 ### Tests
 
-Vitest runs in jsdom: the GMJ math, the API client (with fake `fetch` and
-`EventSource`), the ballot state machine, the form rules, the ballots and
-results, the preferences, the toasts, and every screen with the API mocked,
-including a lost stream and its recovery. `npm run coverage` measures them. The
+Vitest runs in jsdom: the API client (with fake `fetch` and `EventSource`),
+the ballot state machine, the form rules, the ballots and results, the
+preferences, the toasts, every screen with the API mocked (a lost stream and
+its recovery, a shuffled poll's order through updates, the language switch),
+the formatting in both languages, the wording of every problem type, and
+French typography over every message (`fr.test.ts`). `npm run coverage` measures them. The
 end-to-end behaviour (two voters, live updates, a server restart, phone and
 desktop layouts) was checked in a real browser; automating that in CI with
 Playwright is on the roadmap.
@@ -648,6 +711,10 @@ Playwright is on the roadmap.
 | Statistics by time zone, hourly, from 3 up | No address is ever read or located, no country named, nothing kept about a ballot or a voter; an hour's delay and the threshold keep them from pointing at anyone. |
 | A map of land and time-zone cities, no borders | Borders are claims; a country map has to take sides (Taiwan, Kashmir, Crimea). Land and cities do not, and the time zone is all the server knows anyway. |
 | No client state library | Two data hooks and one ballot hook are all the state there is. |
+| Translations in the web app only, typed, no library | The server speaks English to everyone, agents included; the web app's messages are plain TypeScript, so a missing translation does not compile, and two languages need no runtime. |
+| The option order chosen by the creator | The first places draw support: alphabetical sorts once, shuffled draws an order per visit, and the wire order never changes, so ballots mean what they meant. |
+| Flyway, migrations only added | Every database, production and development alike, upgrades itself at startup and keeps its rows. Liquibase Community left open source with 5.0 (Functional Source License); Flyway's core is Apache 2.0. |
+| Refusing other sites' pages (Fetch Metadata) | The cookie already stops another site acting as a voter; this stops it spending its visitors' join-code allowance or identities. |
 
 ## Known limits
 

@@ -1,5 +1,9 @@
 # super-vote
 
+[![CI](https://github.com/jeanbottein/super-vote/actions/workflows/ci.yml/badge.svg)](https://github.com/jeanbottein/super-vote/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/jeanbottein/super-vote/actions/workflows/codeql.yml/badge.svg)](https://github.com/jeanbottein/super-vote/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/jeanbottein/super-vote/badge)](https://scorecard.dev/viewer/?uri=github.com/jeanbottein/super-vote)
+
 super-vote is an open-source voting platform for deciding together: pick a
 restaurant with friends, choose an offsite with a team, run a live poll in
 front of an audience. It implements **majority judgment**, with the graduated
@@ -18,6 +22,9 @@ in, on a phone or a desktop, with nothing to install and no account needed.
   with the GMJ score.
 - **Approval voting**: voters tick every option they would accept.
 - **Live results**, pushed to everyone watching the poll.
+- **A neutral order**: the creator shows the options as written, from A to Z
+  (numbers by value: 2 before 10), or shuffled for each voter, since the
+  first places on a list draw more support.
 - **Revisable ballots**: change or withdraw your ballot until the poll closes.
   Vote *live* (every tap counts) or *in an envelope* (review, then submit).
 - **Private polls**, shared by link, join code (`K7M-4QX`), QR code or your
@@ -34,6 +41,11 @@ in, on a phone or a desktop, with nothing to install and no account needed.
   million ballots as at ten, on PostgreSQL ([measured](docs/PERFORMANCE.md#ballots-at-scale)).
 - **Mobile first**: light and dark themes, and a colour-blind-friendly
   palette.
+- **In English and French**, the web app's every word, and ready for more
+  languages.
+- **Honest about its limits**: a privacy and limits page says what is kept,
+  who sees what, and that super-vote is for everyday decisions, not for
+  official votes.
 - **Open to agents**: the same services as an HTTP API and as MCP tools,
   explained to them at `/llms.txt`.
 
@@ -84,6 +96,8 @@ path to keep it elsewhere. The schema is migrated automatically at startup.
   GraalVM native images, and ballots at scale, measured.
 - [deploy/README.md](deploy/README.md): on the internet: one HTTPS address,
   what is exposed, and what protects it.
+- [docs/SECURITY.md](docs/SECURITY.md): what is protected, against whom, and
+  what is not; [SECURITY.md](SECURITY.md) to report a vulnerability.
 
 <img src="docs/images/desktop-results.png" width="560" alt="Majority judgment results on a desktop, dark theme">
 
@@ -121,8 +135,10 @@ The code is under the [MIT licence](LICENSE). Design and brand assets may later
 live in a separate repository under a different licence.
 
 This is an early-stage project, and contributions are welcome: bug reports,
-ideas and patches, especially about correctness, usability and live behaviour.
-Before sending code, run `./dev.sh test`.
+ideas and patches, especially about correctness, usability and live behaviour,
+and translations (one file in `clients/web/src/i18n`). Before sending code,
+run `./dev.sh test`; every pull request also runs the tests on PostgreSQL,
+CodeQL and a review of new dependencies, and must pass them to be merged.
 
 ### References
 
