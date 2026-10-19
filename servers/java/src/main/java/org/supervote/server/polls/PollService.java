@@ -11,6 +11,7 @@ import org.supervote.server.ratelimit.WrongCodes;
 
 import java.security.SecureRandom;
 import java.text.Collator;
+import java.text.Normalizer;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -39,10 +40,15 @@ public class PollService {
     private static final Pattern NOT_IN_JOIN_CODES = Pattern.compile("[^A-Z0-9]");
     private static final Pattern JOIN_CODE = Pattern.compile("[" + JOIN_CODE_ALPHABET + "]{" + JOIN_CODE_LENGTH + "}");
     private static final String NO_POLL_WITH_THIS_CODE = "No poll has this code. Check it with the person who shared it.";
-    /** Tabs, line breaks and every Unicode space: a name keeps single spaces between its words. */
+    /** Tabs, line breaks and every Unicode space: text keeps single spaces between its words. */
     private static final Pattern SPACES = Pattern.compile("[\\s\\p{Z}]+");
-    /** Controls and invisible format characters (bidi overrides, zero widths), but the joiner of emoji sequences. */
-    private static final Pattern INVISIBLE = Pattern.compile("[\\p{Cc}\\p{Cf}&&[^\\x{200D}]]");
+    /**
+     * Controls and invisible format characters: bidi overrides, which make text read in another order than
+     * it is written, and zero widths, which make two texts look alike. Not the joiners, which words in some
+     * scripts (the non-joiner, in Persian) and emoji sequences (the joiner) need.
+     */
+    private static final Pattern INVISIBLE = Pattern.compile("[\\p{Cc}\\p{Cf}&&[^\\x{200C}\\x{200D}]]");
+    private static final Pattern JOINERS = Pattern.compile("[\\x{200C}\\x{200D}]");
     private static final long MIN_RESULTS_AFTER_BALLOTS = 3;
     /** A cloud of names says who took part; past a hundred, it would only be a list to scroll. */
     private static final int SHOWN_NAMES = 100;
@@ -70,7 +76,8 @@ public class PollService {
     @Transactional
     public Poll create(CreatePollRequest request, String creatorId, Network network) {
         var title = validTitle(request.title());
-        var labels = validLabels(request.options());
+        var optionOrder = request.optionOrder() == null ? Poll.OptionOrder.AS_WRITTEN : request.optionOrder();
+        var labels = inOrder(validLabels(request.options()), optionOrder);
         var votingSystem = offered(request.votingSystem());
         var visibility = offered(request.visibility());
         var invitationOnly = Boolean.TRUE.equals(request.invitationOnly());
@@ -93,6 +100,7 @@ public class PollService {
             showVoterNames,
             resultsShown,
             resultsAfterBallots,
+            optionOrder,
             now(),
             null,
             handover));
@@ -296,21 +304,30 @@ public class PollService {
         return voterNames.findByPollIdAndNameKey(poll.id(), nameKey).map(VoterName::name);
     }
 
-    /**
-     * A name as a person typed it, with single spaces between its words and
-     * none around them; blank, it is "". Refused if too long, or if it holds
-     * invisible characters.
-     */
+    /** A name as everyone will read it (see {@link #tidy}); blank, it is "". Refused if too long, or not all visible. */
     String validName(String raw) {
-        var name = raw == null ? "" : SPACES.matcher(raw).replaceAll(" ").strip();
+        var name = tidy(raw);
         var max = settings.limits().maxVoterNameLength();
         if (name.length() > max) {
             throw new InvalidRequestException("A name can be at most " + max + " characters long.");
         }
-        if (INVISIBLE.matcher(name).find()) {
-            throw new InvalidRequestException("A name can only hold visible characters.");
-        }
+        requireVisible(name, "A name can only hold visible characters.");
         return name;
+    }
+
+    /**
+     * Text as a person typed it, as everyone will read it: its characters
+     * composed one way (NFC, so that an "é" typed two ways is one letter),
+     * single spaces between its words and none around them.
+     */
+    private static String tidy(String raw) {
+        return raw == null ? "" : SPACES.matcher(Normalizer.normalize(raw, Normalizer.Form.NFC)).replaceAll(" ").strip();
+    }
+
+    private static void requireVisible(String text, String refusal) {
+        if (INVISIBLE.matcher(text).find()) {
+            throw new InvalidRequestException(refusal);
+        }
     }
 
     private Duration lifetime() {
@@ -338,6 +355,15 @@ public class PollService {
         return showsWhoVoted ? Poll.ResultsShown.AFTER_CLOSING : Poll.ResultsShown.LIVE;
     }
 
+    /**
+     * The options as voters see them, which is their order in the poll: an
+     * alphabetical poll is sorted once, here, so that every client shows the
+     * same order and the ballots' bytes follow it.
+     */
+    private static List<String> inOrder(List<String> labels, Poll.OptionOrder order) {
+        return order == Poll.OptionOrder.ALPHABETICAL ? labels.stream().sorted(NaturalOrder.INSTANCE).toList() : labels;
+    }
+
     /** Below three ballots, the results are the ballots: two voters each read the other's. */
     private static long validThreshold(Long ballots) {
         if (ballots == null || ballots < MIN_RESULTS_AFTER_BALLOTS) {
@@ -348,7 +374,7 @@ public class PollService {
     }
 
     private String validTitle(String raw) {
-        var title = raw == null ? "" : raw.strip();
+        var title = tidy(raw);
         var max = settings.limits().maxTitleLength();
         if (title.isEmpty()) {
             throw new InvalidRequestException("A poll needs a title.");
@@ -356,13 +382,14 @@ public class PollService {
         if (title.length() > max) {
             throw new InvalidRequestException("A title can be at most " + max + " characters long.");
         }
+        requireVisible(title, "A title can only hold visible characters.");
         return title;
     }
 
     private List<String> validLabels(List<String> raw) {
         var labels = raw == null
             ? List.<String>of()
-            : raw.stream().map(label -> label == null ? "" : label.strip()).toList();
+            : raw.stream().map(PollService::tidy).toList();
         var limits = settings.limits();
         if (labels.size() < 2 || labels.size() > limits.maxOptions()) {
             throw new InvalidRequestException(
@@ -377,7 +404,9 @@ public class PollService {
                 throw new InvalidRequestException(
                     "An option can be at most " + limits.maxOptionLength() + " characters long.");
             }
-            if (!seen.add(label.toLowerCase(Locale.ROOT))) {
+            requireVisible(label, "An option can only hold visible characters.");
+            // Two options that differ only by case, or by a joiner nobody sees, would look alike on the ballot.
+            if (!seen.add(JOINERS.matcher(label).replaceAll("").toLowerCase(Locale.ROOT))) {
                 throw new InvalidRequestException(
                     "\"" + label + "\" is listed twice. Each option must be different.");
             }

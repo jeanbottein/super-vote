@@ -42,7 +42,8 @@ describe('sharing a poll', () => {
 
   it("goes through the device's share sheet where there is one", async () => {
     const share = vi.fn().mockResolvedValue(undefined);
-    vi.stubGlobal('navigator', Object.assign(Object.create(navigator), { share }));
+    // A navigator of the test's own, the device's languages included, which the page reads too.
+    vi.stubGlobal('navigator', Object.create(navigator, { share: { value: share }, languages: { value: ['en-US'] } }));
     await openShare();
 
     await userEvent.click(screen.getByRole('button', { name: 'Share through an app' }));

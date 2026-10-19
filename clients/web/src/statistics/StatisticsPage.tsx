@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { errorMessage, getStatistics } from '../api/client';
+import { getStatistics } from '../api/client';
 import type { Activity, Statistics } from '../api/types';
-import AppName from '../ui/AppName';
+import { errorMessage } from '../i18n/errorMessage';
+import { useI18n } from '../i18n/i18n';
 import SegmentedControl from '../ui/SegmentedControl';
-import { formatCount } from '../utils/formatCount';
 import ActivityChart from './ActivityChart';
 import { placeOf, regionName } from './geography';
 import PlacesTable, { type Column } from './PlacesTable';
@@ -11,18 +11,7 @@ import WorldMap from './WorldMap';
 
 type Measure = keyof Activity;
 
-const MEASURES: Column<Measure>[] = [
-  { key: 'voters', label: 'Visitors' },
-  { key: 'polls', label: 'Polls' },
-  { key: 'ballots', label: 'Ballots' },
-];
-
-const updated = new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' });
-
-/** "3 visitors", "1 poll". */
-export function plural(count: number, noun: string): string {
-  return `${formatCount(count)} ${noun}${count === 1 ? '' : 's'}`;
-}
+const MEASURES: Measure[] = ['voters', 'polls', 'ballots'];
 
 /**
  * How much super-vote is used, when and where: totals, the last 90 days, and a
@@ -31,8 +20,9 @@ export function plural(count: number, noun: string): string {
  * names no country.
  */
 export default function StatisticsPage() {
+  const { t } = useI18n();
   const [statistics, setStatistics] = useState<Statistics | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<unknown>(null);
   const [measure, setMeasure] = useState<Measure>('voters');
   const [selected, setSelected] = useState<string | null>(null);
   const [focus, setFocus] = useState(0);
@@ -41,7 +31,7 @@ export default function StatisticsPage() {
     let active = true;
     getStatistics().then(
       (answer) => active && setStatistics(answer),
-      (failure: unknown) => active && setError(errorMessage(failure)),
+      (reason: unknown) => active && setFailure(reason ?? new Error('The statistics could not be read')),
     );
     return () => {
       active = false;
@@ -52,35 +42,35 @@ export default function StatisticsPage() {
     setSelected(timeZone);
     setFocus((count) => count + 1);
   };
-  const noun = MEASURES.find((option) => option.key === measure)!.label.toLowerCase();
+  const columns: Column<Measure>[] = MEASURES.map((key) => ({ key, label: t.statistics.measures[key].label }));
 
   return (
     <>
-      <title>Statistics · super-vote</title>
+      <title>{t.statistics.title}</title>
       <section className="hero">
-        <h1><AppName /> around the world</h1>
-        <p>How many polls, ballots and visitors, when, and from where.</p>
+        <h1>{t.statistics.heading}</h1>
+        <p>{t.statistics.lead}</p>
       </section>
 
-      {error ? (
-        <p className="panel error-text" role="alert">{error}</p>
+      {failure !== null ? (
+        <p className="panel error-text" role="alert">{errorMessage(failure, t)}</p>
       ) : !statistics ? (
-        <p className="empty" aria-busy="true">Loading…</p>
+        <p className="empty" aria-busy="true">{t.loading}</p>
       ) : (
         <>
           <Totals statistics={statistics} />
-          <SegmentedControl<Measure> legend="Show" name="measure" value={measure}
-            options={MEASURES.map((option) => ({ value: option.key, label: option.label }))}
+          <SegmentedControl<Measure> legend={t.statistics.show} name="measure" value={measure}
+            options={columns.map((column) => ({ value: column.key, label: column.label }))}
             onChange={setMeasure} />
           <section className="panel statistics-panel">
-            <h2>Over the last 90 days</h2>
-            <ActivityChart days={statistics.days} asOf={statistics.asOf} measure={measure} noun={noun} />
+            <h2>{t.statistics.lastDays}</h2>
+            <ActivityChart days={statistics.days} asOf={statistics.asOf} measure={measure} />
           </section>
           <section className="panel statistics-panel">
-            <h2>Where</h2>
+            <h2>{t.statistics.where}</h2>
             <WorldMap
               dots={statistics.places.map((place) => ({ timeZone: place.timeZone, count: place[measure] }))}
-              what={noun}
+              what={t.statistics.measures[measure].plural}
               selected={selected}
               onSelect={setSelected}
               focus={focus}
@@ -88,34 +78,20 @@ export default function StatisticsPage() {
             <Chosen timeZone={selected} statistics={statistics} />
           </section>
           <section className="panel statistics-panel">
-            <h2>By region</h2>
+            <h2>{t.statistics.byRegion}</h2>
             {statistics.regions.length === 0 ? (
-              <p className="empty">No region yet.</p>
+              <p className="empty">{t.statistics.noRegion}</p>
             ) : (
-              <PlacesTable regions={statistics.regions} places={statistics.places} columns={MEASURES}
+              <PlacesTable regions={statistics.regions} places={statistics.places} columns={columns}
                 orderBy={measure} onShow={showOnMap} />
             )}
             <Unplaced statistics={statistics} />
           </section>
           <section className="panel statistics-panel">
-            <h2>How these are counted</h2>
-            <p>
-              A visitor is a browser or an app that came to <AppName />: one person on two devices counts twice.
-              A ballot counts once, however often its voter changes it.
-            </p>
-            <p>
-              Places come from the time zone your device is set to, never from your address, and only
-              totals are kept. A place shows once three visitors come from it. The numbers are updated
-              every hour, so that they cannot be matched with the ballots of one poll as they come in.
-              Last updated {updated.format(new Date(statistics.asOf))}.
-            </p>
-            <p className="hint">
-              Each dot is the city a time zone is named after, standing for everyone in that zone. Days
-              are in UTC. Land from{' '}
-              <a href="https://www.naturalearthdata.com" target="_blank" rel="noreferrer">Natural Earth</a>,
-              time zones from the{' '}
-              <a href="https://www.iana.org/time-zones" target="_blank" rel="noreferrer">IANA database</a>.
-            </p>
+            <h2>{t.statistics.howCounted}</h2>
+            <p>{t.statistics.howCountedText}</p>
+            <p>{t.statistics.places(t.moment(statistics.asOf))}</p>
+            <p className="hint">{t.statistics.sources}</p>
           </section>
         </>
       )}
@@ -124,18 +100,19 @@ export default function StatisticsPage() {
 }
 
 function Totals({ statistics }: { statistics: Statistics }) {
+  const { t } = useI18n();
   const totals = [
-    { label: 'Polls created', value: statistics.polls },
-    { label: 'Open now', value: statistics.openPolls },
-    { label: 'Ballots cast', value: statistics.ballots },
-    { label: 'Visitors', value: statistics.voters },
+    { label: t.statistics.totals.polls, value: statistics.polls },
+    { label: t.statistics.totals.openPolls, value: statistics.openPolls },
+    { label: t.statistics.totals.ballots, value: statistics.ballots },
+    { label: t.statistics.totals.voters, value: statistics.voters },
   ];
   return (
     <dl className="statistics-totals">
       {totals.map((total) => (
         <div key={total.label} className="panel">
           <dt>{total.label}</dt>
-          <dd>{formatCount(total.value)}</dd>
+          <dd>{t.number(total.value)}</dd>
         </div>
       ))}
     </dl>
@@ -144,30 +121,33 @@ function Totals({ statistics }: { statistics: Statistics }) {
 
 /** The numbers of the place chosen on the map or in the table. */
 function Chosen({ timeZone, statistics }: { timeZone: string | null; statistics: Statistics }) {
+  const { t } = useI18n();
   const place = statistics.places.find((candidate) => candidate.timeZone === timeZone);
   if (!place) {
-    return <p className="statistics-chosen hint">Tap a dot to see its numbers.</p>;
+    return <p className="statistics-chosen hint">{t.statistics.tapADot}</p>;
   }
   const { city, region } = placeOf(place.timeZone);
+  const { voters, polls, ballots } = t.statistics.measures;
   return (
     <div className="statistics-chosen" aria-live="polite">
-      <h3>{city} <span className="hint">· {regionName(region)}</span></h3>
-      <p>{plural(place.voters, 'visitor')} · {plural(place.polls, 'poll')} · {plural(place.ballots, 'ballot')}</p>
+      <h3>{city} <span className="hint">· {regionName(region, t.statistics.regions)}</span></h3>
+      <p>{voters.count(place.voters)} · {polls.count(place.polls)} · {ballots.count(place.ballots)}</p>
     </div>
   );
 }
 
 /** What the totals hold that no region shows: no time zone, or too few to show. */
 function Unplaced({ statistics }: { statistics: Statistics }) {
+  const { t } = useI18n();
   const rest = (measure: Measure) =>
     statistics[measure] - statistics.regions.reduce((sum, region) => sum + region[measure], 0);
   if (rest('voters') + rest('polls') + rest('ballots') === 0) {
     return null;
   }
+  const { voters, polls, ballots } = t.statistics.measures;
   return (
     <p className="hint">
-      Not shown in any region, for want of a time zone or of enough people to show:{' '}
-      {plural(rest('voters'), 'visitor')}, {plural(rest('polls'), 'poll')} and {plural(rest('ballots'), 'ballot')}.
+      {t.statistics.unplaced(voters.count(rest('voters')), polls.count(rest('polls')), ballots.count(rest('ballots')))}
     </p>
   );
 }

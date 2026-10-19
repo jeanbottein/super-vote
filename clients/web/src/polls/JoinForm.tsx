@@ -1,9 +1,12 @@
 import { useId, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
-import { errorMessage, joinPoll } from '../api/client';
+import { joinPoll } from '../api/client';
+import { errorMessage } from '../i18n/errorMessage';
+import { useI18n } from '../i18n/i18n';
 
 /** Opens a poll from the short code someone read out or showed on a screen. */
 export default function JoinForm() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const inputId = useId();
   const problemId = useId();
@@ -16,7 +19,7 @@ export default function JoinForm() {
     // A code is letters and digits: dashes and spaces, whatever their kind, only help reading it.
     const typed = code.replace(/[^a-z0-9]/gi, '').toUpperCase();
     if (typed === '') {
-      setProblem('Type the code you were given.');
+      setProblem(t.join.typeTheCode);
       return;
     }
     setJoining(true);
@@ -25,14 +28,14 @@ export default function JoinForm() {
       const poll = await joinPoll(typed);
       navigate(`/p/${poll.id}`);
     } catch (error) {
-      setProblem(errorMessage(error));
+      setProblem(errorMessage(error, t));
       setJoining(false);
     }
   }
 
   return (
     <form className="panel join-form" onSubmit={join} noValidate>
-      <label htmlFor={inputId}>Got a code?</label>
+      <label htmlFor={inputId}>{t.join.label}</label>
       <div className="join-row">
         <input
           id={inputId}
@@ -49,7 +52,7 @@ export default function JoinForm() {
           onChange={(event) => setCode(event.target.value)}
         />
         <button type="submit" className="button primary" disabled={joining}>
-          {joining ? 'Joining…' : 'Join'}
+          {joining ? t.join.joining : t.join.join}
         </button>
       </div>
       {problem && <p id={problemId} className="field-problem" role="alert">{problem}</p>}

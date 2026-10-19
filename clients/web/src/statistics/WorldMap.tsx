@@ -1,6 +1,6 @@
 import { useState, type PointerEvent } from 'react';
 import { MinusIcon, PlusIcon } from '../ui/icons';
-import { formatCount } from '../utils/formatCount';
+import { useI18n } from '../i18n/i18n';
 import { placeOf } from './geography';
 import worldMap from './worldMap.json';
 import './statistics.css';
@@ -53,6 +53,7 @@ export function radiusOf(count: number, largest: number): number {
  * for every other way of reading.
  */
 export default function WorldMap({ dots, what, selected, onSelect, focus = 0 }: WorldMapProps) {
+  const { t } = useI18n();
   const [view, setView] = useState(WHOLE);
   /** A press under way: where it started, and whether it has moved far enough to be a drag. */
   const [drag, setDrag] = useState<{ x: number; y: number; from: View; moved: boolean } | null>(null);
@@ -145,7 +146,7 @@ export default function WorldMap({ dots, what, selected, onSelect, focus = 0 }: 
         className="world-map-view"
         viewBox={`${view.x} ${view.y} ${view.width} ${height}`}
         role="img"
-        aria-label={`World map of ${what} by time zone. The table below lists the same numbers.`}
+        aria-label={t.statistics.map(what)}
         data-zoomed={zoomed || undefined}
         data-dragging={drag?.moved || undefined}
         onPointerDown={onPointerDown}
@@ -166,11 +167,11 @@ export default function WorldMap({ dots, what, selected, onSelect, focus = 0 }: 
       <div className="world-map-footer">
         <Legend largest={dots.length ? largest : 0} />
         <div className="world-map-zoom">
-          <button type="button" className="icon-button" aria-label="Zoom out" disabled={!zoomed}
+          <button type="button" className="icon-button" aria-label={t.statistics.zoomOut} disabled={!zoomed}
             onClick={() => zoom(0.5)}>
             <MinusIcon />
           </button>
-          <button type="button" className="icon-button" aria-label="Zoom in" disabled={view.width <= CLOSEST}
+          <button type="button" className="icon-button" aria-label={t.statistics.zoomIn} disabled={view.width <= CLOSEST}
             onClick={() => zoom(2)}>
             <PlusIcon />
           </button>
@@ -182,15 +183,16 @@ export default function WorldMap({ dots, what, selected, onSelect, focus = 0 }: 
 
 /** What the dots mean: from fewer to the largest count. */
 function Legend({ largest }: { largest: number }) {
+  const { t } = useI18n();
   if (largest === 0) {
-    return <p className="world-map-legend">No place to show yet.</p>;
+    return <p className="world-map-legend">{t.statistics.nothingYet}</p>;
   }
   return (
     <p className="world-map-legend">
       <span className="world-map-legend-dot" data-size="small" />
-      fewer
+      {t.statistics.fewer}
       <span className="world-map-legend-dot" data-size="large" />
-      up to {formatCount(largest)}
+      {t.statistics.upTo(t.number(largest))}
     </p>
   );
 }

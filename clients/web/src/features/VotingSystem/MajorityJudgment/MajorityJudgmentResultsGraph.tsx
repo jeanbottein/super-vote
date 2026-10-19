@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { JudgmentCounts, Mention, Score } from '../../../api/types';
-import { formatGMJScore, gmjScore } from './gmjScore';
-import { MENTION_NAMES, MENTIONS_BEST_FIRST } from './mentions';
+import { useI18n } from '../../../i18n/i18n';
+import { gmjScore } from './gmjScore';
+import { MENTIONS_BEST_FIRST } from './mentions';
 
 interface MajorityJudgmentResultsGraphProps {
   optionLabel: string;
@@ -17,7 +18,6 @@ interface MajorityJudgmentResultsGraphProps {
 
 const TICKS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 const MEDALS = ['gold', 'silver', 'bronze'];
-const percent = new Intl.NumberFormat('en', { maximumFractionDigits: 1 });
 
 /** Each mention given, best first: where its slice starts, its share, and the share of it or better, in %. */
 function slicesOf(counts: JudgmentCounts, total: number) {
@@ -56,6 +56,7 @@ export default function MajorityJudgmentResultsGraph({
   rank,
   isExAequo = false,
 }: MajorityJudgmentResultsGraphProps) {
+  const { t } = useI18n();
   const [focused, setFocused] = useState<number | null>(null);
   const chart = useRef<HTMLDivElement>(null);
 
@@ -72,9 +73,10 @@ export default function MajorityJudgmentResultsGraph({
   const slices = slicesOf(judgmentCounts, totalBallots);
   const focus = focused === null ? undefined : slices[focused];
   const medal = rank && rank <= 3 ? MEDALS[rank - 1] : 'false';
+  const percent = (share: number) => t.percent(share / 100);
   const description = empty
-    ? `${optionLabel}: no ballots yet`
-    : `${optionLabel}: ${slices.map((s) => `${MENTION_NAMES[s.mention]} ${percent.format(s.share)}%`).join(', ')}`;
+    ? t.results.noBallotsFor(optionLabel)
+    : t.results.profile(optionLabel, slices.map((s) => `${t.mentions[s.mention]} ${percent(s.share)}`).join(', '));
 
   return (
     <div className="mj-results-card" data-compact={compact} data-winner={!empty && rank === 1}>
@@ -83,7 +85,7 @@ export default function MajorityJudgmentResultsGraph({
           {!empty && rank && (
             <div className="mj-rank-container">
               <div className="mj-rank-badge" data-medal={medal}>{rank}</div>
-              {isExAequo && <span className="mj-ex-aequo">ex aequo</span>}
+              {isExAequo && <span className="mj-ex-aequo">{t.results.exAequo}</span>}
             </div>
           )}
           <div className="mj-results-title">{optionLabel}</div>
@@ -120,9 +122,9 @@ export default function MajorityJudgmentResultsGraph({
             aria-hidden="true"
             style={{ '--at': `${focus.start + focus.share / 2}%` } as CSSProperties}
           >
-            <strong>{MENTION_NAMES[focus.mention]}: {percent.format(focus.share)}%</strong>
+            <strong>{t.results.mentionShare(t.mentions[focus.mention], percent(focus.share))}</strong>
             {focused !== 0 && (
-              <span>{percent.format(focus.orBetter)}% say {MENTION_NAMES[focus.mention]} or better</span>
+              <span>{t.results.orBetter(percent(focus.orBetter), t.mentions[focus.mention])}</span>
             )}
           </div>
         )}
@@ -136,7 +138,7 @@ export default function MajorityJudgmentResultsGraph({
             data-major={tick === 50}
             style={{ '--left': `${tick}%` } as CSSProperties}
           >
-            <span className="mj-tick-label">{tick}%</span>
+            <span className="mj-tick-label">{t.results.tick(tick)}</span>
           </div>
         ))}
       </div>
@@ -144,16 +146,13 @@ export default function MajorityJudgmentResultsGraph({
       {!empty && majorityMention && score && (
         <div className="mj-results-badges-below">
           <div className="mj-results-badges">
-            <span className="mj-results-hint">Majority Mention:</span>
+            <span className="mj-results-hint">{t.results.majorityMention}</span>
             <div className="mj-results-badge" data-judgment={majorityMention}>
-              {MENTION_NAMES[majorityMention]}
+              {t.mentions[majorityMention]}
             </div>
-            <span className="mj-results-hint">GMJ Score:</span>
-            <div
-              className="mj-score-badge"
-              title={`GMJ's usual judgment score: ${gmjScore(score).toFixed(4)}. It breaks ties between options with the same majority mention.`}
-            >
-              {formatGMJScore(score)}
+            <span className="mj-results-hint">{t.results.gmjScore}</span>
+            <div className="mj-score-badge" title={t.results.gmjScoreTitle(t.decimal(gmjScore(score), 4))}>
+              {t.decimal(gmjScore(score), 2)}
             </div>
           </div>
         </div>

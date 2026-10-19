@@ -1,0 +1,67 @@
+# CodeQL reads the code for vulnerabilities and for quality problems (the
+# security-and-quality suite: bugs, dead code, maintainability). Findings are
+# code scanning alerts, in the Security tab and on the pull request's diff, and
+# the main branch's ruleset refuses a pull request that adds a serious one.
+# It runs every week too, since new queries find old code.
+name: CodeQL
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 5 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    name: Analyze ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The workflows themselves: injections, excessive permissions, untrusted checkouts.
+          - language: actions
+            build-mode: none
+          # Compiled, so that CodeQL sees the code as javac does.
+          - language: java-kotlin
+            build-mode: manual
+          - language: javascript-typescript
+            build-mode: none
+          # servers/java/perf/bench.py
+          - language: python
+            build-mode: none
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          # The pom's Java, at its latest patch: setup-java cannot match .tool-versions' build number.
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          cache-dependency-path: servers/java/pom.xml
+      - uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-and-quality
+      - if: matrix.build-mode == 'manual'
+        working-directory: servers/java
+        run: ./mvnw -B -ntp -DskipTests test-compile
+      - uses: github/codeql-action/analyze@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          category: /language:${{ matrix.language }}

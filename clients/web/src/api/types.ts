@@ -28,6 +28,13 @@ export type VotingSystem = 'MAJORITY_JUDGMENT' | 'APPROVAL';
  */
 export type ResultsShown = 'LIVE' | 'AFTER_BALLOTS' | 'AFTER_CLOSING';
 
+/**
+ * How voters see a poll's options: as the creator wrote them, sorted A to Z
+ * (when the poll was created, which made it the poll's order), or shuffled,
+ * in an order of each voter's own, drawn again on each visit.
+ */
+export type OptionOrder = 'AS_WRITTEN' | 'ALPHABETICAL' | 'SHUFFLED';
+
 /** Whether a poll is listed publicly. Anyone with the link or the join code can open either kind. */
 export type Visibility = 'PUBLIC' | 'UNLISTED';
 
@@ -94,6 +101,8 @@ export interface Poll {
   resultsShown: ResultsShown;
   /** AFTER_BALLOTS only: how many ballots must be in. */
   resultsAfterBallots: number | null;
+  /** Chosen at creation: how voters see the options, which still come in the poll's order. */
+  optionOrder: OptionOrder;
   createdAt: string;
   closedAt: string | null;
   /** When the server deletes the poll, with its ballots. */
@@ -143,6 +152,7 @@ export interface NewPoll {
   showVoterNames: boolean;
   resultsShown: ResultsShown;
   resultsAfterBallots: number | null;
+  optionOrder: OptionOrder;
 }
 
 /**

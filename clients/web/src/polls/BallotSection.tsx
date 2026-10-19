@@ -1,10 +1,13 @@
 import { useId, useRef, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
-import { castBallot, errorMessage } from '../api/client';
-import type { Admission, Mention, Poll } from '../api/types';
+import { castBallot } from '../api/client';
+import type { Admission, Mention, OptionOrder, Poll, PollOption } from '../api/types';
 import ApprovalBallot from '../features/VotingSystem/Approval/ApprovalBallot';
 import MajorityJudgmentBallot from '../features/VotingSystem/MajorityJudgment/MajorityJudgmentBallot';
 import MajorityJudgmentDropdownBallot from '../features/VotingSystem/MajorityJudgment/MajorityJudgmentDropdownBallot';
+import type { Messages } from '../i18n/en';
+import { errorMessage } from '../i18n/errorMessage';
+import { useI18n } from '../i18n/i18n';
 import { usePreferences } from '../preferences/preferences';
 import { isEnter } from '../ui/keys';
 import { useToast } from '../ui/Toasts';
@@ -13,6 +16,8 @@ import { useServerInfo } from './useServerInfo';
 
 interface BallotSectionProps {
   poll: Poll;
+  /** The poll's options in the order this voter sees them (shownOptions). */
+  options: PollOption[];
   /** The token from the invitation link the voter came with, if any. */
   invitation: string | null;
   /** Receives the poll as the server returns it after a ballot. */
@@ -21,32 +26,40 @@ interface BallotSectionProps {
 
 /** The voter's own ballot, in the poll's voting system, or why they cannot vote. */
 export default function BallotSection(props: BallotSectionProps) {
+  const { t } = useI18n();
   const { poll, invitation } = props;
   if (poll.admission !== 'ADMITTED') {
-    return <p className="panel callout">{whyNotAdmitted(poll.admission, invitation !== null)}</p>;
+    return <p className="panel callout">{whyNotAdmitted(poll.admission, invitation !== null, t)}</p>;
   }
   return poll.votingSystem === 'MAJORITY_JUDGMENT'
     ? <MajorityJudgmentBallotSection {...props} />
     : <ApprovalBallotSection {...props} />;
 }
 
-function whyNotAdmitted(admission: Exclude<Admission, 'ADMITTED'>, withInvitation: boolean): string {
+function whyNotAdmitted(admission: Exclude<Admission, 'ADMITTED'>, withInvitation: boolean, t: Messages): string {
   if (admission === 'INVITATION_USED') {
-    return 'This invitation was already used, in another browser or on another device. Its ballot can only be changed there.';
+    return t.ballot.invitationUsed;
   }
-  return withInvitation
-    ? 'This invitation link is not valid. Ask whoever invited you for a new one.'
-    : 'Only invited people can vote on this poll. If you were invited, open the link from your invitation.';
+  return withInvitation ? t.ballot.invitationNotValid : t.ballot.notInvited;
 }
 
-/** What a voter invited to the poll should know before using their invitation. */
-const INVITED = 'Your invitation holds one ballot, which only this browser can change once cast. Whoever invited you '
-  + 'sees that it was used, never what you chose.';
+/** What tells a voter the options' order owes nothing to the creator, when it does not. */
+function orderOf(order: OptionOrder, t: Messages): string | null {
+  switch (order) {
+    case 'SHUFFLED':
+      return t.ballot.shuffled;
+    case 'ALPHABETICAL':
+      return t.ballot.alphabetical;
+    default:
+      return null;
+  }
+}
 
 const NO_JUDGMENTS: Record<string, Mention> = {};
 const NO_APPROVALS: string[] = [];
 
-function MajorityJudgmentBallotSection({ poll, invitation, onCast }: BallotSectionProps) {
+function MajorityJudgmentBallotSection({ poll, options, invitation, onCast }: BallotSectionProps) {
+  const { t } = useI18n();
   const [{ mjBallot, submission }] = usePreferences();
   const showToast = useToast();
   const voter = useVoterName(poll);
@@ -56,9 +69,9 @@ function MajorityJudgmentBallotSection({ poll, invitation, onCast }: BallotSecti
     equals: sameJudgments,
     cast: async (judgments) => onCast(await castBallot(poll.id, { judgments, voterName: voter.forBallot }, invitation)),
     castChanged: voter.changedSinceCast,
-    onError: (error) => showToast(errorMessage(error), 'error'),
+    onError: (error) => showToast(errorMessage(error, t), 'error'),
   });
-  const complete = poll.options.every((option) => ballot.ballot[option.id]);
+  const complete = options.every((option) => ballot.ballot[option.id]);
   const Ballot = mjBallot === 'dropdown' ? MajorityJudgmentDropdownBallot : MajorityJudgmentBallot;
 
   return (
@@ -68,21 +81,21 @@ function MajorityJudgmentBallotSection({ poll, invitation, onCast }: BallotSecti
       unsent={ballot.hasChanges}
       busy={ballot.busy}
       canSubmit={ballot.hasChanges && complete}
-      submitLabel={complete ? 'Submit my ballot' : 'Rate every option to submit'}
+      submitLabel={complete ? t.ballot.submit : t.ballot.rateEveryOption}
       onSubmit={ballot.submit}
       onWithdraw={() => ballot.withdraw(NO_JUDGMENTS)}
-      instructions={submission === 'live'
-        ? 'Give every option a mention. Options you have not rated count as Bad.'
-        : 'Give every option a mention, then submit your ballot.'}
+      instructions={submission === 'live' ? t.ballot.majorityJudgmentLive : t.ballot.majorityJudgmentEnvelope}
+      order={orderOf(poll.optionOrder, t)}
       invited={poll.invitationOnly && !poll.isMine}
       nameField={poll.showVoterNames && <VoterNameField poll={poll} voter={voter} onCommit={ballot.recast} />}
     >
-      <Ballot options={poll.options} ballot={ballot.ballot} onChange={ballot.change} />
+      <Ballot options={options} ballot={ballot.ballot} onChange={ballot.change} />
     </BallotFrame>
   );
 }
 
-function ApprovalBallotSection({ poll, invitation, onCast }: BallotSectionProps) {
+function ApprovalBallotSection({ poll, options, invitation, onCast }: BallotSectionProps) {
+  const { t } = useI18n();
   const [{ submission }] = usePreferences();
   const showToast = useToast();
   const voter = useVoterName(poll);
@@ -93,7 +106,7 @@ function ApprovalBallotSection({ poll, invitation, onCast }: BallotSectionProps)
     cast: async (approvedOptionIds) =>
       onCast(await castBallot(poll.id, { approvedOptionIds, voterName: voter.forBallot }, invitation)),
     castChanged: voter.changedSinceCast,
-    onError: (error) => showToast(errorMessage(error), 'error'),
+    onError: (error) => showToast(errorMessage(error, t), 'error'),
   });
 
   return (
@@ -103,14 +116,15 @@ function ApprovalBallotSection({ poll, invitation, onCast }: BallotSectionProps)
       unsent={ballot.hasChanges}
       busy={ballot.busy}
       canSubmit={ballot.hasChanges}
-      submitLabel="Submit my ballot"
+      submitLabel={t.ballot.submit}
       onSubmit={ballot.submit}
       onWithdraw={() => ballot.withdraw(NO_APPROVALS)}
-      instructions="Tick every option you would be happy with."
+      instructions={t.ballot.approval}
+      order={orderOf(poll.optionOrder, t)}
       invited={poll.invitationOnly && !poll.isMine}
       nameField={poll.showVoterNames && <VoterNameField poll={poll} voter={voter} onCommit={ballot.recast} />}
     >
-      <ApprovalBallot options={poll.options} approved={ballot.ballot} onChange={ballot.change} />
+      <ApprovalBallot options={options} approved={ballot.ballot} onChange={ballot.change} />
     </BallotFrame>
   );
 }
@@ -127,6 +141,8 @@ interface BallotFrameProps {
   onSubmit(): void;
   onWithdraw(): void;
   instructions: string;
+  /** Why the options come in the order they do, when the creator did not choose it. */
+  order: string | null;
   /** The voter came with an invitation, which this ballot uses. */
   invited: boolean;
   /** Polls that show names: the voter's name, above the ballot. */
@@ -142,9 +158,10 @@ interface BallotFrameProps {
  */
 function BallotFrame(props: BallotFrameProps) {
   const {
-    mode, counted, unsent, busy, canSubmit, submitLabel, onSubmit, onWithdraw, instructions, invited, nameField,
+    mode, counted, unsent, busy, canSubmit, submitLabel, onSubmit, onWithdraw, instructions, order, invited, nameField,
     children,
   } = props;
+  const { t } = useI18n();
   const titleId = useId();
   const body = useRef<HTMLDivElement>(null);
   const changeButton = useRef<HTMLButtonElement>(null);
@@ -164,10 +181,10 @@ function BallotFrame(props: BallotFrameProps) {
   return (
     <section className="ballot" aria-labelledby={titleId}>
       <div className="section-header">
-        <h2 id={titleId}>Your ballot</h2>
+        <h2 id={titleId}>{t.ballot.yourBallot}</h2>
         {counted && (
           <button type="button" className="button link" disabled={busy} onClick={onWithdraw}>
-            Withdraw
+            {t.ballot.withdraw}
           </button>
         )}
       </div>
@@ -175,28 +192,27 @@ function BallotFrame(props: BallotFrameProps) {
         ? <div className="ballot-body" ref={body} onChange={() => setRevealed(true)}>
           {nameField}
           <p className="hint">{instructions}</p>
-          {invited && !counted && <p className="hint">{INVITED}</p>}
+          {order && <p className="hint">{order}</p>}
+          {invited && !counted && <p className="hint">{t.ballot.invited}</p>}
           {children}
           {mode === 'envelope' && (
             <button type="button" className="button primary wide" disabled={!canSubmit || busy} onClick={onSubmit}>
-              {busy ? 'Submitting…' : submitLabel}
+              {busy ? t.ballot.submitting : submitLabel}
             </button>
           )}
           <p className="ballot-status" data-counted={counted}>
-            {counted ? 'Your ballot is counted. You can change it until the poll closes.' : 'You have not voted yet.'}
+            {counted ? t.ballot.counted : t.ballot.notVoted}
           </p>
           {counted && !unsent && (
             <button type="button" className="button link" onClick={hide}>
-              Hide my ballot
+              {t.ballot.hide}
             </button>
           )}
         </div>
         : <>
-          <p className="ballot-status" data-counted={true}>
-            Your ballot is counted. It stays hidden here, so nobody looking at this screen sees your choices.
-          </p>
+          <p className="ballot-status" data-counted={true}>{t.ballot.hidden}</p>
           <button type="button" className="button secondary wide" ref={changeButton} onClick={reveal}>
-            Change my ballot
+            {t.ballot.change}
           </button>
         </>}
     </section>
@@ -237,6 +253,7 @@ interface VoterNameFieldProps {
 }
 
 function VoterNameField({ poll, voter, onCommit }: VoterNameFieldProps) {
+  const { t } = useI18n();
   const { limits } = useServerInfo();
   const inputId = useId();
   const hintId = useId();
@@ -248,12 +265,12 @@ function VoterNameField({ poll, voter, onCommit }: VoterNameFieldProps) {
 
   return (
     <div className="field voter-name">
-      <label htmlFor={inputId}>Your name</label>
+      <label htmlFor={inputId}>{t.ballot.yourName}</label>
       <input
         id={inputId}
         value={voter.name}
         maxLength={limits.maxVoterNameLength}
-        placeholder="Leave blank to stay anonymous"
+        placeholder={t.ballot.namePlaceholder}
         autoComplete="nickname"
         enterKeyHint="done"
         aria-describedby={hintId}
@@ -266,9 +283,7 @@ function VoterNameField({ poll, voter, onCommit }: VoterNameFieldProps) {
         }}
       />
       <p id={hintId} className="hint">
-        {poll.resultsShown === 'AFTER_CLOSING'
-          ? 'Everyone on this poll sees the names given, never who chose what.'
-          : 'Everyone on this poll sees the names given. The results move as ballots arrive, so people watching may tell who chose what.'}
+        {poll.resultsShown === 'AFTER_CLOSING' ? t.ballot.namesAtClose : t.ballot.namesLive}
       </p>
     </div>
   );

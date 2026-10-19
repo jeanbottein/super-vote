@@ -6,9 +6,10 @@ import {
   ApiError, castBallot, closePoll, deletePoll, getPoll, watchPoll, type PollWatcher,
 } from '../api/client';
 import type { Poll } from '../api/types';
-import { lunchPoll, NO_JUDGMENTS } from '../test/fixtures';
+import { lunchPoll, NO_JUDGMENTS, option } from '../test/fixtures';
 import { renderAt } from '../test/render';
 import PollPage from './PollPage';
+import { shownOptions } from './shownOptions';
 import { RETRY_DELAY } from './usePoll';
 
 vi.mock('../api/client', async (importOriginal) => ({
@@ -139,7 +140,7 @@ describe('a poll page', () => {
     openPoll();
 
     expect(await screen.findByRole('heading', { name: 'The poll could not be loaded' })).toBeInTheDocument();
-    expect(screen.getByText('The server cannot be reached.')).toBeInTheDocument();
+    expect(screen.getByText('The server cannot be reached. Check your connection and try again.')).toBeInTheDocument();
   });
 
   it('says so when the poll is deleted while it is open', async () => {
@@ -614,5 +615,62 @@ describe('a poll only invited people may vote on', () => {
 
     expect(await screen.findByText(/^This invitation was already used/)).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Your ballot' })).not.toBeInTheDocument();
+  });
+});
+
+describe('the order of the options', () => {
+  /** Five options tied, as before any ballot: the results show them in the order the voter sees them. */
+  const fiveDishes = (optionOrder: Poll['optionOrder']) => lunchPoll({
+    optionOrder,
+    options: ['Bao', 'Curry', 'Pho', 'Ramen', 'Tacos'].map((label, index) => option({
+      id: String(index + 1), label, judgmentCounts: NO_JUDGMENTS, rank: 1, majorityMention: 'Bad',
+      score: { numerator: 0, denominator: 1 },
+    })),
+  });
+  const ballotOrder = () => [...document.querySelectorAll('.mj-ballot-option')].map((label) => label.textContent);
+  const resultsOrder = () => [...document.querySelectorAll('.mj-results-title')].map((title) => title.textContent);
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('shows a shuffled poll in an order of this visit, for the ballot and the results, through every update', async () => {
+    vi.spyOn(crypto, 'getRandomValues').mockImplementation((array) => {
+      (array as Uint32Array)[0] = 7;
+      return array;
+    });
+    const poll = fiveDishes('SHUFFLED');
+    vi.mocked(getPoll).mockResolvedValue(poll);
+    vi.mocked(castBallot).mockResolvedValue(poll);
+    openPoll();
+    const order = shownOptions(poll.options, 'SHUFFLED', 7).map((dish) => dish.label);
+
+    await screen.findByRole('heading', { name: 'Where do we eat?' });
+    expect(order).not.toEqual(['Bao', 'Curry', 'Pho', 'Ramen', 'Tacos']);
+    expect(ballotOrder()).toEqual(order);
+    expect(resultsOrder()).toEqual(order);
+    expect(screen.getByText('The options are shuffled for each voter, so that none gains from its place.'))
+      .toBeInTheDocument();
+
+    act(() => watcher.onUpdate({
+      closedAt: null, totalBallots: 1, voterNames: null, moreVoterNames: false, options: poll.options,
+    }));
+    expect(ballotOrder()).toEqual(order);
+    expect(resultsOrder()).toEqual(order);
+
+    // The ballot names the option by its id, wherever it was shown.
+    await userEvent.click(within(scaleOf(order[0])).getByRole('radio', { name: 'Excellent' }));
+    const first = poll.options.find((dish) => dish.label === order[0])!;
+    expect(castBallot).toHaveBeenCalledWith('abc', expect.objectContaining({ judgments: { [first.id]: 'Excellent' } }),
+      null);
+  });
+
+  it("keeps any other poll in its own order, and says so when it is alphabetical", async () => {
+    vi.mocked(getPoll).mockResolvedValue(fiveDishes('ALPHABETICAL'));
+    openPoll();
+
+    await screen.findByRole('heading', { name: 'Where do we eat?' });
+    expect(ballotOrder()).toEqual(['Bao', 'Curry', 'Pho', 'Ramen', 'Tacos']);
+    expect(screen.getByText('The options are listed from A to Z.')).toBeInTheDocument();
   });
 });

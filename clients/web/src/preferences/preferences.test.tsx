@@ -14,7 +14,7 @@ afterEach(() => {
 describe('loading the preferences', () => {
   it('starts from the defaults', () => {
     expect(loadPreferences()).toEqual({
-      appearance: 'system', colorblind: false, mjBallot: 'scale', submission: 'live', voterName: '',
+      language: null, appearance: 'system', colorblind: false, mjBallot: 'scale', submission: 'live', voterName: '',
     });
   });
 
@@ -22,8 +22,14 @@ describe('loading the preferences', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ appearance: 'dark', submission: 'envelope' }));
 
     expect(loadPreferences()).toEqual({
-      appearance: 'dark', colorblind: false, mjBallot: 'scale', submission: 'envelope', voterName: '',
+      language: null, appearance: 'dark', colorblind: false, mjBallot: 'scale', submission: 'envelope', voterName: '',
     });
+  });
+
+  it('reads a language this version does not speak as the device language', () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ language: 'tlh' }));
+
+    expect(loadPreferences().language).toBeNull();
   });
 
   it('falls back to the defaults when what was saved cannot be read', () => {
@@ -35,15 +41,25 @@ describe('loading the preferences', () => {
 
 describe('applying the preferences', () => {
   it('puts the appearance on <html> and the grey palette on <body>, where the stylesheets look', () => {
-    applyPreferences({ appearance: 'dark', colorblind: true });
+    applyPreferences({ language: null, appearance: 'dark', colorblind: true });
 
     expect(document.documentElement.dataset.appearance).toBe('dark');
     expect(document.body.dataset.colorblind).toBe('true');
 
-    applyPreferences({ appearance: 'system', colorblind: false });
+    applyPreferences({ language: null, appearance: 'system', colorblind: false });
 
     expect(document.documentElement).not.toHaveAttribute('data-appearance');
     expect(document.body).not.toHaveAttribute('data-colorblind');
+  });
+});
+
+describe('the language', () => {
+  it("is the page's, for screen readers: the one chosen, or else the device's", () => {
+    applyPreferences({ language: 'fr', appearance: 'system', colorblind: false });
+    expect(document.documentElement.lang).toBe('fr');
+
+    applyPreferences({ language: null, appearance: 'system', colorblind: false });
+    expect(document.documentElement.lang).toBe('en'); // jsdom's navigator says en-US
   });
 });
 
@@ -56,13 +72,13 @@ describe("the browser's own bars", () => {
     const media = () => [...document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')]
       .map((meta) => meta.media);
 
-    applyPreferences({ appearance: 'dark', colorblind: false });
+    applyPreferences({ language: null, appearance: 'dark', colorblind: false });
     expect(media()).toEqual(['not all', 'all']);
 
-    applyPreferences({ appearance: 'light', colorblind: false });
+    applyPreferences({ language: null, appearance: 'light', colorblind: false });
     expect(media()).toEqual(['all', 'not all']);
 
-    applyPreferences({ appearance: 'system', colorblind: false });
+    applyPreferences({ language: null, appearance: 'system', colorblind: false });
     expect(media()).toEqual(['(prefers-color-scheme: light)', '(prefers-color-scheme: dark)']);
 
     document.head.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.remove());

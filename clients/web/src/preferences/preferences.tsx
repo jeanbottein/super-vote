@@ -2,8 +2,11 @@
  * The voter's display and ballot preferences, remembered in this browser.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { deviceLanguage, isLanguage, type Language } from '../i18n/format';
 
 export interface Preferences {
+  /** The language the web app speaks, or null for the device's own (src/i18n). */
+  language: Language | null;
   /**
    * Light or dark. "system" follows the device, through the CSS color-scheme. Not to be confused with a
    * theme, which is a palette (data-theme, docs/DESIGN.md): there is one so far, so nothing chooses it.
@@ -19,20 +22,27 @@ export interface Preferences {
   voterName: string;
 }
 
-const DEFAULTS: Preferences = { appearance: 'system', colorblind: false, mjBallot: 'scale', submission: 'live', voterName: '' };
+const DEFAULTS: Preferences = {
+  language: null, appearance: 'system', colorblind: false, mjBallot: 'scale', submission: 'live', voterName: '',
+};
 const STORAGE_KEY = 'super-vote.preferences'; // index.html reads it too, to set the appearance before the first paint
 
 export function loadPreferences(): Preferences {
   try {
-    return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') };
+    const stored = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') };
+    // A language this version does not speak (stored by another): the device's.
+    return { ...stored, language: isLanguage(stored.language) ? stored.language : null };
   } catch {
     return DEFAULTS; // Storage disabled, or unreadable.
   }
 }
 
-/** Reflects the preferences on the document, where the stylesheets look for them. */
-export function applyPreferences({ appearance, colorblind }: Pick<Preferences, 'appearance' | 'colorblind'>) {
+/** Reflects the preferences on the document, where the stylesheets, and screen readers for its language, look. */
+export function applyPreferences(
+  { language, appearance, colorblind }: Pick<Preferences, 'language' | 'appearance' | 'colorblind'>,
+) {
   const root = document.documentElement;
+  root.lang = language ?? deviceLanguage();
   if (appearance === 'system') {
     delete root.dataset.appearance;
   } else {
@@ -73,6 +83,15 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<PreferencesValue>(() => [preferences, update], [preferences, update]);
   return <PreferencesContext value={value}>{children}</PreferencesContext>;
+}
+
+/**
+ * The language chosen in Settings, or null for the device's. Null too outside
+ * PreferencesProvider, as in a test of one component alone: what it says is
+ * then in the device's language.
+ */
+export function useChosenLanguage(): Language | null {
+  return useContext(PreferencesContext)?.[0].language ?? null;
 }
 
 export function usePreferences(): PreferencesValue {

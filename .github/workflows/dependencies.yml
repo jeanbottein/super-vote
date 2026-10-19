@@ -1,0 +1,51 @@
+# Known vulnerabilities in what super-vote depends on, kept in view.
+#
+# - On a pull request: refuse one that adds a dependency with a known
+#   vulnerability of moderate severity or worse.
+# - On main, which is what runs in production: send GitHub the server's whole
+#   dependency tree, transitive dependencies included (Tomcat, Jackson...),
+#   which it cannot read from pom.xml alone. Dependabot then raises an alert,
+#   and a pull request with the fix, for any of them, and so does every new
+#   advisory afterwards. The web app's lockfile already lists everything.
+name: Dependencies
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    name: Review new dependencies
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: moderate
+
+  submit:
+    name: Submit the server's dependency tree
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # the dependency graph's submission API asks for it
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          # The pom's Java, at its latest patch: setup-java cannot match .tool-versions' build number.
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          cache-dependency-path: servers/java/pom.xml
+      - uses: advanced-security/maven-dependency-submission-action@a64327a7329c9939cf675e458452febe1894a70c # v6.0.1
+        with:
+          directory: servers/java

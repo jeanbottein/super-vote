@@ -103,6 +103,16 @@ class McpToolsTest {
     }
 
     @Test
+    void sortTheOptionsWhenAsked() {
+        var poll = call(mint(), "create_poll", """
+            {"title": "Which room?", "options": ["Room 10", "Room 9"], "optionOrder": "ALPHABETICAL"}
+            """);
+
+        assertThat(JsonPath.<String>read(poll, "$.optionOrder")).isEqualTo("ALPHABETICAL");
+        assertThat(JsonPath.<List<String>>read(poll, "$.options[*].label")).containsExactly("Room 9", "Room 10");
+    }
+
+    @Test
     void takeAJoinCodeWhereAnIdWouldDo() {
         var voter = mint();
         var poll = call(voter, "create_poll", "{\"title\": \"Lunch?\", \"options\": [\"Ramen\", \"Tacos\"]}");

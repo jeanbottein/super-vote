@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { errorMessage, listMyPolls, listPublicPolls } from '../api/client';
+import { listMyPolls, listPublicPolls } from '../api/client';
 import type { PollSummary } from '../api/types';
 
 interface PollLists {
@@ -9,9 +9,10 @@ interface PollLists {
   others: PollSummary[];
 }
 
+/** The lists, or why they could not be read (failure: null until something failed). */
 export function usePollLists(withPublic: boolean) {
   const [lists, setLists] = useState<PollLists | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<unknown>(null);
 
   useEffect(() => {
     let active = true;
@@ -21,9 +22,9 @@ export function usePollLists(withPublic: boolean) {
           setLists({ mine, others: listed.filter((poll) => !poll.isMine) });
         }
       },
-      (failure: unknown) => {
+      (reason: unknown) => {
         if (active) {
-          setError(errorMessage(failure));
+          setFailure(reason ?? new Error('The polls could not be read'));
         }
       },
     );
@@ -32,5 +33,5 @@ export function usePollLists(withPublic: boolean) {
     };
   }, [withPublic]);
 
-  return { lists, error };
+  return { lists, failure };
 }

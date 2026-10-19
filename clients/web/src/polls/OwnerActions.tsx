@@ -1,8 +1,10 @@
 import { useId, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { useNavigate } from 'react-router';
-import { closePoll, deletePoll, errorMessage } from '../api/client';
+import { closePoll, deletePoll } from '../api/client';
 import type { Poll } from '../api/types';
+import { errorMessage } from '../i18n/errorMessage';
+import { useI18n } from '../i18n/i18n';
 import Confirmation from '../ui/Confirmation';
 import { useToast } from '../ui/Toasts';
 
@@ -11,8 +13,13 @@ interface OwnerActionsProps {
   onChange(poll: Poll): void;
 }
 
-/** What only the poll's creator can do: close voting, for good, and delete the poll. Both ask first. */
+/**
+ * What only the poll's creator can do: close voting, for good, and delete the
+ * poll. Both ask first. Only this browser can: it says so, since another
+ * device, or clearing its data, loses the poll for good.
+ */
 export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const showToast = useToast();
   const titleId = useId();
@@ -26,7 +33,7 @@ export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
     try {
       await action();
     } catch (error) {
-      showToast(errorMessage(error), 'error');
+      showToast(errorMessage(error, t), 'error');
     } finally {
       setBusy(false);
     }
@@ -47,13 +54,14 @@ export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
 
   const remove = () => run(async () => {
     await deletePoll(poll.id);
-    showToast('The poll was deleted.');
+    showToast(t.owner.deletedToast);
     navigate('/');
   });
 
   return (
     <section className="panel owner-actions" aria-labelledby={titleId}>
-      <h2 id={titleId}>Manage your poll</h2>
+      <h2 id={titleId}>{t.owner.manage}</h2>
+      <p className="hint">{t.owner.onlyThisBrowser}</p>
       {confirming === null && (
         <div className="button-row">
           {poll.closedAt === null && (
@@ -61,24 +69,24 @@ export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
               type="button" className="button secondary" ref={closeButton} disabled={busy}
               onClick={() => setConfirming('close')}
             >
-              Close voting
+              {t.owner.close}
             </button>
           )}
           <button
             type="button" className="button danger" ref={deleteButton} disabled={busy}
             onClick={() => setConfirming('delete')}
           >
-            Delete poll
+            {t.owner.delete}
           </button>
         </div>
       )}
       {confirming === 'close' && (
         <Confirmation
           id={`${titleId}-confirm`}
-          question="Close voting for good? Nobody can vote or change their ballot any more, and everyone sees the final results. A closed poll cannot be reopened."
+          question={t.owner.closeQuestion}
           busy={busy}
-          keep="Keep it open"
-          confirm="Close for good"
+          keep={t.owner.keepOpen}
+          confirm={t.owner.closeForGood}
           tone="primary"
           onKeep={keep}
           onConfirm={close}
@@ -87,10 +95,10 @@ export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
       {confirming === 'delete' && (
         <Confirmation
           id={`${titleId}-confirm`}
-          question="Delete this poll and all its ballots? Everyone watching it will see it disappear. This cannot be undone."
+          question={t.owner.deleteQuestion}
           busy={busy}
-          keep="Keep it"
-          confirm="Delete for good"
+          keep={t.owner.keep}
+          confirm={t.owner.deleteForGood}
           tone="danger"
           onKeep={keep}
           onConfirm={remove}

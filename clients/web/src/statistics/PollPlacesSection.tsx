@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { getPollPlaces } from '../api/client';
 import type { PollPlaces } from '../api/types';
+import { useI18n } from '../i18n/i18n';
 import PlacesTable from './PlacesTable';
 import WorldMap from './WorldMap';
-
-const BALLOTS = [{ key: 'ballots' as const, label: 'Ballots' }];
 
 /**
  * Where a poll's ballots come from, by time zone: shown once its results
@@ -12,6 +11,7 @@ const BALLOTS = [{ key: 'ballots' as const, label: 'Ballots' }];
  * have something to show.
  */
 export default function PollPlacesSection({ pollId }: { pollId: string }) {
+  const { t } = useI18n();
   const [places, setPlaces] = useState<PollPlaces | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [focus, setFocus] = useState(0);
@@ -31,21 +31,20 @@ export default function PollPlacesSection({ pollId }: { pollId: string }) {
   const dots = places.places.map((place) => ({ timeZone: place.timeZone, count: place.ballots }));
   return (
     <section className="panel statistics-panel">
-      <h2>Where the ballots come from</h2>
+      <h2>{t.statistics.pollPlaces}</h2>
       {places.regions.length === 0 ? (
-        <p className="hint">A region shows once three ballots come from it.</p>
+        <p className="hint">{t.statistics.pollPlacesNone}</p>
       ) : (
         <>
-          <WorldMap dots={dots} what="ballots" selected={selected} onSelect={setSelected} focus={focus} />
-          <PlacesTable regions={places.regions} places={places.places} columns={BALLOTS} orderBy="ballots"
+          <WorldMap dots={dots} what={t.statistics.measures.ballots.plural} selected={selected} onSelect={setSelected}
+            focus={focus} />
+          <PlacesTable regions={places.regions} places={places.places}
+            columns={[{ key: 'ballots', label: t.statistics.measures.ballots.label }]} orderBy="ballots"
             onShow={(timeZone) => {
               setSelected(timeZone);
               setFocus((count) => count + 1);
             }} />
-          <p className="hint">
-            From each voter's time zone, never their address. A place shows once three ballots come from
-            it, and the numbers are updated every hour.
-          </p>
+          <p className="hint">{t.statistics.pollPlacesHint}</p>
         </>
       )}
     </section>

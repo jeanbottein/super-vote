@@ -66,13 +66,31 @@ describe('the home page', () => {
     expect(listPublicPolls).not.toHaveBeenCalled();
   });
 
-  it('says what will appear when there is nothing yet', async () => {
+  it('lists no polls of the visitor before they create one, and says when there are no public ones', async () => {
     vi.mocked(listMyPolls).mockResolvedValue([]);
     vi.mocked(listPublicPolls).mockResolvedValue([]);
     openHome();
 
-    expect(await screen.findByText('Polls you create will appear here.')).toBeInTheDocument();
-    expect(screen.getByText('No public polls yet.')).toBeInTheDocument();
+    expect(await screen.findByText('No public polls yet.')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Your polls' })).not.toBeInTheDocument();
+  });
+
+  it('then says what super-vote is, what difference it makes, and what it is not for', () => {
+    openHome();
+
+    for (const heading of ['How it works', 'Grade every option, not just one', 'Why it matters', 'Good to know']) {
+      expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
+    }
+    expect(screen.getByRole('link', { name: 'All about privacy and limits' })).toHaveAttribute('href', '/privacy');
+  });
+
+  it('shows how majority judgment decides, with results the server could have ranked', () => {
+    openHome();
+
+    const example = screen.getByRole('figure');
+    const options = within(example).getAllByRole('img').map((bar) => bar.getAttribute('aria-label')?.split(':')[0]);
+    expect(options).toEqual(['Pizza', 'Sushi', 'Burgers']);
+    expect(within(example).getAllByText('Fair')).not.toHaveLength(0);
   });
 
   it('says why the polls could not be listed', async () => {

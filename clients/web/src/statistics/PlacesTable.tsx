@@ -1,4 +1,4 @@
-import { formatCount } from '../utils/formatCount';
+import { useI18n } from '../i18n/i18n';
 import { placeOf, regionName } from './geography';
 import './statistics.css';
 
@@ -22,12 +22,13 @@ interface PlacesTableProps<K extends string> {
 export default function PlacesTable<K extends string>(
   { regions, places, columns, orderBy, onShow }: PlacesTableProps<K>,
 ) {
+  const { t } = useI18n();
   const most = (a: Row<K>, b: Row<K>) => b[orderBy] - a[orderBy];
   return (
     <table className="places-table">
       <thead>
         <tr>
-          <th scope="col">Region and city</th>
+          <th scope="col">{t.statistics.regionAndCity}</th>
           {columns.map((column) => (
             <th key={column.key} scope="col" aria-sort={column.key === orderBy ? 'descending' : undefined}>
               {column.label}
@@ -38,8 +39,8 @@ export default function PlacesTable<K extends string>(
       {[...regions].sort(most).map((region) => (
         <tbody key={region.region}>
           <tr className="places-table-region">
-            <th scope="row">{regionName(region.region)}</th>
-            {columns.map((column) => <td key={column.key}>{formatCount(region[column.key])}</td>)}
+            <th scope="row">{regionName(region.region, t.statistics.regions)}</th>
+            {columns.map((column) => <td key={column.key}>{t.number(region[column.key])}</td>)}
           </tr>
           {places.filter((place) => placeOf(place.timeZone).region === region.region).sort(most).map((place) => (
             <tr key={place.timeZone}>
@@ -48,7 +49,7 @@ export default function PlacesTable<K extends string>(
                   {placeOf(place.timeZone).city}
                 </button>
               </th>
-              {columns.map((column) => <td key={column.key}>{formatCount(place[column.key])}</td>)}
+              {columns.map((column) => <td key={column.key}>{t.number(place[column.key])}</td>)}
             </tr>
           ))}
         </tbody>

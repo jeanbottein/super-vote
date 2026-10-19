@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import type { Mention } from '../../../api/types';
-import { MENTION_NAMES, MENTIONS_BEST_FIRST } from './mentions';
+import { useI18n } from '../../../i18n/i18n';
+import { MENTIONS_BEST_FIRST } from './mentions';
 import './mentions.css';
 import './mj-ballot.css';
 
@@ -18,13 +19,14 @@ export interface MajorityJudgmentBallotProps {
  * buttons, so it works with a keyboard and a screen reader as well as a finger.
  */
 export default function MajorityJudgmentBallot({ options, ballot, onChange, disabled }: MajorityJudgmentBallotProps) {
+  const { t } = useI18n();
   const id = useId();
 
   return (
     <div className="mj-ballot">
       <div className="mj-scale-legend" aria-hidden="true">
-        <span>Excellent</span>
-        <span>Bad</span>
+        <span>{t.mentions.Excellent}</span>
+        <span>{t.mentions.Bad}</span>
       </div>
       {options.map((option) => {
         const chosen = ballot[option.id];
@@ -34,7 +36,7 @@ export default function MajorityJudgmentBallot({ options, ballot, onChange, disa
             <div className="mj-ballot-row-head">
               <span id={group} className="mj-ballot-option">{option.label}</span>
               <span className="mj-ballot-chosen" data-mention={chosen}>
-                {chosen ? MENTION_NAMES[chosen] : 'Not rated yet'}
+                {chosen ? t.mentions[chosen] : t.ballot.notRatedYet}
               </span>
             </div>
             <div className="mj-scale">
@@ -49,7 +51,7 @@ export default function MajorityJudgmentBallot({ options, ballot, onChange, disa
                     onChange={() => onChange({ ...ballot, [option.id]: mention })}
                   />
                   <span className="mj-scale-mark" aria-hidden="true" />
-                  <span className="mj-scale-name">{MENTION_NAMES[mention]}</span>
+                  <span className="mj-scale-name">{t.mentions[mention]}</span>
                 </label>
               ))}
             </div>

@@ -4,11 +4,13 @@ import com.jayway.jsonpath.JsonPath;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -112,6 +114,35 @@ class VoterIdentityApiTest {
 
         assertThat(result).hasStatus(HttpStatus.OK);
         assertThat(result).containsHeader(HttpHeaders.SET_COOKIE);
+    }
+
+    /**
+     * Another website's page can make a visitor's browser call the API; the
+     * browser says so, and the call is refused before it is anyone's: no
+     * cookie is given, and nothing is counted or looked up.
+     */
+    @ParameterizedTest(name = "{0} {1}")
+    @CsvSource({"GET, /api/polls/mine", "GET, /api/join/K7M4QX", "POST, /api/voters", "PUT, /api/polls/x/ballot"})
+    void refusesWhatAnotherSitesPageAsks(String method, String uri) {
+        var result = mvc.method(HttpMethod.valueOf(method)).uri(uri)
+            .header("Sec-Fetch-Site", "cross-site").header("Sec-Fetch-Mode", "no-cors")
+            .exchange();
+
+        assertThat(result).hasStatus(HttpStatus.FORBIDDEN);
+        assertThat(result).doesNotContainHeader(HttpHeaders.SET_COOKIE);
+        assertThat(result).bodyJson().extractingPath("$.type").isEqualTo("/problems/cross-site");
+    }
+
+    /** Following a link from another site is a person's own doing; their own pages, and other clients, send no such header or say same-origin. */
+    @ParameterizedTest(name = "{0}, {1}")
+    @CsvSource(nullValues = "none", value = {"cross-site, navigate", "same-origin, cors", "same-site, cors", "none, none"})
+    void letsThroughWhatIsNotAnotherSitesPage(String site, String mode) {
+        var request = mvc.get().uri("/api/polls/mine");
+        if (site != null) {
+            request.header("Sec-Fetch-Site", site).header("Sec-Fetch-Mode", mode);
+        }
+
+        assertThat(request.exchange()).hasStatus(HttpStatus.OK);
     }
 
     // --- helpers --------------------------------------------------------------

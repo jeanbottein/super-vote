@@ -97,6 +97,14 @@ class ProblemTypeTest {
         assertProblem(cast(carol, poll, invitation), HttpStatus.CONFLICT, "/problems/invitation-used");
     }
 
+    @Test
+    void anotherSitesPage() {
+        var fromAnotherSite = mvc.get().uri("/api/polls/mine").cookie(alice)
+            .header("Sec-Fetch-Site", "cross-site").header("Sec-Fetch-Mode", "cors").exchange();
+
+        assertProblem(fromAnotherSite, HttpStatus.FORBIDDEN, "/problems/cross-site");
+    }
+
     /**
      * Spring MVC's own refusals are problem documents too, but carry no type:
      * RFC 9457 reads a missing one as about:blank, "no more than the status".

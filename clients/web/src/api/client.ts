@@ -21,20 +21,26 @@ const INVITATION_HEADER = 'Super-Vote-Invitation';
 const HANDOVER_HEADER = 'Super-Vote-Handover';
 const TIME_ZONE_HEADER = 'Super-Vote-Time-Zone';
 
-/** A failed call. The message is written for the person using the app. */
+/**
+ * A failed call: its status (0 when the server could not be reached), and
+ * what the server said of it, if anything. The message is the server's
+ * sentence, in English; what people read is worded from the type, in their
+ * language (src/i18n/errorMessage.ts).
+ */
 export class ApiError extends Error {
   readonly status: number;
+  /** The problem's type, such as /problems/poll-closed: what to branch on. Null when the server gave none. */
+  readonly type: string | null;
+  /** The seconds to wait before trying again (Retry-After), when the server said. */
+  readonly retryAfter: number | null;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message = '', type: string | null = null, retryAfter: number | null = null) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.type = type;
+    this.retryAfter = retryAfter;
   }
-}
-
-/** A sentence to show the person using the app, whatever went wrong. */
-export function errorMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Something went wrong. Please try again.';
 }
 
 interface RequestOptions {
@@ -97,10 +103,10 @@ async function send(
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new ApiError(0, 'The server cannot be reached. Check your connection and try again.');
+    throw new ApiError(0); // the server cannot be reached
   }
   if (!response.ok) {
-    throw new ApiError(response.status, await problemDetail(response));
+    throw await problemIn(response);
   }
   return response;
 }
@@ -110,17 +116,20 @@ function timeZone(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
-/** Errors are RFC 9457 problem documents whose "detail" is meant for people. */
-async function problemDetail(response: Response): Promise<string> {
+/** Errors are RFC 9457 problem documents: a type to branch on, and a detail, a sentence in English. */
+async function problemIn(response: Response): Promise<ApiError> {
+  const retryAfter = Number(response.headers.get('Retry-After')) || null;
   try {
     const problem: unknown = await response.json();
-    if (problem && typeof problem === 'object' && 'detail' in problem && typeof problem.detail === 'string') {
-      return problem.detail;
+    if (problem && typeof problem === 'object') {
+      const detail = 'detail' in problem && typeof problem.detail === 'string' ? problem.detail : '';
+      const type = 'type' in problem && typeof problem.type === 'string' ? problem.type : null;
+      return new ApiError(response.status, detail, type, retryAfter);
     }
   } catch {
-    // Not JSON: fall through to a generic message.
+    // Not JSON: nothing more to tell than the status.
   }
-  return `Something went wrong (error ${response.status}). Please try again.`;
+  return new ApiError(response.status, '', null, retryAfter);
 }
 
 const pollPath = (id: string) => `/api/polls/${encodeURIComponent(id)}`;

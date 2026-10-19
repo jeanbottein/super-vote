@@ -26,7 +26,8 @@ act, a result is a fact.
 5. **One definition per colour.** Each token is declared once for light and
    dark (`light-dark()`). A theme is a palette over the same tokens.
 6. **Mobile first.** A phone held upright is the design; wider screens get
-   room, not new layouts.
+   room, not new layouts. Home alone spreads out on a desktop, since it is
+   where people first learn what super-vote is (Layout).
 
 ## The logo
 
@@ -253,7 +254,17 @@ lines.
 ## Layout
 
 - One column of at most `--page-width` (760 px), centred, inside `--gutter`
-  (16 px, 24 px from 640 px) and the safe-area insets.
+  (16 px, 24 px from 640 px) and the safe-area insets. A page's sections are
+  `--section-gap` apart (16 px, 20 px from 640 px).
+- Home is the one exception: from 960 px, `.layout[data-page="home"]` sets
+  `--page-width` to 1080 px, so that header, page and footer widen together.
+  What people come to do comes first, side by side: the hero with "Create a
+  poll" on the left, the join form (and the visitor's polls, once they have
+  some) on the right. Below, rows of cards: how it works (three numbered
+  steps), an example of results beside why grading beats a single choice
+  (the text sticks while the example scrolls), why it matters (three
+  reasons), and what super-vote is not for (two columns). On a phone it is
+  all one column, in that order.
 - One breakpoint, 640 px. Below it dialogs are sheets from the bottom; from
   it they are centred, panels get 24 px of padding (`--panel-padding`), and a
   ballot row puts its option beside its scale.
@@ -277,7 +288,8 @@ lines.
 | Fields | `input`, `select`, `.field`, `.field-problem`, `.hint`, `.hint[data-tone="warning"]` | `--field`, `--border-strong`, 16 px text |
 | Segmented control | `.segmented`, `.segmented-options`, `.segmented-option` | radios: arrow keys work |
 | Header | `.app-header`, `.app-header-inner`, `.brand`, `.logo` | |
-| Home | `.hero`, `.join-form`, `.join-row`, `.join-code`, `.poll-list`, `.poll-list-item` | list rows run to the panel's edges |
+| Home | `.hero`, `.join-form`, `.join-row`, `.join-code`, `.poll-list`, `.poll-list-item`; `.home-start`, `.home-actions`, `.home-section`, `.home-text`, `.home-cards`, `.steps`, `.grade`, `.example`, `.good-to-know` | list rows run to the panel's edges; steps number themselves in ink (`--accent-soft`, `--accent-text`); the example is the real results graph on sample counts the server would rank the same |
+| Privacy and limits | `.about-section`, `.facts` | one fact per bullet |
 | Ballot | `.ballot`, `.ballot-body`, `.ballot-status[data-counted]` | the raised sheet |
 | Majority judgment ballot (`mj-ballot.css`) | `.mj-scale-legend`, `.mj-ballot-row`, `.mj-ballot-chosen[data-mention]`, `.mj-scale`, `.mj-scale-step`, `.mj-scale-mark`, `.mj-scale-name`; `.mj-dropdown-row select[data-mention]` | rows are lines on the sheet |
 | Approval (`approval.css`) | `.approval-choice`, `.approval-result[data-winner]`, `.approval-rank`, `.approval-bar` | ink, not green |
@@ -286,6 +298,7 @@ lines.
 | Invitations | `.invitation[data-used]`, `.invitation-status`, `.invite-form` | |
 | Dialog | `.dialog`, `.dialog-body`, `.dialog-header`; `.share-code`, `.share-link`, `.share-qr` (white in every theme: QR codes need it) | |
 | Toasts | `.toasts`, `.toast`, `.toast[data-kind="error"]` | under the header |
+| Footer | `.app-footer`; its other languages are buttons that read like its links | each language named in its own words, with its `lang` |
 | Badge | `.badge` | neutral pill |
 | Statistics (`statistics.css`) | `.statistics-totals`, `.statistics-panel`, `.world-map`, `.world-map-view`, `.world-map-land`, `.world-map-dot`, `.world-map-chosen`, `.world-map-legend`, `.world-map-zoom`, `.statistics-chosen`, `.activity-chart`, `.places-table` | the map runs to the panel's edges; a dot's area is its count, and dots keep their size on screen when zoomed; the chosen dot gets a 2 px `--fg` ring drawn on top, so nothing moves; the zoom buttons sit under the map, never over it |
 
@@ -360,13 +373,25 @@ composited:
 ## Copy
 
 - Short, plain sentences, for people. *Poll* is the question, *ballot* one
-  voter's answer; never "vote" as a noun. Mentions are spelled as
-  `MENTION_NAMES` spells them.
+  voter's answer; never "vote" as a noun. Mentions are named as the messages'
+  `mentions` name them.
+- Every sentence lives in `src/i18n`: English in `en.tsx`, French in
+  `fr.tsx` (a *sondage*, a *bulletin*; the mentions *Excellent, Très bien,
+  Bien, Assez bien, Passable, Insuffisant, À rejeter*). French is written
+  with its typography (no-break spaces before `:` and inside « », narrow ones
+  before `; ! ?`, the apostrophe ’), says *vous*, and words things so that
+  they fit everyone (*la personne qui a créé le sondage*, not *le créateur*).
+  Mentions quoted in running text keep their words together (`À\u00a0rejeter`).
+- Languages are named in their own words wherever one is chosen (Settings,
+  the footer), so that someone who cannot read the page finds theirs.
 - Buttons say what happens, and a confirmation names both ways out: "Delete
   for good" or "Keep it".
 - A warning says the consequence: "Careful: everyone sees the results move as
   each ballot arrives."
-- The server's error `detail` is shown as is: it is written for people.
+- The server speaks English: what people read of an error is worded in their
+  language from its problem `type` (`errorMessage`), and the server's
+  `detail` is shown as is only for a broken rule, which the forms check
+  first.
 
 ## Protected
 
@@ -378,6 +403,9 @@ Changed only when the owner asks:
   `--fg`, whose values may change under it (and since 2026-10-11 the rank
   badges and the ex aequo chip read `--fg`, `--bg`, `--surface-sunken` and
   `--muted` too); its own colours (medals, score, tooltip) stay as they are.
+  Since 2026-10-19 its words come from the messages, in the reader's
+  language: mention names, labels, percentages and the score's decimals; its
+  axis ticks stay compact (`results.tick`) in every language.
 - **The ranking**: `ranked.ts` renders the server's ranking, and never
   recomputes it.
 - **The mention colours** and the grey palette, `mentions.css`, defined once

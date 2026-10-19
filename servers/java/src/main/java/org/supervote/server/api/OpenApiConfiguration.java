@@ -25,10 +25,14 @@ class OpenApiConfiguration {
         return new OpenAPI().info(new Info()
             .title("super-vote")
             .version(build.map(BuildProperties::getVersion).orElse("development"))
-            .license(new License().name("AGPL-3.0-or-later"))
+            .license(new License().name("MIT").identifier("MIT"))
             .description("""
                 Live voting by majority judgment or approval, for groups deciding
                 together. A poll is the question; a ballot is one voter's answer.
+
+                %s
+
+                ## Options
 
                 %s
 
@@ -63,7 +67,7 @@ class OpenApiConfiguration {
                 ## Errors
 
                 %s
-                """.formatted(ApiRules.IDENTITY, ApiRules.BALLOTS, ApiRules.INVITATIONS, ApiRules.RESULTS,
+                """.formatted(ApiRules.IDENTITY, ApiRules.OPTIONS, ApiRules.BALLOTS, ApiRules.INVITATIONS, ApiRules.RESULTS,
                 ApiRules.CLOSING, ApiRules.HANDOVER, ApiRules.IDEMPOTENCY, ApiRules.FAIR_USE, ApiRules.ERRORS)));
     }
 }

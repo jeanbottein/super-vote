@@ -1,0 +1,36 @@
+# OpenSSF Scorecard: how well the project guards its supply chain (pinned
+# dependencies, branch protection, least-privilege workflows, a security
+# policy...), published at scorecard.dev for anyone deciding whether to trust
+# super-vote, with its findings in the Security tab. The published run must
+# hold these steps only: scorecard.dev checks the workflow that sent it.
+name: Scorecard
+
+on:
+  branch_protection_rule:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '41 5 * * 1'
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      security-events: write
+      id-token: write # publishes the results, signed, to scorecard.dev
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ossf/scorecard-action@fa7117db83c52d787ae5a89f350999701505d78e # v2.5.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+      - uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          sarif_file: results.sarif

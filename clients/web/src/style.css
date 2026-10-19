@@ -87,6 +87,7 @@
   --page-width: 760px;
   --gutter: 16px;
   --panel-padding: 16px;
+  --section-gap: 16px; /* between a page's sections */
 
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -301,7 +302,7 @@ a:hover {
 .page {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--section-gap);
   max-width: var(--page-width);
   margin: 0 auto;
   padding: var(--gutter)
@@ -335,10 +336,15 @@ a:hover {
   :root {
     --gutter: 24px;
     --panel-padding: 24px;
+    --section-gap: 20px;
   }
+}
 
-  .page {
-    gap: 20px;
+/* Home is the one page that spreads out on a wide screen: what to do first, side by side, then what
+   super-vote is in rows of cards. Header and footer widen with it, so that their edges stay in line. */
+@media (min-width: 960px) {
+  .layout[data-page="home"] {
+    --page-width: 1080px;
   }
 }
 
@@ -649,6 +655,125 @@ fieldset.field {
   font-size: 17px;
 }
 
+/* Create or join first: one column on a phone, the hero beside the join form on a wide screen. */
+.home-start,
+.home-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+}
+
+@media (min-width: 960px) {
+  .home-start {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 48px;
+    padding-bottom: 16px;
+  }
+}
+
+/* What super-vote is, under what people come to do: more air, and headings that start a chapter. */
+.home-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.home-section h2 {
+  margin: 0;
+  font-size: clamp(20px, 5.4vw, 26px);
+  letter-spacing: -0.02em;
+}
+
+.home-section h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+}
+
+.home-text {
+  max-width: 44em;
+}
+
+.home-cards {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 720px) {
+  .home-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* The steps say their number in ink: what to do first, then next. */
+.steps {
+  counter-reset: step;
+}
+
+.steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 12px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 700;
+}
+
+/* An example of results, beside what it shows on a wide screen. */
+.example {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+}
+
+@media (min-width: 960px) {
+  .grade {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    align-items: start;
+    gap: 32px;
+  }
+
+  /* The explanation stays in view while the example, taller, scrolls past. */
+  .grade > div {
+    position: sticky;
+    top: calc(var(--header-height) + 24px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 8px;
+  }
+}
+
+.good-to-know ul {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.good-to-know li::marker {
+  color: var(--muted);
+}
+
+@media (min-width: 960px) {
+  .good-to-know ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 40px;
+  }
+}
+
 /* A join code, typed or shown: capitals and digits that stay apart. */
 .join-code {
   font-family: var(--font-mono);
@@ -750,6 +875,12 @@ fieldset.field {
 
 .create-poll h1 {
   margin: 0;
+}
+
+.create-poll-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .option-rows {
@@ -1245,15 +1376,29 @@ fieldset.field {
   gap: 0 16px;
 }
 
-/* Footer links are small text: padding makes them comfortable to tap. */
-.app-footer a {
+/* Footer links are small text: padding makes them comfortable to tap. The other languages are
+   buttons that read like the links beside them. */
+.app-footer a,
+.app-footer button {
   display: inline-block;
   padding: 10px 2px;
   color: inherit;
 }
 
-.app-footer a:hover {
+.app-footer button {
+  border: 0;
+  background: none;
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.app-footer a:hover,
+.app-footer button:hover {
   color: var(--fg);
+  text-decoration-thickness: 2px;
 }
 
 .about-section h2 {
@@ -1284,6 +1429,19 @@ fieldset.field {
 .references li > .hint {
   display: block;
   margin-top: 2px;
+}
+
+/* What the privacy page says, a fact at a time. */
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.facts li::marker {
+  color: var(--muted);
 }
 
 /* ------------------------------------------------------------------ */

@@ -13,9 +13,10 @@ import java.time.Instant;
  * usual "anyone with the link" trade-off. The join code is a short stand-in for
  * it, to type on a phone.
  *
- * invitationOnly, showVoterNames and resultsShown are chosen once, at
- * creation: whether only invited people may vote (see InvitationService),
- * whether the poll shows who took part, and when its results show.
+ * invitationOnly, showVoterNames, resultsShown and optionOrder are chosen
+ * once, at creation: whether only invited people may vote (see
+ * InvitationService), whether the poll shows who took part, when its results
+ * show, and in which order voters see its options.
  *
  * handoverOpen says the poll is still waiting to be handed to its person, for
  * one created on their behalf: whoever brings its signed token (HandoverLinks)
@@ -33,6 +34,7 @@ public record Poll(
     boolean showVoterNames,
     ResultsShown resultsShown,
     Long resultsAfterBallots,
+    OptionOrder optionOrder,
     Instant createdAt,
     Instant closedAt,
     boolean handoverOpen
@@ -53,6 +55,17 @@ public record Poll(
      * AFTER_CLOSING everyone.
      */
     public enum ResultsShown { LIVE, AFTER_BALLOTS, AFTER_CLOSING }
+
+    /**
+     * In which order voters see the options, since the first places can draw
+     * more support than the others. AS_WRITTEN keeps the creator's order;
+     * ALPHABETICAL sorts them when the poll is created (see NaturalOrder);
+     * SHUFFLED leaves them as written and has each voter's client show them
+     * in a random order of its own, drawn again on each visit. Either way the
+     * options keep the poll's order on the wire: a ballot's bytes are
+     * positions in it.
+     */
+    public enum OptionOrder { AS_WRITTEN, ALPHABETICAL, SHUFFLED }
 
     /**
      * Whether anyone, the creator included, may see the tallies now. Below
@@ -76,12 +89,12 @@ public record Poll(
 
     Poll withClosedAt(Instant closedAt) {
         return new Poll(id, shareToken, joinCode, creatorId, title, votingSystem, visibility, invitationOnly,
-            showVoterNames, resultsShown, resultsAfterBallots, createdAt, closedAt, handoverOpen);
+            showVoterNames, resultsShown, resultsAfterBallots, optionOrder, createdAt, closedAt, handoverOpen);
     }
 
     /** Handed over: its new creator, and the handover closed for good. */
     Poll withCreator(String creatorId) {
         return new Poll(id, shareToken, joinCode, creatorId, title, votingSystem, visibility, invitationOnly,
-            showVoterNames, resultsShown, resultsAfterBallots, createdAt, closedAt, false);
+            showVoterNames, resultsShown, resultsAfterBallots, optionOrder, createdAt, closedAt, false);
     }
 }

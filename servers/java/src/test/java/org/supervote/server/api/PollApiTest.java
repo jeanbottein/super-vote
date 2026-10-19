@@ -122,6 +122,13 @@ class PollApiTest {
             Arguments.of(poll("Lunch?", "[\"A\", \" \"]"), "cannot be empty"),
             Arguments.of(poll("Lunch?", "[\"A\", \"" + "x".repeat(101) + "\"]"), "at most 100 characters"),
             Arguments.of(poll("Lunch?", "[\"Ramen\", \"ramen\"]"), "listed twice"),
+            // An "é" typed as one character, and as an "e" and its accent: the same option.
+            Arguments.of(poll("Lunch?", "[\"Café\", \"Cafe\\u0301\"]"), "listed twice"),
+            Arguments.of(poll("Lunch?", "[\"Ramen\", \"Ra\\u200Dmen\"]"), "listed twice"),
+            Arguments.of(poll("Lunch?", "[\"Yes\", \"Yes\\u200B\"]"), "only hold visible characters"),
+            Arguments.of(poll("\\u202ELunch?", "[\"A\", \"B\"]"), "only hold visible characters"),
+            Arguments.of("{\"title\": \"Lunch?\", \"votingSystem\": \"APPROVAL\", \"visibility\": \"UNLISTED\","
+                + " \"options\": [\"A\", \"B\"], \"optionOrder\": \"BY_SIZE\"}", "could not be read"),
             Arguments.of("{\"title\": \"Lunch?\", \"visibility\": \"UNLISTED\", \"options\": [\"A\", \"B\"]}",
                 "voting system"),
             Arguments.of("{\"title\": \"Lunch?\", \"votingSystem\": \"APPROVAL\", \"options\": [\"A\", \"B\"]}",
@@ -135,6 +142,85 @@ class PollApiTest {
         return """
             {"title": "%s", "votingSystem": "MAJORITY_JUDGMENT", "visibility": "UNLISTED", "options": %s}
             """.formatted(title, options);
+    }
+
+    @Nested
+    class TextAsPeopleReadIt {
+
+        @Test
+        void spacesAreTidiedAndCharactersComposedOneWay() {
+            var result = post(alice, "/api/polls", """
+                {"title": "Where\\n do we\\teat?", "votingSystem": "APPROVAL", "visibility": "UNLISTED",
+                 "options": ["Cafe\\u0301  du coin", "Ramen"]}
+                """);
+
+            assertThat(result).hasStatus(HttpStatus.CREATED);
+            assertThat(result).bodyJson().extractingPath("$.title").isEqualTo("Where do we eat?");
+            assertThat(result).bodyJson().extractingPath("$.options[0].label").isEqualTo("Café du coin");
+        }
+
+        /** Persian writes some words with a non-joiner, emoji sequences hold joiners: both stay. */
+        @Test
+        void joinersAreKept() {
+            var result = post(alice, "/api/polls", """
+                {"title": "Lunch?", "votingSystem": "APPROVAL", "visibility": "UNLISTED",
+                 "options": ["\\u0645\\u06CC\\u200C\\u062E\\u0648\\u0627\\u0647\\u0645", "\\uD83D\\uDC68\\u200D\\uD83C\\uDF73"]}
+                """);
+
+            assertThat(result).hasStatus(HttpStatus.CREATED);
+            assertThat(result).bodyJson().extractingPath("$.options[0].label").isEqualTo("می\u200Cخواهم");
+            assertThat(result).bodyJson().extractingPath("$.options[1].label").isEqualTo("👨\u200D🍳");
+        }
+    }
+
+    @Nested
+    class OrderingTheOptions {
+
+        @Test
+        void asWrittenUnlessAsked() {
+            var result = post(alice, "/api/polls", """
+                {"title": "Lunch?", "votingSystem": "APPROVAL", "visibility": "UNLISTED",
+                 "options": ["Tacos", "Ramen", "Bao"]}
+                """);
+
+            assertThat(result).bodyJson().extractingPath("$.optionOrder").isEqualTo("AS_WRITTEN");
+            assertThat(result).bodyJson().extractingPath("$.options[*].label")
+                .isEqualTo(List.of("Tacos", "Ramen", "Bao"));
+        }
+
+        /** Sorted once, when the poll is created: that is the poll's order, which ballots are positions in. */
+        @Test
+        void alphabeticalPollsAreSortedAsPeopleRead() {
+            var result = post(alice, "/api/polls", """
+                {"title": "Which room?", "votingSystem": "MAJORITY_JUDGMENT", "visibility": "UNLISTED",
+                 "optionOrder": "ALPHABETICAL", "options": ["Room 10", "room 9", "Été", "Atelier", "Room 2"]}
+                """);
+
+            assertThat(result).hasStatus(HttpStatus.CREATED);
+            assertThat(result).bodyJson().extractingPath("$.optionOrder").isEqualTo("ALPHABETICAL");
+            assertThat(result).bodyJson().extractingPath("$.options[*].label")
+                .isEqualTo(List.of("Atelier", "Été", "Room 2", "room 9", "Room 10"));
+            var poll = JsonPath.<String>read(body(result), "$.id");
+            var atelier = JsonPath.<String>read(body(result), "$.options[0].id");
+
+            put(bob, "/api/polls/" + poll + "/ballot", "{\"judgments\": {\"" + atelier + "\": \"Excellent\"}}");
+
+            assertThat(get(bob, "/api/polls/" + poll)).bodyJson().extractingPath("$.options[0].judgmentCounts.Excellent")
+                .isEqualTo(1);
+        }
+
+        /** Each voter's client shuffles them: the poll keeps them as written. */
+        @Test
+        void shuffledPollsKeepTheirOptionsAsWritten() {
+            var result = post(alice, "/api/polls", """
+                {"title": "Lunch?", "votingSystem": "APPROVAL", "visibility": "UNLISTED",
+                 "optionOrder": "SHUFFLED", "options": ["Tacos", "Ramen", "Bao"]}
+                """);
+
+            assertThat(result).bodyJson().extractingPath("$.optionOrder").isEqualTo("SHUFFLED");
+            assertThat(result).bodyJson().extractingPath("$.options[*].label")
+                .isEqualTo(List.of("Tacos", "Ramen", "Bao"));
+        }
     }
 
     @Nested
@@ -169,6 +255,18 @@ class PollApiTest {
 
             assertThat(JsonPath.<List<String>>read(body(result), "$[*].id")).containsExactly(second, first);
             assertThat(result).bodyJson().extractingPath("$[*].isMine").isEqualTo(List.of(true, true));
+        }
+
+        /** What a voter is answered holds their ballot: no cache keeps it, the browser's own included. */
+        @Test
+        void noCacheKeepsWhatAVoterIsAnswered() {
+            var poll = createPoll(alice, "APPROVAL", "UNLISTED");
+
+            assertThat(get(alice, "/api/polls/" + poll)).hasHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+            assertThat(get(alice, "/api/polls/mine")).hasHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+            assertThat(put(alice, "/api/polls/" + poll + "/ballot", "{\"approvedOptionIds\": []}"))
+                .hasHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+            assertThat(get(alice, "/api/polls/nothing-here")).hasHeader(HttpHeaders.CACHE_CONTROL, "no-store");
         }
 
         @Test

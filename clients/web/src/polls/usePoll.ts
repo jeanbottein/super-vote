@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ApiError, errorMessage, getPoll, watchPoll } from '../api/client';
+import { ApiError, getPoll, watchPoll } from '../api/client';
 import type { Poll } from '../api/types';
 
 export type Connection = 'connecting' | 'live' | 'offline';
@@ -9,7 +9,7 @@ export const RETRY_DELAY = 5000;
 
 /**
  * One poll, kept up to date live, as seen with the invitation the voter came
- * with, if any.
+ * with, if any; or why it could not be loaded (failure, null until then).
  *
  * It is loaded first and watched second: the stream's first event is then at
  * least as recent as the loaded poll, so no update is missed or rolled back.
@@ -24,7 +24,7 @@ export const RETRY_DELAY = 5000;
  */
 export function usePoll(id: string, invitation: string | null) {
   const [poll, setPoll] = useState<Poll | null>(null);
-  const [error, setError] = useState<ApiError | null>(null);
+  const [failure, setFailure] = useState<unknown>(null);
   const [deleted, setDeleted] = useState(false);
   const [connection, setConnection] = useState<Connection>('connecting');
 
@@ -57,7 +57,7 @@ export function usePoll(id: string, invitation: string | null) {
             return;
           }
           if (!loaded) {
-            setError(failure instanceof ApiError ? failure : new ApiError(0, errorMessage(failure)));
+            setFailure(failure ?? new Error('The poll could not be loaded'));
           } else if (failure instanceof ApiError && failure.status === 404) {
             setDeleted(true);
           } else {
@@ -75,5 +75,5 @@ export function usePoll(id: string, invitation: string | null) {
     };
   }, [id, invitation]);
 
-  return { poll, error, deleted, connection, setPoll };
+  return { poll, failure, deleted, connection, setPoll };
 }
