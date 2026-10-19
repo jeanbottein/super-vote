@@ -1,0 +1,44 @@
+# Version updates, weekly and grouped, so that dependencies never drift far
+# behind. Each waits a week after its release (cooldown): a compromised release
+# is usually caught by then. Security updates are a repository setting, and
+# come at once, cooldown or not (SECURITY.md).
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /servers/java
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      server:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /clients/web
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      web:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      actions:
+        patterns: ['*']

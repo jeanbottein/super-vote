@@ -1,0 +1,95 @@
+# What must pass before a change reaches main (the main branch's ruleset
+# requires these checks): the server's tests on H2 and on PostgreSQL, the
+# database production runs, and the web app's lint, types, tests and build.
+# The same as ./dev.sh test, plus PostgreSQL.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  server:
+    name: Server on H2
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: servers/java
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          java-version-file: .tool-versions
+          cache: maven
+          cache-dependency-path: servers/java/pom.xml
+      - run: ./mvnw -B -ntp test
+
+  server-postgresql:
+    name: Server on PostgreSQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgresql:
+        image: postgres:18
+        env:
+          POSTGRES_USER: super_vote
+          POSTGRES_PASSWORD: super_vote
+          POSTGRES_DB: super_vote_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U super_vote -d super_vote_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      # The lock timeout production sets too (servers/java/README.md).
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/super_vote_test?options=-c%20lock_timeout%3D2s
+      SPRING_DATASOURCE_USERNAME: super_vote
+      SPRING_DATASOURCE_PASSWORD: super_vote
+    defaults:
+      run:
+        working-directory: servers/java
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          java-version-file: .tool-versions
+          cache: maven
+          cache-dependency-path: servers/java/pom.xml
+      - run: ./mvnw -B -ntp test
+
+  web:
+    name: Web app
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: clients/web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+          cache-dependency-path: clients/web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      # Type checks, then the production bundle.
+      - run: npm run build
+      - run: npm test
