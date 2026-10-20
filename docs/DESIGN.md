@@ -258,10 +258,11 @@ lines.
   What people come to do comes first, side by side: the hero with "Create a
   poll" on the left, the join form (and the visitor's polls, once they have
   some) on the right. Below, rows of cards: how it works (three numbered
-  steps), an example of results beside why grading beats a single choice
-  (the text sticks while the example scrolls), why it matters (three
-  reasons), and what super-vote is not for (two columns). On a phone it is
-  all one column, in that order.
+  steps), a prompt to have an AI agent create a poll beside what it does, an
+  example of results beside why grading beats a single choice (the text
+  sticks while the example scrolls), why it matters (three reasons), and
+  what super-vote is not for (two columns). On a phone it is all one column,
+  in that order.
 - One breakpoint, 640 px. Below it dialogs are sheets from the bottom; from
   it they are centred, panels get 24 px of padding (`--panel-padding`), and a
   ballot row puts its option beside its scale.
@@ -285,7 +286,7 @@ lines.
 | Fields | `input`, `select`, `.field`, `.field-problem`, `.hint`, `.hint[data-tone="warning"]` | `--field`, `--border-strong`, 16 px text |
 | Segmented control | `.segmented`, `.segmented-options`, `.segmented-option` | radios: arrow keys work |
 | Header | `.app-header`, `.app-header-inner`, `.brand`, `.logo` | |
-| Home | `.hero`, `.join-form`, `.join-row`, `.join-code`, `.poll-list`, `.poll-list-item`; `.home-start`, `.home-actions`, `.home-section`, `.home-text`, `.home-cards`, `.steps`, `.grade`, `.example`, `.good-to-know` | list rows run to the panel's edges; steps number themselves in ink (`--accent-soft`, `--accent-text`); the example is the real results graph on sample counts the server would rank the same |
+| Home | `.hero`, `.join-form`, `.join-row`, `.join-code`, `.poll-list`, `.poll-list-item`; `.home-start`, `.home-actions`, `.home-section`, `.home-text`, `.home-cards`, `.steps`, `.agent`, `.agent-prompt`, `.grade`, `.example`, `.good-to-know`; `.copy-labels` | list rows run to the panel's edges; steps number themselves in ink (`--accent-soft`, `--accent-text`); the agent's prompt, naming the site it is on, sits in a well (`--surface-sunken`) to copy, and its button keeps its width when "Copied" replaces its label (`.copy-labels`); the example is the real results graph on sample counts the server would rank the same |
 | Privacy and limits | `.about-section`, `.facts` | one fact per bullet |
 | Ballot | `.ballot`, `.ballot-body`, `.ballot-status[data-counted]` | the raised sheet |
 | Majority judgment ballot (`mj-ballot.css`) | `.mj-scale-legend`, `.mj-ballot-row`, `.mj-ballot-chosen[data-mention]`, `.mj-scale`, `.mj-scale-step`, `.mj-scale-mark`, `.mj-scale-name`; `.mj-dropdown-row select[data-mention]` | rows are lines on the sheet |
