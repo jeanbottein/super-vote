@@ -1,7 +1,7 @@
 // Builds the stage and its timeline, and lets the renderer seek it frame by frame.
 import { ready } from './util.js';
 import { tl, runHooks, cues } from './fx.js';
-import { build } from './scenes.js';
+import { build, MUSIC } from './scenes.js';
 import { buildFidelity } from './fidelity.js';
 import { renderSoundtrack } from './audio.js';
 
@@ -30,6 +30,6 @@ if (params.has('fidelity')) {
   const duration = build(stage);
   await ready(document.body);
   seek(0);
-  const soundtrack = (withMusic, withSfx = true) => renderSoundtrack(cues, duration, { withMusic, withSfx });
+  const soundtrack = (withMusic, withSfx = true) => renderSoundtrack(cues, duration, MUSIC, { withMusic, withSfx });
   window.promo = { ready: true, duration, seek, cues, soundtrack };
 }

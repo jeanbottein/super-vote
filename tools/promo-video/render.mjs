@@ -1,4 +1,4 @@
-// Renders the video: node render.mjs <out.mp4> [--no-music] [--draft] [--fps=60] [--from=0] [--to=35]
+// Renders the video: node render.mjs <out.mp4> [--no-music] [--draft] [--fps=60] [--from=0] [--to=60]
 // Frames come from headless Chrome one by one (the timeline is seeked, never played),
 // the soundtrack from an OfflineAudioContext in the same page, normalized to -14 LUFS.
 import { spawn, spawnSync } from 'node:child_process';
@@ -9,7 +9,7 @@ const args = process.argv.slice(2);
 const flag = (name, fallback) => args.find((a) => a.startsWith(`--${name}=`))?.split('=')[1] ?? fallback;
 const out = args.find((a) => !a.startsWith('--'));
 if (!out?.endsWith('.mp4')) {
-  console.error('usage: node render.mjs <out.mp4> [--no-music] [--draft] [--fps=60] [--from=0] [--to=35]');
+  console.error('usage: node render.mjs <out.mp4> [--no-music] [--draft] [--fps=60] [--from=0] [--to=60]');
   process.exit(1);
 }
 const draft = args.includes('--draft');

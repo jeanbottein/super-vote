@@ -98,6 +98,7 @@ body {
 .cap.coral { background: var(--coral); }
 .cap.mint { background: var(--mint); }
 .cap.pink { background: var(--pink); }
+.cap.lilac { background: var(--lilac); }
 .cap.black { background: var(--black); color: #fff; box-shadow: 10px 12px 0 #fff; border-color: #fff; }
 .cap.small { font-size: 58px; padding: 10px 26px 16px; border-radius: 24px; border-width: 5px; box-shadow: 8px 9px 0 var(--black); }
 .cap.tiny { font-size: 44px; padding: 8px 22px 12px; border-radius: 20px; border-width: 4px; box-shadow: 6px 7px 0 var(--black); }
@@ -682,4 +683,124 @@ body {
 /* The app's display rules (flex, grid) would beat the hidden attribute. */
 .app [hidden] {
   display: none !important;
+}
+
+/* ------------------------------------------------------ 4: the method */
+
+.night-bg {
+  background-color: var(--night);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 2px, transparent 2px);
+  background-size: 60px 60px;
+}
+
+/* A mention, in its colour from the app's mentions.css (inside an .app). */
+.mention-chip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 580px;
+  height: 96px;
+  border: 5px solid #fff;
+  border-radius: 999px;
+  background: var(--mention);
+  color: var(--mention-fg);
+  font-family: var(--display);
+  font-size: 60px;
+  font-weight: 800;
+  font-stretch: 85%;
+}
+
+/* ----------------------------------------------------- 7: the science */
+
+.notebook-bg {
+  background-color: #fdfcf6;
+  background-image:
+    linear-gradient(90deg, transparent 118px, rgba(229, 57, 53, 0.45) 118px, rgba(229, 57, 53, 0.45) 122px, transparent 122px),
+    repeating-linear-gradient(transparent 0 58px, rgba(47, 74, 208, 0.16) 58px 60px);
+}
+
+/* A paper ballot of old: one choice, one cross. */
+.old-ballot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 640px;
+  padding: 34px 48px 30px;
+  border: 3px solid #3b3227;
+  background: #f4ecd6;
+  box-shadow: 12px 14px 0 rgba(0, 0, 0, 0.16);
+  color: #3b3227;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.old-ballot h3 {
+  margin: 0;
+  font-size: 50px;
+  letter-spacing: 0.2em;
+  text-align: center;
+}
+
+.old-ballot p {
+  margin: 4px 0 18px;
+  font-size: 32px;
+  font-style: italic;
+  text-align: center;
+}
+
+.old-ballot .choice {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 14px 0;
+  border-top: 2px solid rgba(59, 50, 39, 0.3);
+  font-size: 42px;
+}
+
+.old-ballot .box {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 3px solid #3b3227;
+  border-radius: 50%;
+  font-size: 40px;
+  line-height: 1;
+}
+
+.stamp {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 8px 34px 14px;
+  border: 10px solid #d62828;
+  border-radius: 20px;
+  color: #d62828;
+  font-family: var(--display);
+  font-size: 112px;
+  font-weight: 800;
+  font-stretch: 80%;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  mix-blend-mode: multiply;
+}
+
+/* A method and the work it comes from. */
+.sticker.cite {
+  align-items: flex-start;
+  gap: 8px;
+  padding: 22px 40px 26px;
+}
+
+.sticker.cite strong {
+  font-size: 68px;
+}
+
+.sticker.cite span {
+  font-size: 44px;
+  font-weight: 600;
+  opacity: 0.75;
 }

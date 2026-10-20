@@ -135,17 +135,11 @@ const CHORDS = [
 ];
 const octave = (note, by) => note.replace(/-?\d$/, (o) => String(Number(o) + by));
 
-/** When each part plays: [from, to) in seconds. */
+/** Whether t falls in one of [from, to) spans, in seconds. */
 const inside = (t, spans) => spans.some(([a, b]) => t >= a - 1e-6 && t < b - 1e-6);
-const SECTIONS = {
-  drums: [[4, 24.75], [25.5, 33]],
-  intro: [[0, 3.5]],
-  bass: [[4, 32]],
-  chords: [[4, 24.75], [25.5, 32]],
-  melody: [[6, 14], [18, 24.75], [26.5, 30.5]],
-};
 
-function music(out, duration) {
+/** plan: when each part plays (scenes.js, MUSIC). */
+function music(out, duration, plan) {
   const drums = ctx.createGain();
   drums.gain.value = 1;
   drums.connect(out);
@@ -169,9 +163,9 @@ function music(out, duration) {
     const t = i * sixteenth;
     const bar = Math.floor(t / BAR + 1e-6);
     const pos = i % 16; // sixteenth within the bar
-    const chord = CHORDS[(bar + 2) % 4]; // the drop, bar 2, lands on F
+    const chord = CHORDS[(((bar - plan.drop / BAR) % 4) + 4) % 4]; // the drop lands on F
 
-    if (inside(t, SECTIONS.drums)) {
+    if (inside(t, plan.drums)) {
       if (pos % 4 === 0) {
         kick(drums, t);
         ducked.gain.setValueAtTime(0.45, t);
@@ -180,14 +174,17 @@ function music(out, duration) {
       if (pos === 4 || pos === 12) clap(drums, t);
       if (pos % 2 === 0) hat(drums, t, pos % 4 === 2 ? 0.08 : 0.05, pos % 4 === 2);
     }
-    if (inside(t, SECTIONS.intro)) {
-      const build = t / 3.5;
+    const [introStart, introEnd] = plan.intro;
+    if (inside(t, [plan.intro])) {
+      const build = (t - introStart) / (introEnd - introStart);
       if (pos % 2 === 0) hat(drums, t, 0.05 + 0.04 * build, pos % 4 === 2);
       if (pos % 4 === 0) for (const [k, note] of chord.notes.entries()) pluck(chords, t + k * 0.008, octave(note, 1), 0.2 + 0.15 * build, 0.993);
-      if (t >= 2 && pos % 8 === 0) kick(drums, t, 0.7);
-      if (t >= 3 && pos % 2 === 0) snare(drums, t, 0.08 + 0.15 * (t - 3) / 0.5);
+      if (t >= introEnd - 2.5 && pos % 8 === 0) kick(drums, t, 0.7);
+      if (t >= introEnd - 0.5 && pos % 2 === 0) snare(drums, t, 0.08 + 0.15 * (t - introEnd + 0.5) / 0.5);
+    } else if (!inside(t, plan.drums) && t >= plan.drop && t < plan.end && pos % 4 === 2) {
+      hat(drums, t, 0.06); // a break: the off-beats keep time
     }
-    if (inside(t, SECTIONS.bass) && pos % 2 === 0) {
+    if (inside(t, plan.bass) && pos % 2 === 0) {
       const step = pos / 2; // eighth within the bar
       const note = [chord.root, null, chord.root, octave(chord.root, 1), chord.root, null, chord.root, octave(chord.root, 1)][step];
       if (note) {
@@ -210,27 +207,29 @@ function music(out, duration) {
         sub.stop(t + 0.3);
       }
     }
-    if (inside(t, SECTIONS.chords) && [0, 6, 8, 12].includes(pos)) {
+    if (inside(t, plan.chords) && [0, 6, 8, 12].includes(pos)) {
       chord.notes.forEach((note, k) => pluck(chords, t + k * 0.009, octave(note, 1), pos === 0 ? 0.13 : 0.1));
     }
-    if (inside(t, SECTIONS.melody) && pos % 2 === 0) {
+    if (inside(t, plan.melody) && pos % 2 === 0) {
       const note = chord.melody[pos / 2];
-      const up = t >= 26.5 ? 1 : 0;
+      const up = t >= plan.higher ? 1 : 0;
       if (note) marimba(lead, t, octave(note, up), 0.22);
     }
   }
-  // The end: a last strum, held, and a final hit.
-  for (const t of [32, 32.5, 33]) {
+  // The end: a last strum, held, and a final hit half a bar later.
+  const end = plan.end;
+  const hit = end + 1;
+  for (const t of [end, end + 0.5, hit]) {
     tone(bass, t, { type: 'sawtooth', freq: hz('F1'), decay: 0.4, peak: 0.12 });
-    tone(bass, t, { freq: hz('F2'), decay: t === 33 ? 1.2 : 0.4, peak: 0.3 });
+    tone(bass, t, { freq: hz('F2'), decay: t === hit ? 1.2 : 0.4, peak: 0.3 });
   }
-  CHORDS[0].notes.forEach((note, k) => pluck(chords, 32 + k * 0.03, octave(note, 1), 0.16, 0.9985));
-  kick(drums, 33, 1);
-  crash(drums, 33, 0.18);
-  CHORDS[0].notes.forEach((note, k) => pluck(chords, 33 + k * 0.012, octave(note, 1), 0.18, 0.9985));
-  marimba(lead, 33, 'F5', 0.3);
-  marimba(lead, 33, 'A5', 0.22);
-  marimba(lead, 33, 'C6', 0.2);
+  CHORDS[0].notes.forEach((note, k) => pluck(chords, end + k * 0.03, octave(note, 1), 0.16, 0.9985));
+  kick(drums, hit, 1);
+  crash(drums, hit, 0.18);
+  CHORDS[0].notes.forEach((note, k) => pluck(chords, hit + k * 0.012, octave(note, 1), 0.18, 0.9985));
+  marimba(lead, hit, 'F5', 0.3);
+  marimba(lead, hit, 'A5', 0.22);
+  marimba(lead, hit, 'C6', 0.2);
 }
 
 // ---------------------------------------------------------------- effects
@@ -358,7 +357,7 @@ function reverb(out) {
 }
 
 /** Renders the soundtrack, and returns it as a 16-bit stereo WAV, base64. */
-export async function renderSoundtrack(cues, duration, { withMusic = true, withSfx = true } = {}) {
+export async function renderSoundtrack(cues, duration, plan, { withMusic = true, withSfx = true } = {}) {
   ctx = new OfflineAudioContext(2, Math.ceil(duration * SR), SR);
   noise = noiseBuffer();
   plucks.clear();
@@ -381,7 +380,7 @@ export async function renderSoundtrack(cues, duration, { withMusic = true, withS
   sfxBus.connect(master);
   sfxBus.connect(reverbSend);
 
-  if (withMusic) music(musicBus, duration);
+  if (withMusic) music(musicBus, duration, plan);
   for (const c of withSfx ? cues : []) {
     if (!SFX[c.name]) throw new Error(`no sound called ${c.name}`);
     SFX[c.name](sfxBus, c);

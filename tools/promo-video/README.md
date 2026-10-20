@@ -1,12 +1,15 @@
 # super-vote's promo video
 
-A 35-second vertical video (1080x1920, 60 fps) for TikTok, Reels and Shorts: a
-group chat that cannot pick a team name, then super-vote deciding it, a summer
-trip and a dinner. It is a web page, rendered frame by frame.
+A one-minute vertical video (1080x1920, 60 fps) for TikTok, Reels and Shorts: a
+group chat that cannot pick a team name, then super-vote deciding it by
+majority judgment, what that method is and why it needs no strategy, a summer
+trip by approval voting, a dinner whose results wait for the poll to close,
+the science behind both methods, and what super-vote promises. It is a web
+page, rendered frame by frame.
 
 ```bash
 npm ci                                       # Node 22.22+ or 24.15+, like the web app
-npm run render                               # out/super-vote-promo.mp4, about 2 minutes
+npm run render                               # out/super-vote-promo.mp4, about 3 minutes
 npm run render:no-music                      # effects only, under a platform's own sound
 node render.mjs out/draft.mp4 --draft        # 30 fps, for a quick look
 node snap.mjs out/stills 9.8 12.4            # stills of chosen moments, in seconds
@@ -19,7 +22,8 @@ It needs Google Chrome (`CHROME=<path>` where it is not in macOS's
 ## How it works
 
 - **`src/scenes.js`** is the video, scene by scene, on one GSAP timeline set
-  to a 120 BPM grid: a beat is half a second, and cuts fall on beats.
+  to a 120 BPM grid: a beat is half a second, and cuts fall on beats. Each
+  scene's start is in its table `T`, and the soundtrack's plan in `MUSIC`.
   `render.mjs` seeks it frame by frame and never plays it, so two renders are
   the same.
 - **`src/ui.js`** draws the app's screens (the form, the share sheet, ballots,

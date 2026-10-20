@@ -5,7 +5,7 @@
 import { h } from './util.js';
 import { MENTIONS, approval, judgment, ranks, total } from './ranking.js';
 
-const MENTION_NAMES = {
+export const MENTION_NAMES = {
   Excellent: 'Excellent', VeryGood: 'Very Good', Good: 'Good', Fair: 'Fair', Passable: 'Passable', Inadequate: 'Inadequate', Bad: 'Bad',
 };
 
