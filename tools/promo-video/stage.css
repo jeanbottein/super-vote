@@ -1,0 +1,685 @@
+/* The video's own look: a 1080x1920 stage, sticker captions, the phone, and
+   what the app's stylesheet needs to draw a phone inside a wide page. */
+
+:root {
+  --ink: #2f4ad0;
+  --cream: #faf5ea;
+  --night: #101218;
+  --coral: #ff7a5c;
+  --sun: #ffd23f;
+  --mint: #7fe0a3;
+  --lilac: #c4b2ff;
+  --sky: #63c7ff;
+  --pink: #ff9ecb;
+  --black: #121212;
+  --display: 'Bricolage', 'Helvetica Neue', Arial, sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  background: #000;
+}
+
+#stage {
+  position: relative;
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+  background: var(--night);
+  font-family: var(--display);
+  -webkit-font-smoothing: antialiased;
+}
+
+#camera {
+  position: absolute;
+  inset: 0;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+.abs {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.em {
+  display: block;
+  object-fit: contain;
+}
+
+.em-inline {
+  display: inline-block;
+  vertical-align: -0.14em;
+  margin: 0 0.02em;
+  object-fit: contain;
+}
+
+/* ------------------------------------------------------------ captions */
+
+.cap {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 14px 34px 22px;
+  border: 6px solid var(--black);
+  border-radius: 32px;
+  background: #fff;
+  color: var(--black);
+  box-shadow: 10px 12px 0 var(--black);
+  font-family: var(--display);
+  font-size: 88px;
+  font-weight: 800;
+  font-stretch: 80%;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.cap .w,
+.big .w,
+.label .w {
+  display: inline-block;
+}
+
+.cap.ink { background: var(--ink); color: #fff; }
+.cap.sun { background: var(--sun); }
+.cap.coral { background: var(--coral); }
+.cap.mint { background: var(--mint); }
+.cap.pink { background: var(--pink); }
+.cap.black { background: var(--black); color: #fff; box-shadow: 10px 12px 0 #fff; border-color: #fff; }
+.cap.small { font-size: 58px; padding: 10px 26px 16px; border-radius: 24px; border-width: 5px; box-shadow: 8px 9px 0 var(--black); }
+.cap.tiny { font-size: 44px; padding: 8px 22px 12px; border-radius: 20px; border-width: 4px; box-shadow: 6px 7px 0 var(--black); }
+.cap.wrap { white-space: normal; }
+
+/* A step number before a caption. */
+.cap .num {
+  display: inline-grid;
+  place-items: center;
+  width: 1.05em;
+  height: 1.05em;
+  margin-right: 0.22em;
+  border-radius: 50%;
+  background: var(--black);
+  color: #fff;
+  font-size: 0.8em;
+  vertical-align: 0.08em;
+}
+
+.cap.ink .num { background: #fff; color: var(--ink); }
+
+/* Huge words, outlined. */
+.big {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #fff;
+  font-family: var(--display);
+  font-size: 200px;
+  font-weight: 800;
+  font-stretch: 75%;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  -webkit-text-stroke: 18px var(--black);
+  paint-order: stroke fill;
+}
+
+/* A label on a sticker: an emoji over a word. */
+.sticker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 26px 20px;
+  border: 6px solid var(--black);
+  border-radius: 34px;
+  background: #fff;
+  box-shadow: 10px 12px 0 var(--black);
+  color: var(--black);
+  font-family: var(--display);
+  font-size: 62px;
+  font-weight: 800;
+  font-stretch: 85%;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.sticker.row {
+  flex-direction: row;
+  gap: 18px;
+  padding: 14px 30px 14px 20px;
+}
+
+/* --------------------------------------------------------------- phone */
+
+.phone {
+  --z: 1.8;
+  --bezel: 16px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: var(--bezel);
+  border-radius: calc(56px * var(--z));
+  background: linear-gradient(145deg, #2b2f38, #0d0f13 40%, #1b1e25);
+  box-shadow: 0 50px 90px rgba(10, 12, 20, 0.35), 0 0 0 4px var(--black), inset 0 0 0 2px #3a3f4a;
+}
+
+.phone .glass {
+  position: relative;
+  width: calc(390px * var(--z));
+  height: calc(844px * var(--z));
+  overflow: hidden;
+  border-radius: calc(46px * var(--z));
+  background: #f4f5f7;
+}
+
+.phone .island {
+  position: absolute;
+  top: calc(11px * var(--z));
+  left: 50%;
+  z-index: 20;
+  width: calc(118px * var(--z));
+  height: calc(34px * var(--z));
+  border-radius: 999px;
+  background: #000;
+  transform: translateX(-50%);
+}
+
+.phone .statusbar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(54px * var(--z));
+  padding: 0 calc(34px * var(--z)) 0 calc(44px * var(--z));
+  color: #111;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: calc(17px * var(--z));
+  font-weight: 600;
+}
+
+.phone .statusbar svg {
+  height: calc(13px * var(--z));
+  width: auto;
+}
+
+.phone .glass > .app.screen {
+  position: absolute;
+  top: calc(54px * var(--z));
+  left: 0;
+  zoom: var(--z);
+}
+
+/* ---------------------------------------------------- the app, adapted */
+
+/* Doubled: unscoped rules lose to app.css's scoped ones at equal specificity. */
+.app.app {
+  color-scheme: light;
+  min-height: 0;
+  background: transparent;
+}
+
+.app h1 {
+  font-size: 24.18px; /* clamp(24px, 6.2vw, 32px) on a 390 px phone */
+}
+
+.app .share-code .join-code {
+  font-size: 42.9px; /* clamp(34px, 11vw, 48px) on a 390 px phone */
+}
+
+.app input.focused {
+  outline: 2px solid var(--focus);
+  outline-offset: -1px;
+}
+
+.app .button.pressed {
+  scale: 0.98;
+  background: var(--accent-hover);
+}
+
+.app.screen {
+  position: relative;
+  width: 390px;
+  height: 790px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.app.screen > .app-header {
+  position: absolute;
+  inset: 0 0 auto;
+}
+
+.app .screen-scroll {
+  position: absolute;
+  inset: 0 0 auto;
+  padding-top: 57px;
+}
+
+.app .app-glow {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 480px;
+  background: linear-gradient(200deg, var(--glow-red), var(--glow-yellow) 50%, var(--glow-green));
+  mask-image: linear-gradient(#000 20%, transparent);
+}
+
+.app .page {
+  position: relative;
+}
+
+.app .stack {
+  position: relative;
+}
+
+.app .stack > * {
+  position: absolute;
+  inset: 0 0 auto;
+  margin: 0;
+}
+
+.app .dialog.sheet {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 12;
+  display: block;
+  max-height: none;
+  margin: 0;
+}
+
+.app .backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  background: var(--backdrop);
+}
+
+/* Floating pieces of the app: their own sheet, no page around them. */
+.app.card > section,
+.app.card > form {
+  box-shadow: 0 2px 4px rgba(17, 24, 39, 0.08), 0 24px 60px rgba(17, 24, 39, 0.22);
+}
+
+/* ------------------------------------------------------------ the hand */
+
+.finger {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 50;
+  width: 150px;
+  height: 150px;
+  pointer-events: none;
+}
+
+.finger img {
+  width: 150px;
+  height: 150px;
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.3));
+}
+
+.ripple {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 49;
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  border: 8px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(18, 18, 18, 0.25);
+}
+
+.confetti {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 30px;
+  border-radius: 4px;
+}
+
+/* -------------------------------------------------- 1: the group chat */
+
+.chat-bg {
+  background: radial-gradient(130% 70% at 50% 0%, #20253a 0%, #0f1117 62%);
+}
+
+.chat-mask {
+  -webkit-mask-image: linear-gradient(transparent 430px, #000 700px);
+  mask-image: linear-gradient(transparent 430px, #000 700px);
+}
+
+.thread {
+  position: absolute;
+  left: 40px;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 22px;
+  width: 1000px;
+}
+
+.msg {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  transform-origin: 0 100%;
+}
+
+.avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+}
+
+.avatar img {
+  width: 78px;
+  height: 78px;
+}
+
+.msg-name {
+  margin: 0 0 6px 26px;
+  font: 700 30px/1.2 system-ui, -apple-system, sans-serif;
+}
+
+.bubble {
+  max-width: 780px;
+  padding: 20px 32px 22px;
+  border-radius: 46px 46px 46px 14px;
+  background: #2a2f3a;
+  color: #f4f5f7;
+  font: 500 50px/1.18 system-ui, -apple-system, sans-serif;
+}
+
+.counter {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 30px 14px 18px;
+  border: 5px solid var(--black);
+  border-radius: 999px;
+  background: var(--ink);
+  box-shadow: 8px 9px 0 var(--black);
+  color: #fff;
+  font-family: var(--display);
+  font-size: 50px;
+  font-weight: 800;
+  font-stretch: 85%;
+  white-space: nowrap;
+}
+
+.counter .num {
+  display: inline-block;
+  min-width: 1.9em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.counter .zero {
+  color: var(--sun);
+}
+
+/* ------------------------------------------------------- 2: the brand */
+
+.ink-bg {
+  background: var(--ink);
+}
+
+.rays {
+  position: absolute;
+  left: 540px;
+  top: 760px;
+  width: 3200px;
+  height: 3200px;
+  margin: -1600px 0 0 -1600px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.075) 0deg 9deg, transparent 9deg 18deg);
+}
+
+.flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  pointer-events: none;
+}
+
+.logo-big {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 420px;
+  height: 420px;
+  filter: drop-shadow(14px 16px 0 var(--black));
+}
+
+.wordmark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #fff;
+  font: 800 172px/1 system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+  text-shadow: 8px 10px 0 var(--black);
+}
+
+.wordmark.dark {
+  color: #15171c;
+  text-shadow: none;
+}
+
+.wordmark span {
+  display: inline-block;
+}
+
+/* ------------------------------------------------- 3: the team's name */
+
+.cream-bg {
+  background-color: var(--cream);
+  background-image: radial-gradient(#e4d8c2 3px, transparent 3.6px);
+  background-size: 44px 44px;
+}
+
+/* ------------------------------------------------------- 4: the trip */
+
+.sky-bg {
+  background: linear-gradient(180deg, #3aaaf8 0%, #7fd0ff 55%, #c6ecff 100%);
+}
+
+.cloud {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 380px;
+  height: 120px;
+  border-radius: 999px;
+  background: #fff;
+  opacity: 0.92;
+}
+
+.cloud::before,
+.cloud::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.cloud::before {
+  left: 60px;
+  top: -70px;
+  width: 170px;
+  height: 170px;
+}
+
+.cloud::after {
+  left: 180px;
+  top: -44px;
+  width: 130px;
+  height: 130px;
+}
+
+/* ---------------------------------------------------------- 5: dinner */
+
+.gingham {
+  background-color: #fffaf0;
+  background-image:
+    linear-gradient(90deg, rgba(255, 190, 0, 0.42) 50%, transparent 50%),
+    linear-gradient(rgba(255, 190, 0, 0.42) 50%, transparent 50%);
+  background-size: 140px 140px;
+}
+
+.code-card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 34px 60px 38px;
+  border: 7px solid var(--black);
+  border-radius: 44px;
+  background: #fff;
+  box-shadow: 14px 16px 0 var(--black);
+  color: var(--black);
+  white-space: nowrap;
+}
+
+.code-card .label {
+  color: #5b6170;
+  font: 700 38px system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.08em;
+}
+
+.code-card .code {
+  font: 700 152px/1.1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.08em;
+}
+
+.code-card .where {
+  color: #5b6170;
+  font: 400 36px system-ui, -apple-system, sans-serif;
+}
+
+.wave {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+
+/* ----------------------------------------------------- 6: the blitz */
+
+.halftone {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2400px;
+  height: 2400px;
+  margin: -1200px 0 0 -1200px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.13) 5px, transparent 5.6px);
+  background-size: 40px 40px;
+}
+
+.blitz .sticker {
+  font-size: 66px;
+}
+
+/* -------------------------------------------------------- 7: the end */
+
+.end-bg {
+  background: var(--cream);
+}
+
+.sunburst {
+  position: absolute;
+  left: 540px;
+  top: 700px;
+  width: 3200px;
+  height: 3200px;
+  margin: -1600px 0 0 -1600px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(236, 203, 98, 0.16) 0deg 9deg, transparent 9deg 18deg);
+}
+
+.url {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 18px 46px 26px;
+  border: 7px solid var(--black);
+  border-radius: 999px;
+  background: var(--ink);
+  box-shadow: 12px 14px 0 var(--black);
+  color: #fff;
+  font-family: var(--display);
+  font-size: 104px;
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.tagline {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--black);
+  font-family: var(--display);
+  font-size: 84px;
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.small-print {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #5b6170;
+  font-family: var(--display);
+  font-size: 50px;
+  font-weight: 600;
+  font-stretch: 90%;
+  white-space: nowrap;
+}
+
+/* Frames are drawn one by one: the app's transitions would only lag behind. */
+.app *,
+.app *::before,
+.app *::after {
+  transition: none !important;
+}
+
+/* The app's display rules (flex, grid) would beat the hidden attribute. */
+.app [hidden] {
+  display: none !important;
+}

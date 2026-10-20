@@ -1,0 +1,19 @@
+{
+  "name": "super-vote-promo-video",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26"
+  },
+  "scripts": {
+    "render": "node render.mjs out/super-vote-promo.mp4",
+    "render:no-music": "node render.mjs out/super-vote-promo-no-music.mp4 --no-music"
+  },
+  "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "gsap": "^3.15.0",
+    "playwright-core": "^1.64.1",
+    "qrcode": "^1.5.4"
+  }
+}

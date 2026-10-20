@@ -72,6 +72,11 @@ npm run typecheck    # tsc
 npm run build        # typecheck + production bundle
 ```
 
+Promo video (`tools/promo-video`, the same Node, plus Chrome and ffmpeg):
+`npm ci && npm run render`. It draws the app's screens with the app's own
+stylesheets on a copy of the components' markup: after changing that markup,
+check its fidelity view (its README) before rendering it again.
+
 ## Architecture
 
 Read `docs/ARCHITECTURE.md` for the reasoning; the essentials:
