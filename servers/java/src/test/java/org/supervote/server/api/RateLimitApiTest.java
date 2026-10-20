@@ -65,7 +65,7 @@ class RateLimitApiTest {
             var refused = create(office, null);
 
             assertProblem(refused, HttpStatus.TOO_MANY_REQUESTS, "/problems/too-many-polls");
-            assertThat(Long.parseLong(refused.getResponse().getHeader(HttpHeaders.RETRY_AFTER)))
+            assertThat(refused.getResponse().getHeader(HttpHeaders.RETRY_AFTER)).asLong()
                 .isBetween(23 * 3600L, 24 * 3600L + 1);
             assertThat(refused).bodyJson().extractingPath("$.detail").isEqualTo(
                 "3 polls have already been created from this connection in the last 24 hours. To be fair to "
@@ -135,7 +135,7 @@ class RateLimitApiTest {
             var refused = join(office, code);
 
             assertProblem(refused, HttpStatus.TOO_MANY_REQUESTS, "/problems/too-many-wrong-codes");
-            assertThat(Long.parseLong(refused.getResponse().getHeader(HttpHeaders.RETRY_AFTER)))
+            assertThat(refused.getResponse().getHeader(HttpHeaders.RETRY_AFTER)).asLong()
                 .isBetween(23 * 3600L, 24 * 3600L + 1);
             assertThat(refused).bodyJson().extractingPath("$.detail").asString()
                 .endsWith("refused for the next 24 hours, but links to polls still work.");

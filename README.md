@@ -62,7 +62,7 @@ mise install   # provisions the pinned Java 25 and Node 24 (see .tool-versions)
 Then open <http://localhost:5173>. To try it on your phone, open the
 "Network" address that Vite prints, from the same Wi-Fi.
 
-Without [mise](https://mise.jdx.dev), any JDK 25+ and Node 20.19+ will do.
+Without [mise](https://mise.jdx.dev), any JDK 25+ and Node 24.15+ (or 22.22+) will do.
 Maven is **not** required: `./dev.sh` uses the committed wrapper.
 
 ```bash

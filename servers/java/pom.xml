@@ -25,6 +25,12 @@
         <spring-ai.version>2.0.1</spring-ai.version>
         <archunit.version>1.5.1</archunit.version>
         <jacoco.version>0.8.15</jacoco.version>
+        <!-- Ahead of the parent, which still manages versions with known
+             vulnerabilities (Tomcat 11.0.24, Jackson 3.1.5 and 2.21.5): drop each
+             line once Spring Boot manages that version or a newer one. -->
+        <tomcat.version>11.0.27</tomcat.version>
+        <jackson-bom.version>3.1.7</jackson-bom.version>
+        <jackson-2-bom.version>2.21.7</jackson-2-bom.version>
     </properties>
 
     <dependencyManagement>

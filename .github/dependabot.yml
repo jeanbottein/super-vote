@@ -1,44 +1,42 @@
-# Version updates, weekly and grouped, so that dependencies never drift far
-# behind. Each waits a week after its release (cooldown): a compromised release
-# is usually caught by then. Security updates are a repository setting, and
-# come at once, cooldown or not (SECURITY.md).
+# Version updates, weekly, in one pull request: the server's Maven
+# dependencies, the web app's npm packages and the workflows' actions, majors
+# included, so that its checks test them together and nothing drifts far
+# behind. Each update waits a week after its release (cooldown): a compromised
+# release is usually caught by then. Security updates are a repository setting,
+# and come at once, each in its own pull request, cooldown or not (SECURITY.md).
 version: 2
+
+multi-ecosystem-groups:
+  dependencies:
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+      include: scope
+
 updates:
   - package-ecosystem: maven
     directory: /servers/java
-    schedule:
-      interval: weekly
+    multi-ecosystem-group: dependencies
+    patterns: ['*']
     cooldown:
       default-days: 7
-    commit-message:
-      prefix: chore
-      include: scope
-    groups:
-      server:
-        update-types: [minor, patch]
 
   - package-ecosystem: npm
     directory: /clients/web
-    schedule:
-      interval: weekly
+    multi-ecosystem-group: dependencies
+    patterns: ['*']
     cooldown:
       default-days: 7
-    commit-message:
-      prefix: chore
-      include: scope
-    groups:
-      web:
-        update-types: [minor, patch]
+    ignore:
+      # TypeScript 7, the native compiler, until typescript-eslint supports it:
+      # its peer range ends below TypeScript 6.1, and npm ci refuses the pair.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
-    schedule:
-      interval: weekly
+    multi-ecosystem-group: dependencies
+    patterns: ['*']
     cooldown:
       default-days: 7
-    commit-message:
-      prefix: chore
-      include: scope
-    groups:
-      actions:
-        patterns: ['*']

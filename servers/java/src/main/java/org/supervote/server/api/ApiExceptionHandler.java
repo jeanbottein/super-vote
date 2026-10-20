@@ -49,7 +49,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler
     ProblemDetail notCreator(NotPollCreatorException e) {
-        return problem(HttpStatus.FORBIDDEN, "Only the poll's creator can do that.", ProblemType.NOT_POLL_CREATOR);
+        return problem(HttpStatus.FORBIDDEN, e.getMessage(), ProblemType.NOT_POLL_CREATOR);
     }
 
     @ExceptionHandler

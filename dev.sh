@@ -8,7 +8,7 @@ set -euo pipefail
 #   ./dev.sh client     start only the web client
 #   ./dev.sh test       run every check: server tests, client lint, build (with types) and tests
 #
-# Requires a JDK (25+) and Node (20.19+). Versions are pinned in .tool-versions:
+# Requires a JDK (25+) and Node (24.15+ or 22.22+). Versions are pinned in .tool-versions:
 # with mise or asdf installed, `mise install` provisions both. Maven is NOT
 # required: the committed wrapper (servers/java/mvnw) is used instead.
 #
@@ -78,13 +78,13 @@ require_node() {
   require node
   require npm
   node -e 'const [major, minor] = process.versions.node.split(".").map(Number);
-    process.exit(major > 20 || (major === 20 && minor >= 19) ? 0 : 1)' || {
-    echo "Error: Node $(node --version) is too old; the client needs 20.19 or newer (24 LTS recommended)." >&2
+    process.exit(major >= 26 || (major === 24 && minor >= 15) || (major === 22 && minor >= 22) ? 0 : 1)' || {
+    echo "Error: the client does not run on Node $(node --version): it needs 24.15+, 22.22+ or 26+ (24 LTS recommended)." >&2
     exit 1
   }
   if [ ! -d "$CLIENT_DIR/node_modules" ]; then
     echo "Installing client dependencies..."
-    (cd "$CLIENT_DIR" && npm install)
+    (cd "$CLIENT_DIR" && npm ci)
   fi
 }
 

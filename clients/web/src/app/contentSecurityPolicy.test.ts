@@ -4,10 +4,15 @@ import indexHtml from '../../index.html?raw';
 /**
  * The deployed site lets index.html's inline scripts run by their hashes
  * (deploy/Caddyfile): a script changed without its hash would be blocked.
+ * The page is parsed as a browser parses it, so that no way of writing a
+ * script escapes the test; a data block (type="text/llms.txt") never runs.
  */
 describe('the content security policy', () => {
   it("allows each of index.html's inline scripts", async () => {
-    const scripts = [...indexHtml.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1]);
+    const page = new DOMParser().parseFromString(indexHtml, 'text/html');
+    const scripts = [...page.querySelectorAll<HTMLScriptElement>('script:not([src])')]
+      .filter((script) => ['', 'module', 'text/javascript'].includes(script.type))
+      .map((script) => script.text);
 
     expect(scripts).not.toHaveLength(0);
     for (const script of scripts) {

@@ -24,7 +24,6 @@ spring:
   datasource:
     url: jdbc:h2:file:${SUPER_VOTE_DATA_DIR:${user.dir}/data}/super-vote;AUTO_SERVER=TRUE
     username: sa
-    password:
 
 # Behind the reverse proxy (deploy/Caddyfile), the caller's address and scheme
 # come in X-Forwarded-For and X-Forwarded-Proto. Tomcat believes them only from

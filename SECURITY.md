@@ -6,9 +6,9 @@ worth reporting, and worth fixing first.
 ## Reporting a vulnerability
 
 Report it privately, through GitHub: on this repository's **Security** tab,
-**Report a vulnerability** (GitHub's private vulnerability reporting). Please
-do not open a public issue for it, and give us a reasonable time to fix it
-before you tell anyone else.
+[**Report a vulnerability**](https://github.com/jeanbottein/super-vote/security/advisories/new)
+(GitHub's private vulnerability reporting). Please do not open a public issue
+for it, and give us a reasonable time to fix it before you tell anyone else.
 
 Say what you found, how to reproduce it, and what it lets someone do. We will
 answer, tell you what we do about it, and credit you in the fix if you wish.

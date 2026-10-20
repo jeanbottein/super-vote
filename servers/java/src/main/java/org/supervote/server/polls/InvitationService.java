@@ -78,6 +78,9 @@ public class InvitationService {
         if (size < 1 || size > MAX_PAGE) {
             throw new InvalidRequestException("Ask for 1 to " + MAX_PAGE + " invitations at a time.");
         }
+        if (before != null && before < 1) {
+            throw new InvalidRequestException("Read on below an invitation number: they start at 1.");
+        }
         var poll = takingInvitations(polls.createdBy(shareToken, voterId));
         var counts = countsOf(poll.id());
         var top = before == null ? counts.issued() : Math.min(before - 1, counts.issued());
