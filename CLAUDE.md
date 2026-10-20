@@ -61,7 +61,7 @@ Web app (`clients/web`, Node 24.15+ or 22.22+; 24 LTS pinned):
 
 ```bash
 npm run dev          # Vite on :5173
-npm test             # Vitest (jsdom)
+npm test             # Vitest (jsdom); properties with fast-check, which Scorecard counts as fuzzing
 npx vitest run src/polls
 npm run coverage     # + V8 coverage report: coverage/index.html
 npm run lint         # ESLint 10 flat config, incl. react-hooks 7 (React Compiler rules)
@@ -201,7 +201,11 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
 - **Text is tidied the same way on both sides**: titles, options and names are
   NFC, single-spaced, and refuse invisible characters but the joiners
   (`PollService.tidy`, mirrored by `pollForm.ts`'s `tidy` for the form's own
-  checks). Change one, change the other.
+  checks). Change one, change the other. A space is a tab, a line break or a
+  Unicode separator, and only spaces are trimmed: JavaScript's `\s` and
+  `trim()` take in U+FEFF, Java's `strip()` U+001C to U+001F, invisible
+  characters that both sides refuse. `pollForm.test.ts` checks the web app's
+  for every input (fast-check).
 - **Other sites' pages are refused** (`VoterIdentityFilter`: `Sec-Fetch-Site:
   cross-site`, unless a `GET` navigation), as `/problems/cross-site`; and API
   answers are `Cache-Control: no-store` unless their endpoint sets its own

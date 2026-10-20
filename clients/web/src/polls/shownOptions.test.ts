@@ -1,3 +1,4 @@
+import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { shownOptions } from './shownOptions';
 
@@ -14,6 +15,17 @@ describe('shownOptions', () => {
 
     expect([...shown].sort()).toEqual(OPTIONS);
     expect(shownOptions(OPTIONS, 'SHUFFLED', 42)).toEqual(shown);
+  });
+
+  it("shows a shuffled poll's options each exactly once, in the order its seed fixes, however many there are", () => {
+    fc.assert(fc.property(fc.uniqueArray(fc.string(), { maxLength: 20 }), fc.integer(), (options, seed) => {
+      const own = [...options];
+      const shown = shownOptions(options, 'SHUFFLED', seed);
+
+      expect(shown.toSorted()).toEqual(own.toSorted());
+      expect(shownOptions(options, 'SHUFFLED', seed)).toEqual(shown);
+      expect(options).toEqual(own); // only what is shown moves
+    }));
   });
 
   it('gives every option its turn in every place, visit after visit', () => {
