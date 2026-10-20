@@ -16,8 +16,13 @@ There are no accounts yet. The first `/api` request from a browser gets a
 voter token in a cookie:
 
 ```
-Set-Cookie: super_vote_voter=<43 url-safe characters>; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax
+Set-Cookie: super_vote_voter=<43 url-safe characters>; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax
 ```
+
+It lasts as long as a poll (30 days: `pollLifetimeDays` in `GET /api/server-info`),
+and every request that changes something (anything but `GET` or `HEAD`) sets it
+again for as long: every poll a browser voted on or created is gone before its
+cookie. Reading changes nothing, so it renews nothing.
 
 Send it back on every request (`fetch(..., { credentials: 'include' })`,
 `new EventSource(url, { withCredentials: true })`). Without it each request

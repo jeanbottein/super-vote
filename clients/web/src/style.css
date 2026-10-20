@@ -63,15 +63,9 @@
   --shadow-3: 0 10px 32px var(--shadow-color), 0 24px 64px var(--shadow-color);
 
   /* The light over the top of every page, from the logo's bands. */
-  --glow-red: light-dark(rgb(242 149 140 / 0.3), rgb(242 149 140 / 0.09));
-  --glow-yellow: light-dark(rgb(250 235 158 / 0.36), rgb(250 235 158 / 0.06));
-  --glow-green: light-dark(rgb(163 220 186 / 0.3), rgb(163 220 186 / 0.07));
-
-  /* The logo's frame and paper (src/ui/Logo.tsx); its bands keep their colours. */
-  --logo-frame-start: light-dark(#333333, #eef0f3);
-  --logo-frame-end: light-dark(#1a1a1a, #cfd3da);
-  --logo-paper-start: light-dark(#ffffff, #2a2e36);
-  --logo-paper-end: light-dark(#e5e5e5, #1f2228);
+  --glow-red: light-dark(rgb(227 138 114 / 0.25), rgb(227 138 114 / 0.09));
+  --glow-yellow: light-dark(rgb(236 203 98 / 0.3), rgb(236 203 98 / 0.06));
+  --glow-green: light-dark(rgb(147 191 143 / 0.3), rgb(147 191 143 / 0.07));
 
   /* The statistics (src/statistics): land on the panel's sea, and the ink for
      what is counted, its dots and bars a little lighter in dark. */
@@ -291,7 +285,11 @@ a:hover {
   flex: none;
   width: 30px;
   height: auto;
-  aspect-ratio: 230 / 202;
+  aspect-ratio: 1;
+  /* The tile's own corners (59 of 264), so that its edge and shadow follow
+     them: on a light page the cream tile would otherwise fade into the glow. */
+  border-radius: 22.35%;
+  box-shadow: 0 0 0 1px var(--border), var(--shadow-1);
 }
 
 /* The name in running text (src/ui/AppName.tsx): never split at its hyphen. */

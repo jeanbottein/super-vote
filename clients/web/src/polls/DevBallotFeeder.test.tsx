@@ -31,7 +31,9 @@ describe('the ballot feeder (development only)', () => {
     await feed(3);
 
     expect(castBallotAsNewVoter).toHaveBeenCalledTimes(3);
-    expect(castBallotAsNewVoter).toHaveBeenCalledWith('abc', { approvedOptionIds: expect.any(Array) });
+    expect(castBallotAsNewVoter).toHaveBeenCalledWith('abc', { approvedOptionIds: expect.any(Array) }, expect.any(String));
+    const places = vi.mocked(castBallotAsNewVoter).mock.calls.map(([, , timeZone]) => timeZone);
+    expect(places.every((timeZone) => Intl.supportedValuesOf('timeZone').includes(timeZone))).toBe(true);
     expect(await screen.findByRole('button', { name: 'Cast random ballots' })).toBeEnabled();
   });
 

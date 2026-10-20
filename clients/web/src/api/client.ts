@@ -50,6 +50,8 @@ interface RequestOptions {
   /** The token from a handover link, which makes the caller the poll's creator. */
   handover?: string | null;
   credentials?: RequestCredentials;
+  /** Where the request says it comes from, instead of this device's time zone (the ballot feeder). */
+  timeZone?: string;
 }
 
 /**
@@ -82,9 +84,9 @@ async function call(method: string, path: string, options: RequestOptions = {}):
 async function send(
   method: string,
   path: string,
-  { body, invitation, handover, credentials = 'include' }: RequestOptions,
+  { body, invitation, handover, credentials = 'include', timeZone = deviceTimeZone() }: RequestOptions,
 ): Promise<Response> {
-  const headers: Record<string, string> = { [TIME_ZONE_HEADER]: timeZone() };
+  const headers: Record<string, string> = { [TIME_ZONE_HEADER]: timeZone };
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json';
   }
@@ -112,7 +114,7 @@ async function send(
 }
 
 /** "Europe/Paris", or what the device says; the server counts a name it does not know nowhere. */
-function timeZone(): string {
+function deviceTimeZone(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
@@ -183,9 +185,12 @@ export const closePoll = (id: string) => request<Poll>('PATCH', pollPath(id), { 
 
 export const deletePoll = (id: string) => request<void>('DELETE', pollPath(id));
 
-/** Development only (the ballot feeder): a ballot without the cookie, so from a brand new voter. */
-export const castBallotAsNewVoter = (id: string, ballot: BallotRequest) =>
-  request<Poll>('PUT', `${pollPath(id)}/ballot`, { body: ballot, credentials: 'omit' });
+/**
+ * Development only (the ballot feeder): a ballot without the cookie, so from a
+ * brand new voter, from the time zone given.
+ */
+export const castBallotAsNewVoter = (id: string, ballot: BallotRequest, timeZone: string) =>
+  request<Poll>('PUT', `${pollPath(id)}/ballot`, { body: ballot, credentials: 'omit', timeZone });
 
 /**
  * Becomes the poll's creator with the token from a handover link: the poll is

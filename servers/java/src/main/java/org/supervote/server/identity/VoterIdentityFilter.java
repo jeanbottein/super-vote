@@ -11,6 +11,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.supervote.server.common.SuperVoteProperties;
 import org.supervote.server.common.VoterSecret;
 import org.supervote.server.statistics.Activity;
 import org.supervote.server.statistics.StatisticsService;
@@ -39,24 +40,32 @@ import java.util.Optional;
  * the statistics. Following a link (a GET navigation) is let through, and so
  * is every client that is not a browser, which sends no such header.
  *
+ * The cookie lasts as long as a poll does (super-vote.limits.poll-lifetime-days),
+ * counted again from each change this browser makes (any request but GET or
+ * HEAD): every poll it voted on or created is deleted before its cookie runs
+ * out, and the cookie is kept no longer than it is needed, which is what lets
+ * super-vote use it without asking (it is strictly necessary).
+ *
  * POST /api/voters mints identities, so it is given none.
  */
 @Component
 public class VoterIdentityFilter extends OncePerRequestFilter {
 
-    private static final Duration COOKIE_LIFETIME = Duration.ofDays(365);
     private static final String BEARER = "Bearer ";
     private static final String MINTING = "/api/voters";
 
     private final VoterSecret secret;
     private final StatisticsService statistics;
     private final HandlerExceptionResolver resolver;
+    private final Duration cookieLifetime;
 
     public VoterIdentityFilter(VoterSecret secret, StatisticsService statistics,
-                               @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
+                               @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver,
+                               SuperVoteProperties settings) {
         this.secret = secret;
         this.statistics = statistics;
         this.resolver = resolver;
+        this.cookieLifetime = Duration.ofDays(settings.limits().pollLifetimeDays());
     }
 
     @Override
@@ -94,7 +103,19 @@ public class VoterIdentityFilter extends OncePerRequestFilter {
         if (authorization != null) {
             return bearerOf(authorization);
         }
-        return cookieOf(request).orElseGet(() -> issue(request, response));
+        var cookie = cookieOf(request);
+        if (cookie.isEmpty()) {
+            statistics.count(Activity.VOTER);
+        }
+        var token = cookie.orElseGet(VoterIdentity::newToken);
+        if (cookie.isEmpty() || isChange(request)) {
+            setCookie(token, request, response);
+        }
+        return token;
+    }
+
+    private static boolean isChange(HttpServletRequest request) {
+        return !"GET".equals(request.getMethod()) && !"HEAD".equals(request.getMethod());
     }
 
     private static String bearerOf(String authorization) {
@@ -120,18 +141,15 @@ public class VoterIdentityFilter extends OncePerRequestFilter {
             .findFirst();
     }
 
-    /** First visit, or a cookie we did not issue: start a fresh identity. */
-    private String issue(HttpServletRequest request, HttpServletResponse response) {
-        var token = VoterIdentity.newToken();
-        statistics.count(Activity.VOTER);
+    /** A fresh identity (first visit, or a cookie we did not issue), or one whose lifetime starts again. */
+    private void setCookie(String token, HttpServletRequest request, HttpServletResponse response) {
         response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from(VoterIdentity.COOKIE, token)
             .httpOnly(true)
             .secure(request.isSecure())
             .sameSite("Lax")
             .path("/")
-            .maxAge(COOKIE_LIFETIME)
+            .maxAge(cookieLifetime)
             .build()
             .toString());
-        return token;
     }
 }

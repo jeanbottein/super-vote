@@ -42,24 +42,28 @@ describe('creating a poll', () => {
       showVoterNames: true,
       resultsShown: 'AFTER_CLOSING',
       resultsAfterBallots: null,
-      optionOrder: 'AS_WRITTEN',
+      optionOrder: 'SHUFFLED',
     });
     expect(await screen.findByText('Poll page fresh')).toBeInTheDocument();
   });
 
-  it('lets the creator choose how voters see the options, and says what each order does', async () => {
+  it('shuffles the options unless told otherwise, and warns that the creator\'s own order can look like a thumb on '
+    + 'the scale', async () => {
     vi.mocked(createPoll).mockResolvedValue({ poll: { id: 'fresh' } as Poll, pollsLeft: null });
     openForm();
 
-    expect(screen.getByText(/The first places can draw more support/)).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('radio', { name: 'Shuffled' }));
-    expect(screen.getByText(/Each voter sees them in an order of their own/)).toBeInTheDocument();
+    expect(screen.getAllByRole('radio', { name: /A to Z|Shuffled|As written/ }).map((radio) => radio.getAttribute('value')))
+      .toEqual(['ALPHABETICAL', 'SHUFFLED', 'AS_WRITTEN']);
+    expect(screen.getByRole('radio', { name: 'Shuffled' })).toBeChecked();
+    expect(screen.getByText(/Each voter sees them in an order of their own/)).not.toHaveAttribute('data-tone');
+    await userEvent.click(screen.getByRole('radio', { name: 'As written' }));
+    expect(screen.getByText(/can be taken for an attempt to sway the result/)).toHaveAttribute('data-tone', 'warning');
     await userEvent.type(screen.getByLabelText('Question'), 'Where do we eat?');
     await userEvent.type(screen.getByLabelText('Option 1'), 'Ramen');
     await userEvent.type(screen.getByLabelText('Option 2'), 'Tacos');
     await userEvent.click(screen.getByRole('button', { name: 'Create poll' }));
 
-    expect(createPoll).toHaveBeenCalledWith(expect.objectContaining({ optionOrder: 'SHUFFLED' }));
+    expect(createPoll).toHaveBeenCalledWith(expect.objectContaining({ optionOrder: 'AS_WRITTEN' }));
   });
 
   it('keeps the results of a poll showing names for when it closes, unless told otherwise', async () => {

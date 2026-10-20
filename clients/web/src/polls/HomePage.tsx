@@ -94,7 +94,7 @@ export default function HomePage() {
         <ul>
           <li>{t.home.limits.everyday}</li>
           <li>{t.home.limits.private}</li>
-          <li>{t.home.limits.browser}</li>
+          <li>{t.home.limits.browser(limits.pollLifetimeDays)}</li>
           <li>{t.home.limits.deleted(limits.pollLifetimeDays)}</li>
         </ul>
         <Link to="/privacy">{t.home.limitsLink}</Link>

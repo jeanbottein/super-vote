@@ -30,11 +30,26 @@ MODE="${1:-all}"
 SERVER_PID=""
 CLIENT_PID=""
 
+# Each half runs in a process group of its own (job control), so that stopping
+# it stops what it started too: Maven forks the server's JVM, npm starts Vite.
+# Killing only the subshell left that JVM running, holding :8080 for days.
+set -m
+
+# stop <pid, or -pgid for a whole group>: politely, then not.
+stop() {
+  kill -TERM -- "$1" 2>/dev/null || return 0
+  for _ in $(seq 1 40); do
+    kill -0 -- "$1" 2>/dev/null || return 0
+    sleep 1
+  done
+  kill -KILL -- "$1" 2>/dev/null || true
+}
+
 cleanup() {
   trap - EXIT INT TERM
   for pid in "$CLIENT_PID" "$SERVER_PID"; do
-    if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
-      kill "$pid" 2>/dev/null || true
+    if [ -n "$pid" ]; then
+      stop "-$pid"
     fi
   done
   wait 2>/dev/null || true
@@ -73,8 +88,27 @@ require_node() {
   fi
 }
 
+# A port still held by an earlier run from this folder (a server whose terminal
+# was closed, say) is freed. One held by anything else stops us: otherwise the
+# health check below would be answered by that program, not by our server.
+free_port() {
+  local port=$1 pid cwd
+  command -v lsof >/dev/null 2>&1 || return 0
+  for pid in $(lsof -nP -t -iTCP:"$port" -sTCP:LISTEN 2>/dev/null); do
+    cwd=$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')
+    if [[ "$cwd" == "$ROOT"/* ]]; then
+      echo "Stopping the previous run on :$port (pid $pid)"
+      stop "$pid"
+    else
+      echo "Error: port $port is taken by another program (pid $pid: $(ps -o command= -p "$pid" | cut -c1-80))." >&2
+      exit 1
+    fi
+  done
+}
+
 start_server() {
   require_java
+  free_port 8080
   mkdir -p "$SUPER_VOTE_DATA_DIR"
   echo "Starting the server on :8080 (data in $SUPER_VOTE_DATA_DIR)"
   (cd "$SERVER_DIR" && ./mvnw -q spring-boot:run) &
@@ -103,6 +137,7 @@ wait_for_server() {
 
 start_client() {
   require_node
+  free_port 5173
   echo "Starting the web client on http://localhost:5173"
   (cd "$CLIENT_DIR" && npm run dev) &
   CLIENT_PID=$!

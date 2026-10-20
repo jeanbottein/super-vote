@@ -32,26 +32,25 @@ act, a result is a fact.
 ## The logo
 
 The mark is the owner's `icon.svg` at the repository root, the source of
-truth: a hexagon whose frame draws an S, for super-vote. The S runs over the
-hexagon's whole top, round its corner, across its middle, then over its whole
-bottom, round the opposite corner, standing apart from the two sides. On one
-side of it the hexagon is green, on the other red, as on a majority judgment
-scale: lightest along the S's middle stroke, the median, where half the
-ballots lie on either side, and darkest in the far corners. The S is three
-times as thick as the sides (15 and 5), so that it still reads at 16 px in a
-browser tab; their outer edges are flush, every corner of the outline is
-rounded alike, and the two halves keep the same gap from both, round the S's
-ends too.
+truth: a hexagonal ballot box framed by an S, for super-vote, on a cream
+tile. The S runs over the hexagon's top, round its corner, along its middle,
+its spine, then over its bottom, round the opposite corner, standing apart
+from the two sides. The box holds bands in the mentions' colours: reds on
+one side of the spine, greens on the other, the median yellow along it on
+both. The whole drawing is symmetric under a half turn around (100, 115):
+each band below the spine is drawn once, and turned 180 degrees above it.
+The S is about three times as thick as the sides (20 and 7), so that it
+still reads at 16 px in a browser tab.
 
 | Where | File | How |
 |---|---|---|
-| Header, Home | `src/ui/Logo.tsx` | Inline SVG. Its frame and the paper around the halves take the `--logo-*` tokens, so on a dark page it has a light frame and dark paper, the original's inverse. The greens and reds keep the owner's colours. |
-| Browser tab | `public/favicon.svg` | Square viewBox, and its own `prefers-color-scheme: dark` variant for dark browser chrome. |
-| Safari before 26 | `public/favicon-32.png` | 32 px, transparent: Safari only shows SVG favicons since 26. |
-| iOS home screen | `public/apple-touch-icon.png` | 180 px on white: iOS paints transparency black, and rounds the corners itself. |
+| Header, Home | `src/ui/Logo.tsx` | `public/favicon.svg` as an image, the tile included, as on a phone's home screen: the same in light and dark. A hairline (`--border`) and `--shadow-1`, rounded like the tile, keep its edge on the light page's glow. |
+| Browser tab | `public/favicon.svg` | The whole icon, tile included: the tile is its background in light and dark browser chrome alike. |
+| Safari before 26 | `public/favicon-32.png` | 32 px, rounded tile on transparency: Safari only shows SVG favicons since 26. |
+| iOS home screen | `public/apple-touch-icon.png` | 180 px, square tile without its rounded corners: iOS rounds them itself, and paints transparency black. |
 
 - The mark always stands beside the name, "super-vote", in lowercase, 750
-  weight, tight tracking (`.brand`). It is decorative (`aria-hidden`): the
+  weight, tight tracking (`.brand`). It is decorative (`alt=""`): the
   name is the link's text.
 - In running text the name is `<AppName />`, which keeps it on one line: a
   line ending in "super-" reads as two words. The header's name may still
@@ -59,15 +58,15 @@ ends too.
 - 30 px wide in the header, 64 px on Home. Not below 24 px except as the
   favicon: smaller, the gaps around the S close up. Keep a quarter of its
   width clear around it.
-- Never recolour its greens and reds, stretch it, outline it, or set it on
-  anything but the page's own surfaces.
-- To change it: `Logo.tsx` and `favicon.svg` both hold the drawing of
-  `icon.svg` (the paper, the two halves, the S and the two sides), without
-  anything an editor adds (Inkscape's sodipodi and inkscape attributes, path
-  effects, gradients pointing at other gradients). Copy the new path data into
-  both; keep the tight viewBox (`-15 14 230 202`) for the inline mark and the
-  square one (`-16 -1 232 232`) for the favicon; render the two PNGs from the
-  favicon with headless Chrome, emulating light.
+- Never recolour it, stretch it, or take it off its tile.
+- To change it: `favicon.svg` is `icon.svg` without anything an editor adds
+  (its `<metadata>`, Inkscape's attributes, path effects); the page shows that
+  file, so there is no other copy of the drawing. If the tile's corners
+  change, so does `.logo`'s `border-radius` (59 of 264). Render
+  `favicon-32.png` from the favicon, and
+  `apple-touch-icon.png` from it with the tile's `rx` removed, with headless
+  Chrome. The page's glow (`--glow-*`) takes the inner bands' and the
+  median's colours.
 
 ## Colour
 
@@ -125,11 +124,9 @@ from both.
 **Above the page and the brand:** `--backdrop` (behind dialogs); `--toast` and
 `--toast-fg`, inverted (a dark toast on a light page, a light one on a dark
 page); `--shadow-color`, from which `--shadow-1` to `--shadow-3` are made;
-`--glow-red`, `--glow-yellow`, `--glow-green`, the logo's lightest red and
-green, with yellow between them, as a faint light over the top of each page (about a third opaque in light, under a tenth
-in dark), gone by 480 px so that ballots and results sit on plain surfaces;
-`--logo-frame-start`, `--logo-frame-end`, `--logo-paper-start`,
-`--logo-paper-end`, the mark's frame and paper.
+`--glow-red`, `--glow-yellow`, `--glow-green`, the logo's inner red and
+green bands and its median yellow, as a faint light over the top of each page (a quarter to a third opaque in light, under a tenth
+in dark: the red is the lighter so that `--muted` stays AA under it), gone by 480 px so that ballots and results sit on plain surfaces.
 
 **The statistics** (`src/statistics`): `--map-land`, the land, on the
 panel's surface as the sea; `--map-ink`, the dots and bars, a little lighter

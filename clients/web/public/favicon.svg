@@ -1,38 +1,37 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -1 232 232">
-  <!-- The super-vote mark, from icon.svg at the repository root. Dark browser chrome gets a light frame. -->
-  <style>
-    @media (prefers-color-scheme: dark) {
-      .frame-start { stop-color: #eef0f3; } .frame-end { stop-color: #cfd3da; }
-      .paper-start { stop-color: #2a2e36; } .paper-end { stop-color: #1f2228; }
-    }
-  </style>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-32 -17 264 264">
+  <!-- The super-vote icon, icon.svg at the repository root without the editor's data. Its tile is its
+       background, in light and dark browser chrome alike. -->
   <defs>
-    <linearGradient id="paper" x1="-0.5" y1="115" x2="200.5" y2="115" gradientUnits="userSpaceOnUse">
-      <stop class="paper-start" offset="0.345" stop-color="#fff"/>
-      <stop class="paper-end" offset="1" stop-color="#e5e5e5"/>
+    <linearGradient id="bg" x1="-32" y1="-17" x2="232" y2="247" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#faf5ea"/>
+      <stop offset="1" stop-color="#e8dcc6"/>
     </linearGradient>
-    <linearGradient id="frame" x1="-0.5" y1="115" x2="200.5" y2="115" gradientUnits="userSpaceOnUse">
-      <stop class="frame-start" offset="0" stop-color="#333"/>
-      <stop class="frame-end" offset="1" stop-color="#1a1a1a"/>
+    <linearGradient id="frame" x2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5a6678"/>
+      <stop offset="1" stop-color="#3a4352"/>
     </linearGradient>
-    <linearGradient id="green" x1="100" y1="127" x2="100" y2="214.3" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#a3dcba"/>
-      <stop offset="0.5" stop-color="#3ece7a"/>
-      <stop offset="1" stop-color="#1f7a45"/>
+    <linearGradient id="frame-light" x2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#bcae96"/>
+      <stop offset="1" stop-color="#a39680"/>
     </linearGradient>
-    <linearGradient id="red" x1="100" y1="103" x2="100" y2="15.7" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#f2958c"/>
-      <stop offset="0.5" stop-color="#f25e4f"/>
-      <stop offset="1" stop-color="#9e372e"/>
-    </linearGradient>
+    <!-- band shapes below the spine, no fill: each <use> gives its own colour -->
+    <path id="outer" d="M 100.52,182.5 L 80.11,182.5 C 77.73,182.5 75.34,182.48 72.96,182.66 C 71.4,182.78 69.76,183.03 68.37,183.8 C 67.76,184.14 67.19,184.59 66.77,185.15 C 66.46,185.56 66.22,186.02 66.08,186.51 C 65.18,189.64 68.18,192.11 70.45,193.63 L 72.11,194.69 C 76.61,197.42 81.23,200.01 85.78,202.61 C 90.35,205.23 94.78,207.52 100.17,207.55 C 105.32,207.58 110,205.03 114.35,202.54 C 116.5,201.31 124.07,196.99 127.67,194.82 L 129.35,193.77 C 131.86,192.16 135.16,189.33 133.72,185.97 C 133.52,185.5 133.2,185.07 132.84,184.7 C 132.39,184.24 131.8,183.85 131.21,183.59 C 128.25,182.28 124.06,182.5 120.93,182.5 L 100.52,182.5 Z"/>
+    <path id="inner" d="M 98.04,148 L 24.33,148.01 C 21.29,148.03 17.66,147.91 15.06,149.78 C 11.77,152.15 12.63,157.12 13.81,160.35 C 16,166.35 20.5,170.49 25.86,173.72 C 28.44,175.27 31.14,176.7 34.1,177.37 C 37.05,178.04 40.16,178 43.16,178 L 142.58,178 C 146.42,178 151.72,178.25 155.65,177.42 C 159.34,176.64 162.62,174.67 165.85,172.81 C 169.38,170.78 173.11,168.82 176.18,166.09 C 177.06,165.31 177.87,164.45 178.61,163.54 C 179.07,162.97 179.46,162.4 179.85,161.78 C 182.07,158.23 183.84,151.93 179.28,149.36 C 178.66,149.01 177.99,148.76 177.31,148.58 C 174.14,147.75 169.02,148 165.95,148 L 98.04,148 Z"/>
+    <path id="median" d="M 102.57,86.5 L 33.45,86.51 C 32.53,86.51 31.21,86.52 30.26,86.55 C 27.12,86.66 22.17,87.03 21.41,90.91 C 21.33,91.32 21.31,91.75 21.35,92.17 C 21.41,92.83 21.6,93.48 21.89,94.08 C 22.22,94.78 22.67,95.43 23.19,96 C 24.13,97.04 25.22,97.91 26.43,98.62 C 30.79,101.18 35.83,101.46 40.76,101.48 L 176,101.48 C 178.57,101.45 181.49,101.51 183.88,100.37 C 188.49,98.17 188.77,90.98 184.7,88.09 C 182.38,86.44 178.54,86.55 175.88,86.52 L 102.57,86.5 Z"/>
   </defs>
+  <rect x="-32" y="-17" width="264" height="264" rx="59" fill="url(#bg)"/>
   <g transform="rotate(30 100 115)">
-    <path fill="url(#paper)" d="M 106.75,8.05 L 189.25,55.68 A 13.5 13.5 0 0 1 196,67.37 L 196,162.63 A 13.5 13.5 0 0 1 189.25,174.32 L 106.75,221.95 A 13.5 13.5 0 0 1 93.25,221.95 L 10.75,174.32 A 13.5 13.5 0 0 1 4,162.63 L 4,67.37 A 13.5 13.5 0 0 1 10.75,55.68 L 93.25,8.05 A 13.5 13.5 0 0 1 106.75,8.05 Z"/>
-    <path fill="url(#green)" d="M 181,130 L 181,160.03 A 3 3 0 0 1 179.5,162.63 L 100.4,208.3 A 0.99 0.99 0 0 1 99.51,208.35 L 99.05,208.15 L 98.11,207.84 L 97.14,207.6 L 96.16,207.44 L 95.16,207.36 L 94.16,207.37 L 93.17,207.46 L 92.19,207.63 L 91.23,207.89 L 90.29,208.22 L 89.38,208.63 L 88.5,209.11 L 87.68,209.66 L 86.9,210.28 L 86.17,210.97 L 85.84,211.34 A 0.62 0.62 0 0 1 85.07,211.46 L 10.5,168.4 A 3 3 0 0 1 9,165.81 L 9,130 A 3 3 0 0 1 12,127 L 178,127 A 3 3 0 0 1 181,130 Z"/>
-    <path fill="url(#red)" d="M 19,100 L 19,69.97 A 3 3 0 0 1 20.5,67.37 L 99.6,21.7 A 0.99 0.99 0 0 1 100.49,21.65 L 100.95,21.85 L 101.89,22.16 L 102.86,22.4 L 103.84,22.56 L 104.84,22.64 L 105.84,22.63 L 106.83,22.54 L 107.81,22.37 L 108.77,22.11 L 109.71,21.78 L 110.62,21.37 L 111.5,20.89 L 112.32,20.34 L 113.1,19.72 L 113.83,19.03 L 114.16,18.66 A 0.62 0.62 0 0 1 114.93,18.54 L 189.5,61.6 A 3 3 0 0 1 191,64.19 L 191,100 A 3 3 0 0 1 188,103 L 22,103 A 3 3 0 0 1 19,100 Z"/>
-    <g fill="none" stroke="url(#frame)" stroke-linecap="round" stroke-linejoin="round">
-      <path stroke-width="15" d="M 105.25,10.64 A 10.5 10.5 0 0 0 94.75,10.64 L 12.25,58.28 A 10.5 10.5 0 0 0 7,67.37 L 7,104.5 A 10.5 10.5 0 0 0 17.5,115 L 182.5,115 A 10.5 10.5 0 0 1 193,125.5 L 193,162.63 A 10.5 10.5 0 0 1 187.75,171.72 L 105.25,219.36 A 10.5 10.5 0 0 1 94.75,219.36 L 94.75,219.36"/>
-      <path stroke-width="5" d="M 122.72,14.96 L 190.25,53.95 A 15.5 15.5 0 0 1 198,67.37 L 198,101.58 M 77.28,215.04 L 9.75,176.05 A 15.5 15.5 0 0 1 2,162.63 L 2,128.42"/>
+    <use href="#outer" fill="#71ab7e"/>
+    <use href="#inner" fill="#93bf8f"/>
+    <use href="#median" fill="#eccb62"/>
+    <g transform="rotate(180 100 115)">
+      <use href="#outer" fill="#d26d56"/>
+      <use href="#inner" fill="#e38a72"/>
+      <use href="#median" fill="#eccb62"/>
+    </g>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="url(#frame-light)" stroke-width="7" d="M 154.41,34.98 L 180.5,50.05 A 32 32 0 0 1 196.5,77.76 L 196.5,107.89 M 45.59,195.01 L 19.5,179.95 A 32 32 0 0 1 3.5,152.24 L 3.5,122.11"/>
+      <path stroke="url(#frame)" stroke-width="20" d="M 138.36,25.72 L 116,12.81 A 32 32 0 0 0 84,12.81 L 19.5,50.05 A 32 32 0 0 0 3.5,77.76 L 3.5,83 A 32 32 0 0 0 35.5,115 L 164.5,115 A 32 32 0 0 1 196.5,147 L 196.5,152.24 A 32 32 0 0 1 180.5,179.95 L 116,217.19 A 32 32 0 0 1 84,217.19 L 61.64,204.28"/>
     </g>
   </g>
 </svg>
