@@ -127,6 +127,9 @@ class PollApiTest {
             Arguments.of(poll("Lunch?", "[\"Ramen\", \"Ra\\u200Dmen\"]"), "listed twice"),
             Arguments.of(poll("Lunch?", "[\"Yes\", \"Yes\\u200B\"]"), "only hold visible characters"),
             Arguments.of(poll("\\u202ELunch?", "[\"A\", \"B\"]"), "only hold visible characters"),
+            // At either end too: tidying takes spaces away, nothing invisible.
+            Arguments.of(poll("\\u001CLunch?", "[\"A\", \"B\"]"), "only hold visible characters"),
+            Arguments.of(poll("Lunch?\\uFEFF", "[\"A\", \"B\"]"), "only hold visible characters"),
             Arguments.of("{\"title\": \"Lunch?\", \"votingSystem\": \"APPROVAL\", \"visibility\": \"UNLISTED\","
                 + " \"options\": [\"A\", \"B\"], \"optionOrder\": \"BY_SIZE\"}", "could not be read"),
             Arguments.of("{\"title\": \"Lunch?\", \"visibility\": \"UNLISTED\", \"options\": [\"A\", \"B\"]}",

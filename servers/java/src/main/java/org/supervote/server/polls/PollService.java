@@ -43,6 +43,11 @@ public class PollService {
     /** Tabs, line breaks and every Unicode space: text keeps single spaces between its words. */
     private static final Pattern SPACES = Pattern.compile("[\\s\\p{Z}]+");
     /**
+     * The space left at either end once spaces are single. Not strip(), which takes controls away
+     * too (U+001C to U+001F), unseen: they are refused as invisible, as the web app's form does.
+     */
+    private static final Pattern SPACE_AT_ENDS = Pattern.compile("^ | \\z");
+    /**
      * Controls and invisible format characters: bidi overrides, which make text read in another order than
      * it is written, and zero widths, which make two texts look alike. Not the joiners, which words in some
      * scripts (the non-joiner, in Persian) and emoji sequences (the joiner) need.
@@ -321,7 +326,11 @@ public class PollService {
      * single spaces between its words and none around them.
      */
     private static String tidy(String raw) {
-        return raw == null ? "" : SPACES.matcher(Normalizer.normalize(raw, Normalizer.Form.NFC)).replaceAll(" ").strip();
+        if (raw == null) {
+            return "";
+        }
+        var spaced = SPACES.matcher(Normalizer.normalize(raw, Normalizer.Form.NFC)).replaceAll(" ");
+        return SPACE_AT_ENDS.matcher(spaced).replaceAll("");
     }
 
     private static void requireVisible(String text, String refusal) {

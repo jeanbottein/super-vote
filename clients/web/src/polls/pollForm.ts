@@ -20,8 +20,10 @@ export interface PollFormProblems {
   resultsAfterBallots?: string;
 }
 
-/** Tabs, line breaks and every Unicode space. */
-const SPACES = /[\s\p{Z}]+/gu;
+/** Tabs, line breaks and every Unicode space, as the server reads them: not \s, which takes in the invisible U+FEFF. */
+const SPACES = /[\t\n\v\f\r\p{Z}]+/gu;
+/** The space left at either end once spaces are single: trim() would take an invisible U+FEFF away too. */
+const SPACE_AT_ENDS = /^ | $/g;
 /** Controls, bidi overrides and zero widths, but the joiners Persian words and emoji sequences need. */
 const INVISIBLE = /(?![‌‍])[\p{Cc}\p{Cf}]/u;
 const JOINERS = /[‌‍]/g;
@@ -31,7 +33,7 @@ const JOINERS = /[‌‍]/g;
  * (NFC), with single spaces between its words and none around them.
  */
 export function tidy(text: string): string {
-  return text.normalize('NFC').replace(SPACES, ' ').trim();
+  return text.normalize('NFC').replace(SPACES, ' ').replace(SPACE_AT_ENDS, '');
 }
 
 /** The options that were filled in, tidied. Blank rows are just ignored. */

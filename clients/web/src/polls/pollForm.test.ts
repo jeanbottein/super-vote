@@ -1,3 +1,4 @@
+import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { en } from '../i18n/en';
 import { fr } from '../i18n/fr';
@@ -38,6 +39,9 @@ describe('checkPollForm', () => {
     ['Lunch?', ['Ramen', 'Ra\u200Dmen'], { options: '"Ra\u200Dmen" is listed twice. Each option must be different.' }],
     ['Lunch?', ['Yes', 'Yes\u200B'], { options: 'An option can only hold visible characters.' }],
     ['\u202ELunch?', ['Ramen', 'Tacos'], { title: 'A title can only hold visible characters.' }],
+    // At either end too: tidying takes spaces away, nothing invisible.
+    ['\u001CLunch?', ['Ramen', 'Tacos'], { title: 'A title can only hold visible characters.' }],
+    ['Lunch?\uFEFF', ['Ramen', 'Tacos'], { title: 'A title can only hold visible characters.' }],
   ])('explains what is wrong with "%s" and %j', (title, options, problems) => {
     expect(checkPollForm(form(title, options), limits, say)).toEqual(problems);
   });
@@ -65,6 +69,23 @@ describe('tidy', () => {
   it('keeps text as everyone will read it, as the server keeps it', () => {
     expect(tidy('  Where\n do we\teat? ')).toBe('Where do we eat?');
     expect(tidy('Cafe\u0301\u00a0 du coin')).toBe('Café du coin');
+  });
+
+  it('only ever makes spaces single and takes them from the ends, whatever it is given', () => {
+    // A space, on both sides: a tab, a line break or a Unicode separator. U+FEFF and controls are not.
+    const spaces = /[\t\n\v\f\r\p{Z}]+/gu;
+    const unit = fc.oneof(
+      fc.constantFrom(' ', '\t', '\n', '\u00a0', '\u2028', '\u3000', '\ufeff', '\u001c', 'e', '\u0301', '\u212b'),
+      fc.string({ unit: 'binary', minLength: 1, maxLength: 1 }),
+    );
+    fc.assert(fc.property(fc.string({ unit }), (text) => {
+      const tidied = tidy(text);
+
+      expect(tidied.replaceAll(' ', '')).toBe(text.normalize('NFC').replace(spaces, ''));
+      expect(tidied).not.toMatch(/^ | $| {2}/);
+      expect(tidied).toBe(tidied.normalize('NFC'));
+      expect(tidy(tidied)).toBe(tidied);
+    }));
   });
 });
 
