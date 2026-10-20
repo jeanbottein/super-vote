@@ -1,0 +1,173 @@
+# The images super-vote runs as (deploy/compose.yaml), and a check that they
+# work together. On every pull request and on main, both are built and started
+# with PostgreSQL as the server runs them, then asked what a browser and an
+# agent ask, and backed up. Each commit on main is then published to GitHub's
+# container registry, as main and as its SHA, for the server to pull
+# (deploy/README.md).
+name: Images
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  SERVER_IMAGE: ghcr.io/jeanbottein/super-vote-server
+  WEB_IMAGE: ghcr.io/jeanbottein/super-vote-web
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  stack:
+    name: Images, running together
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build the server's image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: servers/java
+          load: true
+          tags: ${{ env.SERVER_IMAGE }}:ci
+          cache-from: type=gha,scope=server
+          cache-to: type=gha,scope=server,mode=max
+      - name: Build the web app's image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: clients/web/Dockerfile
+          load: true
+          tags: ${{ env.WEB_IMAGE }}:ci
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
+
+      - name: Start them as the server does
+        working-directory: deploy
+        run: |
+          {
+            echo "SUPER_VOTE_DOMAIN=localhost"
+            echo "SUPER_VOTE_VOTER_SECRET=$(openssl rand -base64 48)"
+            echo "POSTGRES_PASSWORD=$(openssl rand -hex 32)"
+            echo "SUPER_VOTE_TAG=ci"
+          } > .env
+          docker compose up --detach --wait --wait-timeout 180
+
+      - name: Ask what a browser and an agent ask
+        working-directory: deploy
+        run: |
+          site=https://localhost
+          # Caddy signs localhost with an authority of its own, which nothing here trusts.
+          get() { curl --silent --show-error --fail --insecure "$@"; }
+          refuse() { if "$@"; then echo "Should have failed: $*" >&2; exit 1; fi; }
+          reachable() { timeout 3 bash -c "exec 3<>/dev/tcp/$1/$2"; }
+          poll() {
+            local headers=$1
+            shift
+            get "$@" --dump-header "$headers" --header 'Content-Type: application/json' "$site/api/polls" \
+              --data '{"title": "Lunch?", "options": ["Ramen", "Tacos"], "votingSystem": "APPROVAL", "visibility": "UNLISTED"}'
+          }
+
+          # The page, with its security headers, once Caddy has its certificate.
+          get --retry 15 --retry-all-errors --retry-delay 2 --dump-header page.headers --output page.html "$site/"
+          grep -qi '^content-security-policy: ' page.headers
+          grep -qi '^strict-transport-security: ' page.headers
+          grep -q '<div id="root">' page.html
+          test "$(curl --silent --output /dev/null --write-out '%{redirect_url}' http://localhost/)" = "$site/"
+
+          # The API behind HTTPS: a Secure cookie, and the public address.
+          get --dump-header info.headers --output info.json "$site/api/server-info"
+          test "$(jq -r .publicUrl info.json)" = "$site"
+          grep -qi '^set-cookie: super_vote_voter=.*; Secure' info.headers
+
+          # Two visitors are two networks: the server counts the address Caddy saw. Behind Docker's
+          # port publishing, they would have been Docker's own address, sharing one day's polls.
+          id=$(poll first.headers -4 | jq -r .id)
+          poll second.headers -4 --interface 127.0.0.2 > /dev/null
+          grep -qi '^ratelimit: "polls";r=19;' first.headers
+          grep -qi '^ratelimit: "polls";r=19;' second.headers
+
+          # Live results, through Caddy's compression.
+          get --no-buffer --max-time 3 --compressed --output events.txt "$site/api/polls/$id/events" || true
+          grep -q '^event:update' events.txt
+
+          get --output llms.txt "$site/llms.txt"
+          grep -qF "$site/api/mcp" llms.txt
+
+          # Caddy logged the stream that ended, but neither the visitor's address nor the poll.
+          sleep 1
+          docker compose logs caddy > caddy.log
+          grep -q 'aborting with incomplete response' caddy.log
+          refuse grep -q -e remote_ip -e "$id" caddy.log
+
+          # Neither the server nor PostgreSQL can be reached from outside this machine.
+          address=$(hostname -I | cut -d ' ' -f 1)
+          reachable 127.0.0.1 8080
+          refuse reachable "$address" 8080
+          refuse reachable "$address" 5432
+
+      - name: Back up, and restore the copy
+        working-directory: deploy
+        run: |
+          ./backup.sh
+          copy=$(ls backups/super-vote-*.dump)
+          docker compose exec -T postgres createdb --username=super_vote restored
+          docker compose exec -T postgres pg_restore --username=super_vote --dbname=restored < "$copy"
+          test "$(docker compose exec -T postgres psql --username=super_vote --dbname=restored -tAc 'SELECT count(*) FROM poll')" = 2
+
+      - name: Show what the services said
+        if: failure()
+        working-directory: deploy
+        run: docker compose ps --all && docker compose logs
+
+  publish:
+    name: Publish the images
+    needs: stack
+    if: github.event_name == 'push' && github.repository == 'jeanbottein/super-vote'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write # pushes the images to ghcr.io
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # The same builds as the checked ones above, from their cache.
+      - name: Publish the server's image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: servers/java
+          push: true
+          tags: |
+            ${{ env.SERVER_IMAGE }}:main
+            ${{ env.SERVER_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha,scope=server
+      - name: Publish the web app's image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: clients/web/Dockerfile
+          push: true
+          tags: |
+            ${{ env.WEB_IMAGE }}:main
+            ${{ env.WEB_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha,scope=web

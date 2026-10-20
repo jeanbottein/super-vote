@@ -1,0 +1,8 @@
+# What the image build reads (clients/web/Dockerfile, run from the repository's root): the web app's
+# sources and deploy/Caddyfile, without what a local install or build left beside them.
+*
+!clients/web/
+!deploy/Caddyfile
+clients/web/node_modules/
+clients/web/dist/
+clients/web/coverage/

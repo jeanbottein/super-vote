@@ -37,12 +37,15 @@ CI (`.github/`): `ci.yml` (server tests on H2 and on PostgreSQL, web lint,
 types, tests, build), `codeql.yml` (security-and-quality queries on the
 workflows, Java, TypeScript, Python), `dependencies.yml` (dependency review
 on pull requests; the server's Maven tree submitted from `main`, so that
-Dependabot sees transitive CVEs), `scorecard.yml`, `dependabot.yml` (one
-weekly pull request for Maven, npm and actions together, majors included;
-security updates come at once, one pull request each). The main branch's
-ruleset requires them before merging. Actions are pinned by commit SHA with
-the version in a comment: keep it so (Dependabot bumps them), and
-`actionlint` the workflows before pushing.
+Dependabot sees transitive CVEs), `images.yml` (both images built, started
+with PostgreSQL as `deploy/compose.yaml` runs them, and checked over HTTPS;
+published to GHCR from `main`), `scorecard.yml`, `dependabot.yml` (one
+weekly pull request for Maven, npm, actions and base images together, majors
+included but PostgreSQL's, Java's and Node's; security updates come at once,
+one pull request each). The main branch's ruleset requires them before
+merging. Actions are pinned by commit SHA and images by digest, with the
+version beside: keep it so (Dependabot bumps them), and `actionlint` the
+workflows before pushing.
 
 Server (`servers/java`, Java 25, Maven wrapper; Maven itself is not needed):
 
@@ -107,7 +110,12 @@ stylesheet.
 
 **Edge**: `deploy/Caddyfile` is the one public address, HTTPS only: it serves
 the built web app and passes `/api`, `/v3/api-docs` and `/llms.txt` to the
-server, which is never published. `deploy/README.md` covers the VPS.
+server, which only the machine reaches (`127.0.0.1:8080`). It runs as
+`deploy/compose.yaml` says, from two images (`servers/java/Dockerfile`, and
+`clients/web/Dockerfile`: Caddy with the Caddyfile and the built app) that
+`.github/workflows/images.yml` starts together and checks on every pull
+request, and publishes to GHCR for every commit on main. `deploy/README.md`
+covers the VPS, updates, backups.
 
 **Contract**: `docs/API.md`. Mirror every DTO change in
 `clients/web/src/api/types.ts`. A poll's `id` is its share token, the only id
@@ -376,6 +384,20 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
   reports entities that are not records and a public repository. Neither is
   your code: delete `target/classes`, `target/test-classes` and
   `target/spring-aot`, and never run a native build beside `./mvnw test`.
+- **Caddy logs requests even without an access log**: its own warnings and
+  errors carry the request, with the client's address and the URI (a poll's
+  link), and one is written each time a live-results stream ends. The
+  Caddyfile's global `log` deletes `request` from every line; `images.yml`
+  checks it.
+- **Docker hides IPv6 clients' addresses**: a port it publishes is reached
+  over IPv6 through its userland proxy, so the container sees Docker's own
+  address, and every IPv6 visitor would be one network to the limits. Caddy
+  runs on the host's network (`network_mode: host`), and reaches the server
+  on `127.0.0.1:8080`, published on the loopback only.
+- **PostgreSQL 18's image keeps its data in `/var/lib/postgresql`**, not
+  `/var/lib/postgresql/data` as before: mounted there, it refuses to start.
+  A major version cannot open the previous one's files, which is why
+  Dependabot is told never to propose one.
 - **PostgreSQL waits for locks forever unless told**: its URL carries
   `?options=-c%20lock_timeout%3D2s`, and its timeout (SQL state `55P03`),
   which Spring leaves uncategorized, is turned into a 409 in

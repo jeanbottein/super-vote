@@ -1,9 +1,10 @@
 # Version updates, weekly, in one pull request: the server's Maven
-# dependencies, the web app's npm packages and the workflows' actions, majors
-# included, so that its checks test them together and nothing drifts far
-# behind. Each update waits a week after its release (cooldown): a compromised
-# release is usually caught by then. Security updates are a repository setting,
-# and come at once, each in its own pull request, cooldown or not (SECURITY.md).
+# dependencies, the web app's npm packages, the workflows' actions and the
+# images super-vote is built on and runs beside, majors included, so that its
+# checks test them together and nothing drifts far behind. Each update waits
+# a week after its release (cooldown): a compromised release is usually caught
+# by then. Security updates are a repository setting, and come at once, each
+# in its own pull request, cooldown or not (SECURITY.md).
 version: 2
 
 multi-ecosystem-groups:
@@ -40,3 +41,30 @@ updates:
     patterns: ['*']
     cooldown:
       default-days: 7
+
+  # The images the Dockerfiles build on, pinned by digest.
+  - package-ecosystem: docker
+    directories: [/servers/java, /clients/web]
+    multi-ecosystem-group: dependencies
+    patterns: ['*']
+    cooldown:
+      default-days: 7
+    ignore:
+      # Java and Node stay on the long-term releases .tool-versions names.
+      - dependency-name: eclipse-temurin
+        update-types: ['version-update:semver-major']
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
+
+  # PostgreSQL, beside the server (deploy/compose.yaml).
+  - package-ecosystem: docker-compose
+    directory: /deploy
+    multi-ecosystem-group: dependencies
+    patterns: ['*']
+    cooldown:
+      default-days: 7
+    ignore:
+      # A new major version cannot open the files the previous one wrote: moving
+      # to it is a dump and a restore, done by hand (deploy/README.md).
+      - dependency-name: postgres
+        update-types: ['version-update:semver-major']

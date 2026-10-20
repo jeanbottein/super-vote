@@ -96,7 +96,7 @@ path to keep it elsewhere. The schema is migrated automatically at startup.
 - [docs/PERFORMANCE.md](docs/PERFORMANCE.md): the JVM, Leyden's AOT cache and
   GraalVM native images, and ballots at scale, measured.
 - [deploy/README.md](deploy/README.md): on the internet: one HTTPS address,
-  what is exposed, and what protects it.
+  what is exposed and what protects it, and running it on a VPS.
 - [docs/SECURITY.md](docs/SECURITY.md): what is protected, against whom, and
   what is not; [SECURITY.md](SECURITY.md) to report a vulnerability.
 

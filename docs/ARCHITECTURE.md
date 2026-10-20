@@ -706,7 +706,7 @@ Playwright is on the roadmap.
 | Polls deleted after 30 days | Data minimisation (GDPR), and nothing to archive for a group decision. |
 | Rate limits in the server, by network | Only the server knows what a guess is (a join code leading nowhere, through the API or the MCP tools alike) and when a poll counts (once valid, never on a retry); a proxy sees statuses, and an MCP refusal is not even one. Its refusals are sentences for people. |
 | Join codes barred, links never | A link cannot be guessed: barring it would only punish people opening a poll deleted since. |
-| Caddy in front, one origin | HTTPS with certificates it renews itself, the security headers, the web app's files, and the server behind it on a private network: one address for people and agents alike. |
+| Caddy in front, one origin | HTTPS with certificates it renews itself, the security headers, the web app's files, and the server behind it, which only the machine reaches: one address for people and agents alike. |
 | `/llms.txt` written by the server | From `ApiRules`, like the OpenAPI document and the MCP tools: one set of sentences for every reader. |
 | Statistics by time zone, hourly, from 3 up | No address is ever read or located, no country named, nothing kept about a ballot or a voter; an hour's delay and the threshold keep them from pointing at anyone. |
 | A map of land and time-zone cities, no borders | Borders are claims; a country map has to take sides (Taiwan, Kashmir, Crimea). Land and cities do not, and the time zone is all the server knows anyway. |

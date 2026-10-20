@@ -28,8 +28,16 @@ own. A small OVHcloud VPS in France is enough (the native image serves on
 about 100 MB): Docker Compose with Caddy (automatic Let's Encrypt certificates)
 in front of the server and PostgreSQL, and a nightly `pg_dump` to OVH Object
 Storage. GitHub Actions already runs the tests and the scans on every pull
-request (phase 5f); left: building the image, pushing it to GHCR and
-deploying it.
+request (phase 5f).
+
+Built: the two images (the server on the JVM; Caddy with the web app),
+started together and checked on every pull request, and published to GHCR for
+every commit on main; the Compose file, with Caddy on the machine's network
+so that limits see IPv6 visitors' addresses; the nightly `pg_dump`, kept 7
+days; Caddy's log without requests; updates that make requests wait rather
+than fail ([deploy/README.md](../deploy/README.md)). Left: the VPS and its
+DNS, following that README; copying the backups off the VPS; the legal
+notices (below).
 
 - **PostgreSQL**: supported already, and the test suite passes on it, in CI
   too (a service container, phase 5f). Schema changes are migrations added,
@@ -39,7 +47,9 @@ deploying it.
 - **Startup and memory**: measured in [PERFORMANCE.md](PERFORMANCE.md). The
   native image works, H2 included, and with profile-guided optimization starts
   in 0.13 s on 100 MB and serves as much as the JVM; the JVM with a Leyden AOT
-  cache and Spring AOT starts in 1.1 s at no cost. Choose on the target (Linux,
+  cache and Spring AOT starts in 1.1 s at no cost. The image runs the plain
+  JVM for now, the simplest that works: a restart takes a few seconds, which
+  Caddy makes requests wait out. Choose the faster ones on the target (Linux,
   PostgreSQL), and run `-PnativeTest` in CI if the native image is chosen.
 - **One origin.** Done in phase 5e: Caddy serves the built client and passes
   the API, the MCP tools, the OpenAPI document and `/llms.txt` to the server

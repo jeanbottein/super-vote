@@ -34,7 +34,7 @@ fixed the weaknesses listed under [Hardened](#hardened-for-the-first-users).
 | What a ballot shows | look-alike or reordered options | titles, options and names are composed one way (NFC), and refuse controls, bidi overrides and zero widths; two options differing by case or an unseen joiner are the same | `PollService.tidy`, `pollForm.ts` |
 | The service | a script creating polls, big requests | 20 polls a day per network (an IPv4 address or an IPv6 /64), counted in memory only; bodies over 64 KB refused at the edge; header and body timeouts | `ratelimit.PollQuota`, Caddyfile |
 | The link to the outside | eavesdropping | HTTPS only, HSTS, Caddy's automatic certificates | Caddyfile |
-| Personal data | keeping it | polls and their ballots deleted after 30 days; statistics are totals by time zone, from 3 up, published hourly; addresses are never written | `PollRetention`, `StatisticsService` |
+| Personal data | keeping it | polls and their ballots deleted after 30 days, and gone from the nightly copies a week later; statistics are totals by time zone, from 3 up, published hourly; addresses are never written, in the database or in a log | `PollRetention`, `StatisticsService`, `deploy/backup.sh`, the Caddyfile's `log` |
 | The code itself | known vulnerabilities, a compromised dependency | every pull request runs the tests, CodeQL (security and quality) and a review of new dependencies; Dependabot watches the whole tree of `main`; actions pinned by commit; Scorecard | `.github/` |
 
 ## What it does not protect against
@@ -86,18 +86,29 @@ October 2026, with this release:
 - Invisible characters are refused in titles and options as they already were
   in names, so that two options cannot look alike, nor text read out of order.
 - `Cross-Origin-Opener-Policy` and `Cross-Origin-Resource-Policy` at the edge.
+- Caddy's own messages leave out the request they are about: a warning was
+  written each time a visitor left a poll's live results, with their address
+  and the poll's link, which is its key.
 - The tests, CodeQL and dependency checks run on every change, and must pass
   before merging; Dependabot alerts and security updates, secret scanning
   with push protection, and private vulnerability reporting are on.
 
 ## For the deployment
 
-What the server needs to keep these promises (deploy/README.md has the rest):
+What the server needs to keep these promises, which `deploy/compose.yaml`
+and the Caddyfile set up (deploy/README.md has the rest):
 
-- `SUPER_VOTE_VOTER_SECRET` from the host's secrets, never in an image, the
-  repository or a backup, and never changed while polls are open.
-- HTTPS through Caddy only: the Java server and PostgreSQL never published.
-- PostgreSQL with `lock_timeout`, logical backups only, short-lived logs.
+- `SUPER_VOTE_VOTER_SECRET` from the host's secrets (`deploy/.env`, read by
+  root only), never in an image, the repository or a backup, and never
+  changed while polls are open.
+- HTTPS through Caddy only: the Java server reached from the machine alone,
+  PostgreSQL from the server alone.
+- Caddy on the machine's own network, so that the limits see each visitor's
+  address: behind Docker's port publishing, every IPv6 visitor would be one
+  network.
+- PostgreSQL with `lock_timeout`; logical backups only (`pg_dump`, kept 7
+  days), never a copy of the disk; logs rotated, naming no address and no
+  page.
 - `unattended-upgrades`, SSH keys only, the firewall closed but for 22, 80 and
   443.
 - The legal notices: the privacy page is written; the publisher's notice

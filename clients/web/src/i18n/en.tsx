@@ -599,6 +599,8 @@ export const en = {
       'Your ballot on a poll, stored under a key that does not say who you are, and deleted with the poll. You can '
         + 'withdraw it until the poll closes.',
       'The name you give, on polls that show names, stored apart from your ballot so that nothing joins the two.',
+      'Copies of the polls, ballots and names above, made every night to recover from an accident, and kept 7 days: '
+        + 'what is deleted is gone from them within a week.',
       `A random identifier in a cookie, so that this browser can change its ballots and manage its polls, for ${days} `
         + 'days after its last ballot or poll, as long as a poll lasts. It is the only cookie: no advertising, no '
         + 'analytics, no tracking.',

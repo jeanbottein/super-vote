@@ -1,0 +1,94 @@
+# super-vote on one machine (deploy/README.md): Caddy, the Java server and
+# PostgreSQL, from the images CI publishes for each commit on main.
+#
+#   cp .env.example .env && chmod 600 .env    then fill .env in
+#   docker compose up -d --wait
+#
+# Caddy uses the machine's own network: it is all the internet reaches, and
+# there it sees each visitor's real address, which the limits count networks
+# by. Behind Docker's port publishing, a visitor coming over IPv6 would show
+# as Docker's own address, and every such visitor would share one limit. The
+# server is reached from this machine only (127.0.0.1:8080), PostgreSQL from
+# the server only.
+
+name: super-vote
+
+x-logging: &logging
+  # Rotated and small: Docker otherwise keeps every line for ever.
+  driver: local
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  caddy:
+    image: ghcr.io/jeanbottein/super-vote-web:${SUPER_VOTE_TAG:-main}
+    restart: unless-stopped
+    network_mode: host
+    # On the machine's network, it keeps only what serving ports 80 and 443 needs.
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    environment:
+      SUPER_VOTE_DOMAIN: ${SUPER_VOTE_DOMAIN:?set it in .env}
+    volumes:
+      # The certificates, and the account Caddy gets them with: lost, they are
+      # asked for again at every start, which Let's Encrypt refuses after a few.
+      - caddy-data:/data
+      - caddy-config:/config
+    logging: *logging
+
+  server:
+    image: ghcr.io/jeanbottein/super-vote-server:${SUPER_VOTE_TAG:-main}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/super_vote?options=-c%20lock_timeout%3D2s
+      SPRING_DATASOURCE_USERNAME: super_vote
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?set it in .env}
+      SUPER_VOTE_VOTER_SECRET: ${SUPER_VOTE_VOTER_SECRET:?set it in .env}
+      # Invitation links are built from it, and /llms.txt names it.
+      SUPER_VOTE_PUBLIC_URL: https://${SUPER_VOTE_DOMAIN:?set it in .env}
+    ports:
+      - 127.0.0.1:8080:8080
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    healthcheck:
+      # The image has no curl: bash asks /actuator/health itself.
+      test:
+        - CMD
+        - bash
+        - -c
+        - exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /actuator/health HTTP/1.0\r\n\r\n' >&3 && grep -q '"status":"UP"' <&3
+      interval: 10s
+      timeout: 5s
+      start_period: 1m
+      start_interval: 2s
+    logging: *logging
+
+  postgres:
+    image: postgres:18-trixie@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: super_vote
+      POSTGRES_DB: super_vote
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set it in .env}
+    volumes:
+      # Where PostgreSQL 18's image keeps its data (not /var/lib/postgresql/data, as before 18).
+      - postgres:/var/lib/postgresql
+    healthcheck:
+      test: [CMD, pg_isready, --username=super_vote, --dbname=super_vote]
+      interval: 10s
+      timeout: 5s
+      start_period: 1m
+      start_interval: 2s
+    # Time to write everything to disk before Docker stops it outright, after 10 seconds otherwise.
+    stop_grace_period: 90s
+    logging: *logging
+
+volumes:
+  postgres:
+  caddy-data:
+  caddy-config:
