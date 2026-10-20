@@ -31,7 +31,7 @@ describe('creating a poll', () => {
     await userEvent.click(screen.getByRole('radio', { name: 'Approval' }));
     await userEvent.click(screen.getByRole('radio', { name: 'Private' }));
     await userEvent.click(screen.getByRole('radio', { name: 'Show names' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Create poll' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Ask the question' }));
 
     expect(createPoll).toHaveBeenCalledWith({
       title: 'Where do we eat?',
@@ -61,7 +61,7 @@ describe('creating a poll', () => {
     await userEvent.type(screen.getByLabelText('Question'), 'Where do we eat?');
     await userEvent.type(screen.getByLabelText('Option 1'), 'Ramen');
     await userEvent.type(screen.getByLabelText('Option 2'), 'Tacos');
-    await userEvent.click(screen.getByRole('button', { name: 'Create poll' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Ask the question' }));
 
     expect(createPoll).toHaveBeenCalledWith(expect.objectContaining({ optionOrder: 'AS_WRITTEN' }));
   });
@@ -86,7 +86,7 @@ describe('creating a poll', () => {
     await userEvent.type(screen.getByLabelText('Option 1'), 'Ramen');
     await userEvent.type(screen.getByLabelText('Option 2'), 'Tacos');
 
-    await userEvent.click(screen.getByRole('button', { name: 'Create poll' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Ask the question' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('This server takes no new polls at the moment.');
     expect(createPoll).not.toHaveBeenCalled();
@@ -110,7 +110,7 @@ describe('creating a poll', () => {
     expect(screen.getByText(/counts on good faith/)).toHaveAttribute('data-tone', 'warning');
     await userEvent.click(screen.getByRole('radio', { name: 'Invited only' }));
     expect(screen.getByText(/a link of their own/)).not.toHaveAttribute('data-tone');
-    await userEvent.click(screen.getByRole('button', { name: 'Create poll' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Ask the question' }));
 
     expect(createPoll).toHaveBeenCalledWith(expect.objectContaining({
       invitationOnly: true,
@@ -130,14 +130,14 @@ describe('creating a poll', () => {
     expect(ballots).toHaveValue(5);
     await userEvent.clear(ballots);
     await userEvent.type(ballots, '2');
-    await userEvent.click(screen.getByRole('button', { name: 'Create poll' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Ask the question' }));
 
     expect(screen.getByText('Choose a whole number of ballots, at least 3.')).toBeInTheDocument();
     expect(createPoll).not.toHaveBeenCalled();
 
     await userEvent.clear(ballots);
     await userEvent.type(ballots, '4');
-    await userEvent.click(screen.getByRole('button', { name: 'Create poll' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Ask the question' }));
 
     expect(createPoll).toHaveBeenCalledWith(expect.objectContaining({
       resultsShown: 'AFTER_BALLOTS',
@@ -180,7 +180,7 @@ describe('creating a poll', () => {
   it('explains what is missing rather than sending it', async () => {
     openForm();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Create poll' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Ask the question' }));
 
     expect(screen.getByText('Give your poll a title.')).toBeInTheDocument();
     expect(screen.getByText('Add at least two options.')).toBeInTheDocument();
@@ -194,7 +194,7 @@ describe('creating a poll', () => {
     await userEvent.type(screen.getByLabelText('Question'), 'Lunch?');
     await userEvent.type(screen.getByLabelText('Option 1'), 'Ramen');
     await userEvent.type(screen.getByLabelText('Option 2'), 'Tacos');
-    await userEvent.click(screen.getByRole('button', { name: 'Create poll' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Ask the question' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Choose a voting system this server offers.');
   });

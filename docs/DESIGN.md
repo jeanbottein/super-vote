@@ -255,8 +255,8 @@ lines.
   `--section-gap` apart (16 px, 20 px from 640 px).
 - Home is the one exception: from 960 px, `.layout[data-page="home"]` sets
   `--page-width` to 1080 px, so that header, page and footer widen together.
-  What people come to do comes first, side by side: the hero with "Create a
-  poll" on the left, the join form (and the visitor's polls, once they have
+  What people come to do comes first, side by side: the hero with "Decide
+  together!" on the left, the join form (and the visitor's polls, once they have
   some) on the right. Below, rows of cards: how it works (three numbered
   steps), a prompt to have an AI agent create a poll beside what it does, an
   example of results beside why grading beats a single choice (the text
@@ -373,6 +373,11 @@ composited:
 - Short, plain sentences, for people. *Poll* is the question, *ballot* one
   voter's answer; never "vote" as a noun. Mentions are named as the messages'
   `mentions` name them.
+- Where the app invites people to start, it speaks of deciding, not of a
+  poll (too weak: a survey) nor of an election (too strong): "Decide
+  together!" opens the form, whose button asks the question, and "Decide
+  together…" heads the questions this browser took part in. *Poll* stays the
+  word of the code, the API and the agents.
 - Every sentence lives in `src/i18n`: English in `en.tsx`, French in
   `fr.tsx` (a *sondage*, a *bulletin*; the mentions *Excellent, Très bien,
   Bien, Assez bien, Passable, Insuffisant, À rejeter*). French is written

@@ -41,7 +41,7 @@ describe('the app', () => {
   it('leads back home from anywhere else', async () => {
     openAt('/new');
 
-    expect(screen.getByRole('heading', { name: 'New poll' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Decide together' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('link', { name: 'Home' }));
 
     expect(await screen.findByRole('heading', { name: 'Decide together, fairly.' })).toBeInTheDocument();
@@ -143,11 +143,11 @@ describe('the language', () => {
   it('can be switched back from the foot of every page', async () => {
     localStorage.setItem('super-vote.preferences', JSON.stringify({ language: 'fr' }));
     openAt('/new');
-    expect(screen.getByRole('heading', { name: 'Nouveau sondage' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Décider ensemble' })).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'English' }));
 
-    expect(screen.getByRole('heading', { name: 'New poll' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Decide together' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Français' })).toHaveAttribute('lang', 'fr');
   });
 });
