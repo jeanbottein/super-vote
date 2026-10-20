@@ -31,7 +31,8 @@ with a redirect, and sends HSTS so that browsers never try HTTP again;
 They run with Docker Compose ([compose.yaml](compose.yaml)), from two images
 that CI builds and checks together for every pull request, and publishes for
 every commit on `main` ([images.yml](../.github/workflows/images.yml)), tagged
-`main` and with the commit's SHA:
+`main` and with the commit's SHA. They are public, as the repository is, so
+the VPS pulls them without logging in:
 
 | Image | What | Built by |
 |---|---|---|
@@ -76,14 +77,7 @@ Its settings are four, in `deploy/.env` ([.env.example](.env.example)):
 4. **Docker**, from Docker's own repository
    ([docs.docker.com/engine/install](https://docs.docker.com/engine/install/)),
    which brings Compose.
-5. **The images, public.** The first images CI publishes are private, as
-   GitHub makes every new package: on GitHub, under the account's
-   *Packages*, open `super-vote-server`, then *Package settings*, *Change
-   visibility*, *Public*; the same for `super-vote-web`. They hold nothing
-   that is not in this repository. (Or keep them private, and
-   `docker login ghcr.io` on the VPS with a token that may only read
-   packages.)
-6. **super-vote:**
+5. **super-vote:**
 
    ```bash
    sudo git clone https://github.com/jeanbottein/super-vote.git /opt/super-vote
@@ -95,9 +89,9 @@ Its settings are four, in `deploy/.env` ([.env.example](.env.example)):
 
    Then `https://super-vote.org` answers. `sudo docker compose logs caddy`
    says when the certificates were obtained.
-7. **The nightly backup:** `sudo crontab -e`, and add
+6. **The nightly backup:** `sudo crontab -e`, and add
    `30 3 * * * /opt/super-vote/deploy/backup.sh`.
-8. **The legal notices:** the privacy page is written; the publisher's
+7. **The legal notices:** the privacy page is written; the publisher's
    notice (mentions légales) and the record of processing are the
    operator's ([ROADMAP.md](../docs/ROADMAP.md), phase 6).
 
