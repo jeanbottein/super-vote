@@ -4,6 +4,6 @@ package org.supervote.server.polls;
 public class NotPollCreatorException extends RuntimeException {
 
     public NotPollCreatorException() {
-        super("Not the poll's creator");
+        super("Only the poll's creator can do that.");
     }
 }

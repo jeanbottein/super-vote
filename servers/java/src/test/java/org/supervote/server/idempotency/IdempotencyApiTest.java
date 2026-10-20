@@ -31,6 +31,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 class IdempotencyApiTest {
 
+    private static final SecureRandom RANDOM = new SecureRandom();
+
     @Autowired
     MockMvcTester mvc;
 
@@ -100,7 +102,7 @@ class IdempotencyApiTest {
 
         assertThat(again).hasStatus(HttpStatus.CREATED);
         assertThat(again).bodyJson().extractingPath("$.count").isEqualTo(1);
-        assertThat(again).bodyJson().extractingPath("$.invitations[*].number").asList().containsExactly(1);
+        assertThat(again).bodyJson().extractingPath("$.invitations[*].number").asArray().containsExactly(1);
     }
 
     @ParameterizedTest
@@ -130,7 +132,7 @@ class IdempotencyApiTest {
 
     static Cookie voter() {
         var bytes = new byte[32];
-        new SecureRandom().nextBytes(bytes);
+        RANDOM.nextBytes(bytes);
         return new Cookie(VoterIdentity.COOKIE, Base64.getUrlEncoder().withoutPadding().encodeToString(bytes));
     }
 

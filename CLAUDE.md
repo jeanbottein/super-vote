@@ -37,10 +37,12 @@ CI (`.github/`): `ci.yml` (server tests on H2 and on PostgreSQL, web lint,
 types, tests, build), `codeql.yml` (security-and-quality queries on the
 workflows, Java, TypeScript, Python), `dependencies.yml` (dependency review
 on pull requests; the server's Maven tree submitted from `main`, so that
-Dependabot sees transitive CVEs), `scorecard.yml`, `dependabot.yml`. The
-main branch's ruleset requires them before merging. Actions are pinned by
-commit SHA with the version in a comment: keep it so (Dependabot bumps them),
-and `actionlint` the workflows before pushing.
+Dependabot sees transitive CVEs), `scorecard.yml`, `dependabot.yml` (one
+weekly pull request for Maven, npm and actions together, majors included;
+security updates come at once, one pull request each). The main branch's
+ruleset requires them before merging. Actions are pinned by commit SHA with
+the version in a comment: keep it so (Dependabot bumps them), and
+`actionlint` the workflows before pushing.
 
 Server (`servers/java`, Java 25, Maven wrapper; Maven itself is not needed):
 
@@ -55,7 +57,7 @@ SPRING_DATASOURCE_URL='jdbc:postgresql://localhost:5432/super_vote_test?options=
 ./mvnw -PnativeTest test            # the tests as a native image (~20 min); perf/: docs/PERFORMANCE.md
 ```
 
-Web app (`clients/web`, Node 20.19+; 24 LTS pinned):
+Web app (`clients/web`, Node 24.15+ or 22.22+; 24 LTS pinned):
 
 ```bash
 npm run dev          # Vite on :5173
@@ -240,6 +242,10 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
 - **Spring Boot 4 is modular.** Starters are `spring-boot-starter-webmvc`,
   `-data-jdbc`, `-flyway`, `-webmvc-test`; `@AutoConfigureMockMvc` lives in
   `org.springframework.boot.webmvc.test.autoconfigure`; JSON is Jackson 3.
+- **Spring Boot can manage a vulnerable version for weeks.** `pom.xml` then
+  overrides its property (`tomcat.version`, `jackson-bom.version`...) until
+  the parent catches up. Bumping the parent, drop each override it now
+  matches or passes, or the override pins an older version than Boot's own.
 - **Server-sent events and shutdown.** Graceful shutdown waits for open
   requests, and a stream never ends on its own: `PollStream` completes every
   stream on `ContextClosedEvent`. Without that, any open results page delays

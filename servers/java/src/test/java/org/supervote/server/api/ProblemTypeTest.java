@@ -29,6 +29,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 class ProblemTypeTest {
 
+    private static final SecureRandom RANDOM = new SecureRandom();
+
     @Autowired
     MockMvcTester mvc;
 
@@ -129,7 +131,7 @@ class ProblemTypeTest {
 
     static Cookie voter() {
         var bytes = new byte[32];
-        new SecureRandom().nextBytes(bytes);
+        RANDOM.nextBytes(bytes);
         return new Cookie(VoterIdentity.COOKIE, Base64.getUrlEncoder().withoutPadding().encodeToString(bytes));
     }
 

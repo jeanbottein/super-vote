@@ -28,6 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 class PollResultsTest {
 
+    private static final SecureRandom RANDOM = new SecureRandom();
+
     @Autowired
     MockMvcTester mvc;
 
@@ -74,7 +76,7 @@ class PollResultsTest {
         var kept = results(alice, poll);
 
         assertThat(kept).bodyJson().extractingPath("$.totalBallots").isEqualTo(1);
-        assertThat(kept).bodyJson().extractingPath("$.options[*].approvalCount").asList().containsOnlyNulls();
+        assertThat(kept).bodyJson().extractingPath("$.options[*].approvalCount").asArray().containsOnlyNulls();
     }
 
     @Test
@@ -124,9 +126,9 @@ class PollResultsTest {
 
         var kept = results(alice, poll);
 
-        assertThat(kept).bodyJson().extractingPath("$.options[*].rank").asList().containsOnlyNulls();
-        assertThat(kept).bodyJson().extractingPath("$.options[*].majorityMention").asList().containsOnlyNulls();
-        assertThat(kept).bodyJson().extractingPath("$.options[*].score").asList().containsOnlyNulls();
+        assertThat(kept).bodyJson().extractingPath("$.options[*].rank").asArray().containsOnlyNulls();
+        assertThat(kept).bodyJson().extractingPath("$.options[*].majorityMention").asArray().containsOnlyNulls();
+        assertThat(kept).bodyJson().extractingPath("$.options[*].score").asArray().containsOnlyNulls();
     }
 
     @Test
@@ -142,7 +144,7 @@ class PollResultsTest {
 
     static Cookie voter() {
         var bytes = new byte[32];
-        new SecureRandom().nextBytes(bytes);
+        RANDOM.nextBytes(bytes);
         return new Cookie(VoterIdentity.COOKIE, Base64.getUrlEncoder().withoutPadding().encodeToString(bytes));
     }
 

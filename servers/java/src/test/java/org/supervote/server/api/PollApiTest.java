@@ -827,8 +827,8 @@ class PollApiTest {
 
             assertThat(made).hasStatus(HttpStatus.CREATED);
             assertThat(made).bodyJson().extractingPath("$.count").isEqualTo(100);
-            assertThat(made).bodyJson().extractingPath("$.invitations[*].number").asList().startsWith(100, 99);
-            assertThat(made).bodyJson().extractingPath("$.invitations[*].label").asList()
+            assertThat(made).bodyJson().extractingPath("$.invitations[*].number").asArray().startsWith(100, 99);
+            assertThat(made).bodyJson().extractingPath("$.invitations[*].label").asArray()
                 .startsWith("Voter 100", "Voter 99").endsWith("Voter 1");
             assertThat(made).bodyJson().extractingPath("$.invitations[0].link").asString()
                 .isEqualTo("https://super-vote.test/p/" + poll + "#invitation="
@@ -878,6 +878,16 @@ class PollApiTest {
             assertThat(page("?limit=1001")).bodyJson().extractingPath("$.detail")
                 .isEqualTo("Ask for 1 to 1000 invitations at a time.");
             assertThat(page("?limit=1000")).hasStatus(HttpStatus.OK);
+        }
+
+        @Test
+        void aPageIsReadBelowAnInvitationNumber() {
+            post(alice, "/api/polls/" + poll + "/invitations", "{\"count\": 3}");
+
+            assertThat(page("?before=1")).bodyJson().extractingPath("$.invitations").asArray().isEmpty();
+            assertThat(page("?before=0")).bodyJson().extractingPath("$.detail")
+                .isEqualTo("Read on below an invitation number: they start at 1.");
+            assertThat(page("?before=" + Long.MIN_VALUE)).hasStatus(HttpStatus.BAD_REQUEST);
         }
 
         @Test

@@ -6,7 +6,6 @@ import io.swagger.v3.oas.models.info.License;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.supervote.server.common.SuperVoteProperties;
 
 import java.util.Optional;
 
@@ -21,7 +20,7 @@ import java.util.Optional;
 class OpenApiConfiguration {
 
     @Bean
-    OpenAPI superVoteApi(SuperVoteProperties settings, Optional<BuildProperties> build) {
+    OpenAPI superVoteApi(Optional<BuildProperties> build) {
         return new OpenAPI().info(new Info()
             .title("super-vote")
             .version(build.map(BuildProperties::getVersion).orElse("development"))

@@ -471,9 +471,9 @@ Super-Vote-Invitation: 3.qWsD_0PPBuKgjv6h9yEQxA
     browser.
 - `GET /api/polls/{id}/invitations` answers the creator an `InvitationPage`:
   the newest invitations first, `limit` of them (100 unless asked, 1000 at
-  most), below number `before` if given. `count` is how many they made and
-  did not take back, and `next` is the `before` to ask for to read on (null
-  once invitation 1 is in). `used` says who has voted, never with which
+  most), below number `before` (1 or more) if given. `count` is how many they
+  made and did not take back, and `next` is the `before` to ask for to read on
+  (null once invitation 1 is in). `used` says who has voted, never with which
   ballot. `POST` answers the newest page too.
 - `DELETE /api/polls/{id}/invitations/{number}` takes back an invitation
   nobody voted with, and its link stops working. Taking back one that was

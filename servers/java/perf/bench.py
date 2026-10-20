@@ -122,7 +122,7 @@ def start(command, data_dir, log, cwd=WORK):
                 if response.status == 200:
                     return process, (time.perf_counter() - t0) * 1000
         except OSError:
-            pass
+            pass  # not listening yet
         if process.poll() is not None:
             raise RuntimeError(f'the server exited with {process.returncode}')
         if time.perf_counter() - t0 > 60:
