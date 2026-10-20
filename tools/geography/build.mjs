@@ -81,8 +81,13 @@ function timeZones() {
   return { version, zones, canonical: [...canonical].sort(([a], [b]) => a.localeCompare(b)) };
 }
 
+/**
+ * Each entry names its types (Map.<String, String>entry): left to infer them
+ * for 500 entries in one call, javac took most of a minute, which every build
+ * of the server waited for. Named, the class compiles in a third of a second.
+ */
 function javaSource({ version, canonical }) {
-  const entries = canonical.map(([name, zone]) => `        Map.entry("${name}", "${zone}")`).join(',\n');
+  const entries = canonical.map(([name, zone]) => `        Map.<String, String>entry("${name}", "${zone}")`).join(',\n');
   return `package org.supervote.server.statistics;
 
 import java.util.Map;
@@ -94,6 +99,7 @@ import java.util.Map;
  */
 final class TimeZones {
 
+    // Typed entries: inferring their types took javac most of a minute (see build.mjs).
     static final Map<String, String> CANONICAL = Map.ofEntries(
 ${entries});
 

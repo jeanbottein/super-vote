@@ -384,6 +384,11 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
   reports entities that are not records and a public repository. Neither is
   your code: delete `target/classes`, `target/test-classes` and
   `target/spring-aot`, and never run a native build beside `./mvnw test`.
+- **javac infers slowly over hundreds of generic calls in one expression**:
+  `TimeZones.java`, 518 `Map.entry(...)` in one `Map.ofEntries`, took 46 s
+  of every build of the server. Generated as `Map.<String, String>entry`, it
+  compiles in a third of a second (`tools/geography/build.mjs`): name the
+  types in any long generated literal.
 - **Caddy logs requests even without an access log**: its own warnings and
   errors carry the request, with the client's address and the URI (a poll's
   link), and one is written each time a live-results stream ends. The
