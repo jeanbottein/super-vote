@@ -138,6 +138,20 @@ export const fr: Messages = {
       { title: 'Décidez', text: 'Chaque personne évalue chaque option. Les résultats bougent en direct, et l’option la mieux évaluée par le groupe l’emporte.' },
     ],
 
+    agent: {
+      title: 'Ou demandez à un agent d’IA',
+      text: 'Un assistant d’IA qui a accès au Web peut créer le sondage pour vous : super-vote explique aux agents '
+        + 'comment faire. Donnez au vôtre une demande comme celle-ci, avec votre propre question.',
+      prompt: (site: string, guide: string) => `Utilisez ${site} pour créer un sondage pour mon équipe (instructions `
+        + `pour les agents : ${guide}). La question : « Où organiser notre séminaire ? » Les options : `
+        + 'Lisbonne, Berlin, Barcelone. Utilisez le jugement majoritaire, et cachez les résultats jusqu’à ce que je '
+        + 'ferme le sondage. Transmettez-moi le sondage, puis donnez-moi le lien à partager avec l’équipe.',
+      copy: 'Copier la demande',
+      copied: 'Demande copiée',
+      caption: 'L’agent répond avec deux liens. Ouvrez le premier vous-même : il vous transmet le sondage, dans le '
+        + 'navigateur qui l’ouvre. Envoyez le second au groupe.',
+    },
+
     gradeTitle: 'Évaluer chaque option, pas seulement une',
     gradeText: 'La plupart des votes demandent un seul choix, ce qui cache l’essentiel de ce que pensent les gens. '
       + 'Au jugement majoritaire, chaque votant donne une mention à chaque option, de « Excellent » à « À rejeter », '

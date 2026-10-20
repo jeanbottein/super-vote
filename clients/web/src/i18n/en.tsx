@@ -137,6 +137,20 @@ export const en = {
       { title: 'Decide', text: 'Everyone grades every option. The results move live, and the option the group rates best wins.' },
     ],
 
+    agent: {
+      title: 'Or ask an AI agent',
+      text: 'An AI assistant with access to the web can create the poll for you: super-vote tells agents how. '
+        + 'Give yours a prompt like this one, with your own question.',
+      prompt: (site: string, guide: string) => `Use ${site} to create a poll for my team (instructions for `
+        + `agents: ${guide}). The question: “Where should we hold the offsite?” The options: Lisbon, Berlin, `
+        + 'Barcelona. Use majority judgment, and keep the results hidden until I close the poll. Hand the poll '
+        + 'over to me, then give me the link to share with the team.',
+      copy: 'Copy the prompt',
+      copied: 'Prompt copied',
+      caption: 'The agent answers with two links. Open the first yourself: it makes the poll yours, in the '
+        + 'browser that opens it. Send the second to the group.',
+    },
+
     gradeTitle: 'Grade every option, not just one',
     gradeText: 'Most votes ask for a single choice, which hides most of what people think. With majority '
       + 'judgment, every voter gives every option a mention, from Excellent to Bad, and the option a majority '

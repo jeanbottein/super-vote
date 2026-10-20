@@ -78,16 +78,44 @@ describe('the home page', () => {
   it('then says what super-vote is, what difference it makes, and what it is not for', () => {
     openHome();
 
-    for (const heading of ['How it works', 'Grade every option, not just one', 'Why it matters', 'Good to know']) {
+    for (const heading of ['How it works', 'Or ask an AI agent', 'Grade every option, not just one', 'Why it matters',
+      'Good to know']) {
       expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
     }
     expect(screen.getByRole('link', { name: 'All about privacy and limits' })).toHaveAttribute('href', '/privacy');
   });
 
+  it("gives a prompt to copy into an AI agent, naming this site and its guide for agents", async () => {
+    const user = userEvent.setup();
+    openHome();
+
+    const agent = section('Or ask an AI agent');
+    const opening = `Use ${window.location.host} to create a poll for my team (instructions for agents: `
+      + `${window.location.origin}/llms.txt).`;
+    const prompt = within(agent).getByText((text) => text.startsWith(opening)).textContent;
+    expect(prompt).toContain('Hand the poll over to me');
+
+    await user.click(within(agent).getByRole('button', { name: 'Copy the prompt' }));
+
+    expect(await navigator.clipboard.readText()).toBe(prompt);
+    expect(within(agent).getByRole('button', { name: 'Prompt copied' })).toBeInTheDocument();
+  });
+
+  it('selects the prompt for the person to copy when the clipboard is out of reach', async () => {
+    const user = userEvent.setup();
+    openHome();
+    vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new DOMException('Denied', 'NotAllowedError'));
+
+    await user.click(screen.getByRole('button', { name: 'Copy the prompt' }));
+
+    expect(window.getSelection()?.toString()).toMatch(/^Use .+ give me the link to share with the team\.$/);
+    expect(screen.getByRole('button', { name: 'Copy the prompt' })).toBeInTheDocument();
+  });
+
   it('shows how majority judgment decides, with results the server could have ranked', () => {
     openHome();
 
-    const example = screen.getByRole('figure');
+    const example = within(section('Grade every option, not just one')).getByRole('figure');
     const options = within(example).getAllByRole('img').map((bar) => bar.getAttribute('aria-label')?.split(':')[0]);
     expect(options).toEqual(['Pizza', 'Sushi', 'Burgers']);
     expect(within(example).getAllByText('Fair')).not.toHaveLength(0);

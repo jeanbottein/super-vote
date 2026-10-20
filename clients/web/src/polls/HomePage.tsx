@@ -5,14 +5,16 @@ import MajorityJudgmentResults from '../features/VotingSystem/MajorityJudgment/M
 import { errorMessage } from '../i18n/errorMessage';
 import { useI18n } from '../i18n/i18n';
 import Logo from '../ui/Logo';
+import AgentPrompt from './AgentPrompt';
 import JoinForm from './JoinForm';
 import PollList from './PollList';
 import { usePollLists } from './usePollLists';
 import { useServerInfo } from './useServerInfo';
 
 /**
- * First what people come to do, create a poll or join one; below, what
- * super-vote is, what difference it makes, and what it is not for.
+ * First what people come to do, create a poll or join one; below, how it
+ * works, how to have an AI agent create one, what super-vote is, what
+ * difference it makes, and what it is not for.
  */
 export default function HomePage() {
   const { t } = useI18n();
@@ -62,6 +64,8 @@ export default function HomePage() {
           ))}
         </ol>
       </section>
+
+      <AgentPrompt />
 
       <section className="home-section grade">
         <div>

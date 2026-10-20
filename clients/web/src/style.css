@@ -727,31 +727,69 @@ fieldset.field {
   font-weight: 700;
 }
 
-/* An example of results, beside what it shows on a wide screen. */
-.example {
+/*
+ * An example beside what it shows, on a wide screen: results (.grade), a
+ * prompt for an AI agent (.agent). On a phone, the words come first.
+ */
+.example,
+.agent-prompt,
+.grade > div,
+.agent > div {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.example,
+.agent-prompt {
   margin: 0;
 }
 
 @media (min-width: 960px) {
-  .grade {
+  .grade,
+  .agent {
     display: grid;
     grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
     align-items: start;
     gap: 32px;
   }
 
+  .grade > div,
+  .agent > div {
+    padding-top: 8px;
+  }
+
   /* The explanation stays in view while the example, taller, scrolls past. */
   .grade > div {
     position: sticky;
     top: calc(var(--header-height) + 24px);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding-top: 8px;
   }
+}
+
+/* The words to copy, in a well: what the person pastes into their assistant. */
+.agent-prompt blockquote {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+  overflow-wrap: anywhere;
+}
+
+.agent-prompt .button {
+  align-self: flex-start;
+}
+
+/* A button's two labels, before and after: one place, the other one hidden, so its width holds. */
+.copy-labels {
+  display: inline-grid;
+}
+
+.copy-labels > span {
+  grid-area: 1 / 1;
+}
+
+.copy-labels > [aria-hidden="true"] {
+  visibility: hidden;
 }
 
 .good-to-know ul {
