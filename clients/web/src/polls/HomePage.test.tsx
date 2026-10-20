@@ -48,7 +48,7 @@ describe('the home page', () => {
 
     const mine = await screen.findByRole('link', { name: /Where do we eat\?/ });
     expect(mine).toHaveAttribute('href', '/p/lunch');
-    expect(within(section('Your polls')).queryByText('Public')).not.toBeInTheDocument();
+    expect(within(section('Decide together…')).queryByText('Public')).not.toBeInTheDocument();
 
     const others = within(section('Public polls')).getAllByRole('link');
     expect(others).toHaveLength(1); // the voter's own public poll is listed once, above
@@ -72,7 +72,7 @@ describe('the home page', () => {
     openHome();
 
     expect(await screen.findByText('No public polls yet.')).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Your polls' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Decide together…' })).not.toBeInTheDocument();
   });
 
   it('then says what super-vote is, what difference it makes, and what it is not for', () => {
@@ -152,6 +152,6 @@ describe('the home page', () => {
   it('leads to creating a poll', () => {
     openHome();
 
-    expect(screen.getByRole('link', { name: 'Create a poll' })).toHaveAttribute('href', '/new');
+    expect(screen.getByRole('link', { name: 'Decide together!' })).toHaveAttribute('href', '/new');
   });
 });

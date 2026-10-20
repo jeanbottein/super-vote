@@ -122,10 +122,10 @@ export const fr: Messages = {
   home: {
     title: 'super-vote · décider ensemble',
     headline: 'Décider ensemble, équitablement.',
-    lead: 'Créez un sondage privé, partagez son lien ou son code avec votre groupe, et regardez les résultats '
+    lead: 'Posez une question à votre groupe, partagez son lien ou son code, et regardez les résultats '
       + 'arriver en direct. Personne n’a besoin de compte.',
-    createPoll: 'Créer un sondage',
-    yourPolls: 'Vos sondages',
+    createPoll: 'Décider ensemble !',
+    yourPolls: 'Décider ensemble…',
     publicPolls: 'Sondages publics',
     noPublicPolls: 'Pas encore de sondage public.',
     public: 'Public',
@@ -140,7 +140,7 @@ export const fr: Messages = {
 
     agent: {
       title: 'Ou demandez à un agent d’IA',
-      text: 'Un assistant d’IA qui a accès au Web peut créer le sondage pour vous : super-vote explique aux agents '
+      text: 'Un assistant d’IA qui a accès au Web peut s’en charger pour vous : super-vote explique aux agents '
         + 'comment faire. Donnez au vôtre une demande comme celle-ci, avec votre propre question.',
       prompt: (site: string, guide: string) => `Utilisez ${site} pour créer un sondage pour mon équipe (instructions `
         + `pour les agents : ${guide}). La question : « Où organiser notre séminaire ? » Les options : `
@@ -204,8 +204,8 @@ export const fr: Messages = {
   },
 
   newPoll: {
-    title: 'Nouveau sondage · super-vote',
-    heading: 'Nouveau sondage',
+    title: 'Décider ensemble · super-vote',
+    heading: 'Décider ensemble',
     question: 'Question',
     questionPlaceholder: 'On mange où vendredi ?',
     options: 'Options',
@@ -286,7 +286,7 @@ export const fr: Messages = {
     </>,
     noNewPolls: 'Ce serveur ne prend pas de nouveaux sondages pour le moment.',
     creating: 'Création…',
-    create: 'Créer le sondage',
+    create: 'Poser la question',
 
     problems: {
       titleMissing: 'Donnez une question à votre sondage.',

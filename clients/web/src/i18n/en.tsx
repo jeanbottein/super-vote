@@ -121,10 +121,10 @@ export const en = {
   home: {
     title: 'super-vote · decide together',
     headline: 'Decide together, fairly.',
-    lead: 'Create a private poll, share its link or code with your group, and watch the results come in live. '
+    lead: 'Ask your group a question, share its link or code with them, and watch the results come in live. '
       + 'Nobody needs an account.',
-    createPoll: 'Create a poll',
-    yourPolls: 'Your polls',
+    createPoll: 'Decide together!',
+    yourPolls: 'Decide together…',
     publicPolls: 'Public polls',
     noPublicPolls: 'No public polls yet.',
     public: 'Public',
@@ -139,7 +139,7 @@ export const en = {
 
     agent: {
       title: 'Or ask an AI agent',
-      text: 'An AI assistant with access to the web can create the poll for you: super-vote tells agents how. '
+      text: 'An AI assistant with access to the web can set it up for you: super-vote tells agents how. '
         + 'Give yours a prompt like this one, with your own question.',
       prompt: (site: string, guide: string) => `Use ${site} to create a poll for my team (instructions for `
         + `agents: ${guide}). The question: “Where should we hold the offsite?” The options: Lisbon, Berlin, `
@@ -202,8 +202,8 @@ export const en = {
   },
 
   newPoll: {
-    title: 'New poll · super-vote',
-    heading: 'New poll',
+    title: 'Decide together · super-vote',
+    heading: 'Decide together',
     question: 'Question',
     questionPlaceholder: 'Where do we eat on Friday?',
     options: 'Options',
@@ -282,7 +282,7 @@ export const en = {
     </>,
     noNewPolls: 'This server takes no new polls at the moment.',
     creating: 'Creating…',
-    create: 'Create poll',
+    create: 'Ask the question',
 
     problems: {
       titleMissing: 'Give your poll a title.',
