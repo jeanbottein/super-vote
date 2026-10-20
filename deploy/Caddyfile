@@ -1,9 +1,18 @@
 # super-vote's one public address, HTTPS only: the web app, its API and the
 # MCP tools on one origin. Caddy is all the internet reaches (ports 80 and
 # 443): it gets and renews the certificate, sends HTTP on to HTTPS, serves the
-# built web app, and passes the API to the Java server, which listens on a
-# private network only. See deploy/README.md.
+# built web app, and passes the API to the Java server, which only this
+# machine reaches. See deploy/README.md.
 {
+	# Caddy's own messages, without the request each one is about: that names
+	# the visitor's address and the page, a poll's link included, and a line is
+	# written each time someone leaves a poll's live results. super-vote writes
+	# no address down, and keeps no record of who opened which poll.
+	log {
+		format filter {
+			request delete
+		}
+	}
 	servers {
 		timeouts {
 			read_header 10s
@@ -36,7 +45,13 @@
 		request_body {
 			max_size 64KB
 		}
-		reverse_proxy {$SUPER_VOTE_SERVER:server:8080}
+		# While the server restarts (a new version going out), a request waits for
+		# it, 15 seconds at most, rather than failing. Caddy sends a request again
+		# only if the server never received it, or if it is a GET, which changes
+		# nothing: no ballot or poll is ever made twice.
+		reverse_proxy {$SUPER_VOTE_SERVER:127.0.0.1:8080} {
+			lb_try_duration 15s
+		}
 	}
 
 	handle {

@@ -14,6 +14,7 @@ and the live-results streams described in [docs/API.md](../../docs/API.md).
 ./mvnw -Pnative native:compile           # a native executable, target/super-vote-server (GraalVM as JAVA_HOME)
 ./mvnw -PnativeTest test                 # the tests, compiled and run as a native image
 ./mvnw package && SUPER_VOTE_VOTER_SECRET=<32+ characters> java -jar target/super-vote-server-0.1.0-SNAPSHOT.jar
+docker build -t super-vote-server .      # the image production runs (deploy/README.md)
 ```
 
 From the repo root, `./dev.sh server` does the same as `spring-boot:run`, with

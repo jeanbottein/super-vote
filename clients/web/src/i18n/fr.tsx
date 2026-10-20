@@ -613,6 +613,8 @@ export const fr: Messages = {
         + 'pouvez le retirer jusqu’à la clôture.',
       'Le nom que vous donnez, sur les sondages qui affichent les noms, rangé à part de votre bulletin pour que rien '
         + 'ne relie les deux.',
+      'Des copies des sondages, bulletins et noms ci-dessus, faites chaque nuit pour réparer un accident, et gardées '
+        + '7 jours : ce qui est supprimé en disparaît en une semaine.',
       `Un identifiant aléatoire dans un cookie, pour que ce navigateur puisse modifier ses bulletins et gérer ses `
         + `sondages, ${days} jours après son dernier bulletin ou sondage, autant que dure un sondage. C’est le seul `
         + 'cookie : ni publicité, ni mesure d’audience, ni pistage.',

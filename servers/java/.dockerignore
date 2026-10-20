@@ -1,0 +1,6 @@
+# What the image build reads (servers/java/Dockerfile): the wrapper, pom.xml and src.
+*
+!.mvn/
+!mvnw
+!pom.xml
+!src/

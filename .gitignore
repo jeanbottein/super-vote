@@ -17,6 +17,9 @@ coverage/
 *.iml
 .vscode/
 
-# Local env
+# Local env, and the server's settings (deploy/.env)
 .env
 .env.local
+
+# The server's nightly copies of its database (deploy/backup.sh)
+deploy/backups/
