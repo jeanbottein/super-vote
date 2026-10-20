@@ -171,8 +171,9 @@ export const en = {
       private: <><strong>Private, but not hidden from the server.</strong> Nobody else sees your ballot, and the
         ballots kept do not say who cast them; the server, run by the project, handles your ballot as you cast
         it.</>,
-      browser: <><strong>Tied to this browser.</strong> Your ballots and polls can only be changed or managed from
-        the browser you made them in.</>,
+      browser: (days: number) => <><strong>Tied to this browser.</strong> Your ballots and polls can only be changed
+        or managed from the browser you made them in. One cookie remembers them, for {days} days after your last ballot
+        or poll, and nothing else: no advertising, no tracking.</>,
       deleted: (days: number) => <><strong>Deleted after {days} days.</strong> Polls go with their ballots: they are
         for deciding, not archiving.</>,
     },
@@ -247,16 +248,17 @@ export const en = {
 
     optionOrder: 'Order of the options',
     orders: {
-      AS_WRITTEN: 'As written',
       ALPHABETICAL: 'A to Z',
       SHUFFLED: 'Shuffled',
+      AS_WRITTEN: 'As written',
     },
     orderHints: {
-      AS_WRITTEN: 'Voters see the options in your order. The first places can draw more support than the others.',
       ALPHABETICAL: 'Voters see them from A to Z, numbers by their value: 2 before 10. Dates sort right when '
         + 'written year first, such as 2026-10-24.',
       SHUFFLED: 'Each voter sees them in an order of their own, drawn again each time they open the poll, so that '
         + 'no option gains from its place.',
+      AS_WRITTEN: 'Voters see the options in your order. The first places draw more support than the others, so an '
+        + 'order of your choosing can be taken for an attempt to sway the result.',
     },
 
     deletedAfter: (days: number) => `Polls are deleted ${days} days after they are created, with their ballots.`,
@@ -583,8 +585,9 @@ export const en = {
       'Your ballot on a poll, stored under a key that does not say who you are, and deleted with the poll. You can '
         + 'withdraw it until the poll closes.',
       'The name you give, on polls that show names, stored apart from your ballot so that nothing joins the two.',
-      'A random identifier in a cookie, so that this browser can change its ballots and manage its polls. It is '
-        + 'the only cookie: no advertising, no analytics, no tracking.',
+      `A random identifier in a cookie, so that this browser can change its ballots and manage its polls, for ${days} `
+        + 'days after its last ballot or poll, as long as a poll lasts. It is the only cookie: no advertising, no '
+        + 'analytics, no tracking.',
       "Your device's time zone (Europe/Paris, say), added to the statistics as totals only. Never your address.",
       "Your network's address, held in memory for a day at most, to limit how many polls each network creates. It "
         + 'is never written down.',

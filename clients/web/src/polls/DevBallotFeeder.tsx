@@ -8,7 +8,8 @@ import { useToast } from '../ui/Toasts';
 
 /**
  * Development only (the poll page renders it when import.meta.env.DEV): casts
- * random ballots to watch the results move, each from a new anonymous voter.
+ * random ballots to watch the results move, each from a new anonymous voter,
+ * and from one of a few time zones, so that the poll's places fill in too.
  */
 export default function DevBallotFeeder({ poll }: { poll: Poll }) {
   const { t } = useI18n();
@@ -17,10 +18,11 @@ export default function DevBallotFeeder({ poll }: { poll: Poll }) {
   const [cast, setCast] = useState<number | null>(null);
 
   async function feed() {
+    const places = randomPlaces(count);
     try {
       for (let i = 1; i <= count; i++) {
         setCast(i);
-        await castBallotAsNewVoter(poll.id, randomBallot(poll));
+        await castBallotAsNewVoter(poll.id, randomBallot(poll), pick(places));
       }
     } catch (error) {
       showToast(errorMessage(error, t), 'error');
@@ -49,6 +51,20 @@ export default function DevBallotFeeder({ poll }: { poll: Poll }) {
   );
 }
 
+/**
+ * About one time zone for every five ballots: a place shows once three ballots
+ * come from it (StatisticsService.VISIBLE), so spread over every time zone,
+ * a feed would show none.
+ */
+function randomPlaces(ballots: number): string[] {
+  const timeZones = Intl.supportedValuesOf('timeZone');
+  return Array.from({ length: Math.max(1, Math.round(ballots / 5)) }, () => pick(timeZones));
+}
+
+function pick<T>(items: readonly T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
 function randomBallot(poll: Poll): BallotRequest {
   if (poll.votingSystem === 'APPROVAL') {
     return { approvedOptionIds: poll.options.filter(() => Math.random() < 0.5).map((option) => option.id) };
@@ -56,7 +72,7 @@ function randomBallot(poll: Poll): BallotRequest {
   return {
     judgments: Object.fromEntries(poll.options.map((option) => [
       option.id,
-      MENTIONS_BEST_FIRST[Math.floor(Math.random() * MENTIONS_BEST_FIRST.length)],
+      pick(MENTIONS_BEST_FIRST),
     ])),
   };
 }

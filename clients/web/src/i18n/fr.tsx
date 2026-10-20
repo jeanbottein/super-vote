@@ -173,8 +173,9 @@ export const fr: Messages = {
       private: <><strong>Confidentiel, mais pas caché au serveur.</strong> Personne d’autre ne voit votre bulletin, et
         les bulletins conservés ne disent pas qui les a déposés ; le serveur, géré par le projet, traite votre
         bulletin au moment où vous votez.</>,
-      browser: <><strong>Lié à ce navigateur.</strong> Vos bulletins et vos sondages ne peuvent être modifiés ou gérés
-        que depuis le navigateur où vous les avez faits.</>,
+      browser: (days: number) => <><strong>Lié à ce navigateur.</strong> Vos bulletins et vos sondages ne peuvent être
+        modifiés ou gérés que depuis le navigateur où vous les avez faits. Un seul cookie s’en souvient, {days} jours
+        après votre dernier bulletin ou sondage, et rien d’autre : ni publicité, ni pistage.</>,
       deleted: (days: number) => <><strong>Supprimés après {days} jours.</strong> Les sondages partent avec leurs
         bulletins : ils servent à décider, pas à archiver.</>,
     },
@@ -251,17 +252,17 @@ export const fr: Messages = {
 
     optionOrder: 'Ordre des options',
     orders: {
-      AS_WRITTEN: 'Tel quel',
       ALPHABETICAL: 'De A à Z',
       SHUFFLED: 'Mélangé',
+      AS_WRITTEN: 'Tel quel',
     },
     orderHints: {
-      AS_WRITTEN: 'Les votants voient les options dans votre ordre. Les premières places peuvent attirer plus de '
-        + 'soutien que les autres.',
       ALPHABETICAL: 'Les votants les voient de A à Z, les nombres selon leur valeur : 2 avant 10. Les dates se '
         + 'trient bien écrites année d’abord, comme 2026-10-24.',
       SHUFFLED: 'Chaque votant les voit dans un ordre bien à lui, tiré à nouveau à chaque ouverture du sondage, pour '
         + 'qu’aucune option ne profite de sa place.',
+      AS_WRITTEN: 'Les votants voient les options dans votre ordre. Les premières places attirent plus de soutien '
+        + 'que les autres : un ordre choisi par vous peut passer pour une manipulation du résultat.',
     },
 
     deletedAfter: (days: number) => `Les sondages sont supprimés ${days} jours après leur création, avec leurs bulletins.`,
@@ -598,8 +599,9 @@ export const fr: Messages = {
         + 'pouvez le retirer jusqu’à la clôture.',
       'Le nom que vous donnez, sur les sondages qui affichent les noms, rangé à part de votre bulletin pour que rien '
         + 'ne relie les deux.',
-      'Un identifiant aléatoire dans un cookie, pour que ce navigateur puisse modifier ses bulletins et gérer ses '
-        + 'sondages. C’est le seul cookie : ni publicité, ni mesure d’audience, ni pistage.',
+      `Un identifiant aléatoire dans un cookie, pour que ce navigateur puisse modifier ses bulletins et gérer ses `
+        + `sondages, ${days} jours après son dernier bulletin ou sondage, autant que dure un sondage. C’est le seul `
+        + 'cookie : ni publicité, ni mesure d’audience, ni pistage.',
       'Le fuseau horaire de votre appareil (Europe/Paris, par exemple), ajouté aux statistiques sous forme de totaux '
         + 'seulement. Jamais votre adresse.',
       'L’adresse de votre réseau, gardée en mémoire un jour au plus, pour limiter le nombre de sondages que chaque '

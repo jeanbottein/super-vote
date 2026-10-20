@@ -13,7 +13,8 @@ import {
 import { useServerInfo } from './useServerInfo';
 
 const RESULTS: ResultsShown[] = ['LIVE', 'AFTER_BALLOTS', 'AFTER_CLOSING'];
-const ORDERS: OptionOrder[] = ['AS_WRITTEN', 'ALPHABETICAL', 'SHUFFLED'];
+// The creator's own order last, and never the default: an order they chose can be taken for a thumb on the scale.
+const ORDERS: OptionOrder[] = ['ALPHABETICAL', 'SHUFFLED', 'AS_WRITTEN'];
 
 export default function CreatePollPage() {
   const { t } = useI18n();
@@ -32,7 +33,7 @@ export default function CreatePollPage() {
   const [chosenResultsShown, setChosenResultsShown] = useState<ResultsShown | null>(null);
   const resultsShown = chosenResultsShown ?? (invitationOnly || showVoterNames ? 'AFTER_CLOSING' : 'LIVE');
   const [resultsAfterBallots, setResultsAfterBallots] = useState('5');
-  const [optionOrder, setOptionOrder] = useState<OptionOrder>('AS_WRITTEN');
+  const [optionOrder, setOptionOrder] = useState<OptionOrder>('SHUFFLED');
   const [showProblems, setShowProblems] = useState(false);
   const [creating, setCreating] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
@@ -161,6 +162,7 @@ export default function CreatePollPage() {
         options={ORDERS.map((order) => ({ value: order, label: t.newPoll.orders[order] }))}
         onChange={(order) => setOptionOrder(order)}
         hint={t.newPoll.orderHints[optionOrder]}
+        hintTone={optionOrder === 'AS_WRITTEN' ? 'warning' : undefined}
       />
 
       {chosenSystem && systems.length > 1 && (

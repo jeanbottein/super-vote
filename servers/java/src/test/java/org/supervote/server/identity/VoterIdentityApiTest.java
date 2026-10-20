@@ -15,8 +15,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
+import org.supervote.server.common.SuperVoteProperties;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,6 +33,9 @@ class VoterIdentityApiTest {
 
     @Autowired
     MockMvcTester mvc;
+
+    @Autowired
+    SuperVoteProperties settings;
 
     @Test
     void mintsATokenAndTakesNoCookie() {
@@ -114,6 +119,31 @@ class VoterIdentityApiTest {
 
         assertThat(result).hasStatus(HttpStatus.OK);
         assertThat(result).containsHeader(HttpHeaders.SET_COOKIE);
+    }
+
+    /** A browser's identity lasts as long as a poll, and only what it changes counts it again. */
+    @Test
+    void theCookieLastsAsLongAsAPollAndStartsAgainOnEachChange() {
+        var first = mvc.get().uri("/api/polls/mine").exchange();
+        var cookie = first.getResponse().getCookie(VoterIdentity.COOKIE);
+        assertThat(cookie).isNotNull();
+        assertThat(cookie.getMaxAge()).isEqualTo(Duration.ofDays(settings.limits().pollLifetimeDays()).toSeconds());
+
+        var reading = mvc.get().uri("/api/polls/mine").cookie(cookie).exchange();
+        assertThat(reading).doesNotContainHeader(HttpHeaders.SET_COOKIE);
+
+        var creating = mvc.post().uri("/api/polls").cookie(cookie)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {"title": "Lunch?", "votingSystem": "APPROVAL", "visibility": "UNLISTED",
+                 "options": ["Ramen", "Tacos"]}
+                """)
+            .exchange();
+        assertThat(creating).hasStatus(HttpStatus.CREATED);
+        var renewed = creating.getResponse().getCookie(VoterIdentity.COOKIE);
+        assertThat(renewed).isNotNull();
+        assertThat(renewed.getValue()).isEqualTo(cookie.getValue());
+        assertThat(renewed.getMaxAge()).isEqualTo(cookie.getMaxAge());
     }
 
     /**

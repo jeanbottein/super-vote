@@ -22,9 +22,10 @@ in, on a phone or a desktop, with nothing to install and no account needed.
   with the GMJ score.
 - **Approval voting**: voters tick every option they would accept.
 - **Live results**, pushed to everyone watching the poll.
-- **A neutral order**: the creator shows the options as written, from A to Z
-  (numbers by value: 2 before 10), or shuffled for each voter, since the
-  first places on a list draw more support.
+- **A neutral order**: the options are shuffled for each voter unless the
+  creator picks A to Z (numbers by value: 2 before 10), since the first
+  places on a list draw more support. Their own order is offered last, with
+  a warning that it can look like swaying the result.
 - **Revisable ballots**: change or withdraw your ballot until the poll closes.
   Vote *live* (every tap counts) or *in an envelope* (review, then submit).
 - **Private polls**, shared by link, join code (`K7M-4QX`), QR code or your

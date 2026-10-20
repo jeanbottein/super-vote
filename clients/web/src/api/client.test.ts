@@ -111,16 +111,18 @@ describe('the API client', () => {
     }));
   });
 
-  it('leaves the cookie out of ballots from the ballot feeder, so each comes from a new voter', async () => {
-    fetchMock.mockResolvedValue(Response.json({}));
+  it('leaves the cookie out of ballots from the ballot feeder, so each comes from a new voter, from where it is told',
+    async () => {
+      fetchMock.mockResolvedValue(Response.json({}));
 
-    await castBallotAsNewVoter('abc', { approvedOptionIds: ['1'] });
+      await castBallotAsNewVoter('abc', { approvedOptionIds: ['1'] }, 'Asia/Tokyo');
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/polls/abc/ballot', expect.objectContaining({
-      method: 'PUT',
-      credentials: 'omit',
-    }));
-  });
+      expect(fetchMock).toHaveBeenCalledWith('/api/polls/abc/ballot', expect.objectContaining({
+        method: 'PUT',
+        credentials: 'omit',
+        headers: expect.objectContaining({ 'Super-Vote-Time-Zone': 'Asia/Tokyo' }),
+      }));
+    });
 
   it('encodes poll ids into paths', async () => {
     fetchMock.mockResolvedValue(Response.json({}));
