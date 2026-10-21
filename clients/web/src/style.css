@@ -765,8 +765,8 @@ fieldset.field {
 /* Three steps, each an icon in ink and a few words: a list on a phone, a row from 720 px. */
 .steps {
   display: grid;
-  gap: 16px;
-  margin: 4px 0 0;
+  gap: 12px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -774,16 +774,18 @@ fieldset.field {
 .steps li {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  column-gap: 16px;
+  column-gap: 12px;
+  row-gap: 0;
   align-items: center;
+  align-content: center;
 }
 
 .steps .step-icon {
   grid-row: span 2;
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--accent-soft);
   color: var(--accent-text);
@@ -797,16 +799,6 @@ fieldset.field {
   .steps {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px;
-  }
-
-  .steps li {
-    grid-template-columns: minmax(0, 1fr);
-    align-content: start;
-  }
-
-  .steps .step-icon {
-    grid-row: auto;
-    margin-bottom: 12px;
   }
 }
 
