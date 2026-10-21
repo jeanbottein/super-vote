@@ -10,6 +10,8 @@ import { useToast } from '../ui/Toasts';
  * Development only (the poll page renders it when import.meta.env.DEV): casts
  * random ballots to watch the results move, each from a new anonymous voter,
  * and from one of a few time zones, so that the poll's places fill in too.
+ * A developer's tool, in English: its words are not messages, so that no trace
+ * of it ships in a production build.
  */
 export default function DevBallotFeeder({ poll }: { poll: Poll }) {
   const { t } = useI18n();
@@ -33,18 +35,18 @@ export default function DevBallotFeeder({ poll }: { poll: Poll }) {
 
   return (
     <section className="panel dev-tool">
-      <h2>{t.feeder.heading} <span className="badge">{t.feeder.devOnly}</span></h2>
+      <h2>Ballot feeder <span className="badge">dev only</span></h2>
       <div className="button-row">
         <input
           type="number"
           min={1}
           max={500}
           value={count}
-          aria-label={t.feeder.count}
+          aria-label="Number of random ballots"
           onChange={(event) => setCount(Number(event.target.value))}
         />
         <button type="button" className="button secondary" disabled={cast !== null} onClick={feed}>
-          {cast === null ? t.feeder.cast : t.feeder.casting(cast, count)}
+          {cast === null ? 'Cast random ballots' : `Casting ${cast} of ${count}…`}
         </button>
       </div>
     </section>

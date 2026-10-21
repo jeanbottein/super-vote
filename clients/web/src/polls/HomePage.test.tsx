@@ -75,22 +75,39 @@ describe('the home page', () => {
     expect(screen.queryByRole('heading', { name: 'Decide together…' })).not.toBeInTheDocument();
   });
 
-  it('then says what super-vote is, what difference it makes, and what it is not for', () => {
+  it('then says how it works, how it decides and compares, how to support it, and what it is not for', () => {
     openHome();
 
-    for (const heading of ['How it works', 'Or ask an AI agent', 'Grade every option, not just one', 'Why it matters',
-      'Good to know']) {
+    for (const heading of ['How it works', 'Grade every option, not just one', 'Fairer than most official elections',
+      'Or ask your AI agent', 'Free, open source, no ads', 'Good to know']) {
       expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
     }
-    expect(screen.getByRole('link', { name: 'a tip on Ko-fi' })).toHaveAttribute('href', 'https://ko-fi.com/jean64');
+    expect(screen.getByRole('link', { name: 'Ko-fi' })).toHaveAttribute('href', 'https://ko-fi.com/jean64');
+    expect(screen.getByRole('link', { name: 'GitHub Sponsors' }))
+      .toHaveAttribute('href', 'https://github.com/sponsors/jeanbottein');
     expect(screen.getByRole('link', { name: 'All about privacy and limits' })).toHaveAttribute('href', '/privacy');
+  });
+
+  it('weighs a single choice, approval and majority judgment, in words a screen reader says', () => {
+    openHome();
+
+    const table = within(section('Fairer than most official elections')).getByRole('table');
+    expect(within(table).getAllByRole('columnheader').map((header) => header.textContent))
+      .toEqual(['One choicemost elections', 'Approval', 'Majority judgment']);
+    const row = (criterion: string) => within(table).getByRole('rowheader', { name: criterion }).closest('tr')!;
+    expect(within(row('Hard to game')).getAllByRole('cell').map((cell) => cell.textContent))
+      .toEqual(['No', 'Partly', 'Yes']);
+    expect(within(row('Quick to fill in')).getAllByRole('cell').map((cell) => cell.textContent))
+      .toEqual(['Yes', 'Yes', 'Partly']);
+    expect(within(section('Fairer than most official elections')).getByRole('link', { name: 'The science behind it' }))
+      .toHaveAttribute('href', '/about');
   });
 
   it("gives a prompt to copy into an AI agent, naming this site and its guide for agents", async () => {
     const user = userEvent.setup();
     openHome();
 
-    const agent = section('Or ask an AI agent');
+    const agent = section('Or ask your AI agent');
     const opening = `Use ${window.location.host} to create a poll for my team (instructions for agents: `
       + `${window.location.origin}/llms.txt).`;
     const prompt = within(agent).getByText((text) => text.startsWith(opening)).textContent;

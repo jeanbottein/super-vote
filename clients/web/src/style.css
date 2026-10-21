@@ -671,12 +671,18 @@ fieldset.field {
   }
 }
 
-/* What super-vote is, under what people come to do: more air, and headings that start a chapter. */
+/* What super-vote is, under what people come to do: few words, and air between chapters. */
 .home-section {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 24px;
+}
+
+@media (min-width: 960px) {
+  .home-section {
+    margin-top: 48px;
+  }
 }
 
 .home-section h2 {
@@ -686,84 +692,189 @@ fieldset.field {
 }
 
 .home-section h3 {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 17px;
 }
 
-.home-text {
-  max-width: 44em;
+.home-section p {
+  margin: 0;
+  max-width: 34em;
 }
 
-.home-cards {
+/* Three steps, each an icon in ink and a few words: a list on a phone, a row from 720 px. */
+.steps {
   display: grid;
-  gap: 12px;
-  margin: 0;
+  gap: 16px;
+  margin: 4px 0 0;
   padding: 0;
   list-style: none;
 }
 
-@media (min-width: 720px) {
-  .home-cards {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.steps li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 16px;
+  align-items: center;
 }
 
-/* The steps say their number in ink: what to do first, then next. */
-.steps {
-  counter-reset: step;
-}
-
-.steps li::before {
-  counter-increment: step;
-  content: counter(step);
+.steps .step-icon {
+  grid-row: span 2;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  margin-bottom: 12px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: var(--accent-soft);
   color: var(--accent-text);
-  font-weight: 700;
+}
+
+.steps p {
+  color: var(--muted);
+}
+
+@media (min-width: 720px) {
+  .steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  .steps li {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+  }
+
+  .steps .step-icon {
+    grid-row: auto;
+    margin-bottom: 12px;
+  }
 }
 
 /*
- * An example beside what it shows, on a wide screen: results (.grade), a
- * prompt for an AI agent (.agent). On a phone, the words come first.
+ * Words beside what they speak of, on a wide screen: example results, the
+ * comparison of voting systems, a prompt for an AI agent. On a phone, the
+ * words come first.
  */
+.beside > div,
 .example,
-.agent-prompt,
-.grade > div,
-.agent > div {
+.agent-prompt {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 12px;
+  margin: 0;
 }
 
 .example,
 .agent-prompt {
-  margin: 0;
+  align-items: stretch;
 }
 
 @media (min-width: 960px) {
-  .grade,
-  .agent {
+  .beside {
     display: grid;
     grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
     align-items: start;
     gap: 32px;
   }
 
-  .grade > div,
-  .agent > div {
-    padding-top: 8px;
-  }
-
-  /* The explanation stays in view while the example, taller, scrolls past. */
-  .grade > div {
+  /* The words stay in view while what they speak of, taller, scrolls past. */
+  .beside > div {
     position: sticky;
     top: calc(var(--header-height) + 24px);
+    padding-top: 8px;
   }
+}
+
+/* The comparison: marks in ink, never green or red, which belong to the mentions; majority judgment's column tinted. */
+.compare {
+  margin: 0;
+}
+
+.compare table {
+  width: 100%;
+  font-size: 15px;
+  line-height: 1.35;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.compare th,
+.compare td {
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.compare tbody tr:last-child > * {
+  border-bottom: none;
+}
+
+.compare thead th {
+  font-size: 13px;
+  hyphens: auto;
+  font-weight: 600;
+  line-height: 1.25;
+  vertical-align: bottom;
+}
+
+.compare thead .hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* A fixed layout takes its widths from the first row: the empty corner sets the criteria's. */
+.compare thead td {
+  width: 34%;
+}
+
+@media (min-width: 400px) {
+  .compare thead td {
+    width: 46%;
+  }
+}
+
+.compare tbody th {
+  padding-inline-start: 0;
+  font-weight: 400;
+  text-align: start;
+}
+
+.compare [data-highlight] {
+  background: var(--accent-soft);
+}
+
+.compare thead [data-highlight] {
+  border-radius: var(--radius-small) var(--radius-small) 0 0;
+}
+
+.compare tbody tr:last-child [data-highlight] {
+  border-radius: 0 0 var(--radius-small) var(--radius-small);
+}
+
+.compare td .icon {
+  display: block;
+  margin: auto;
+}
+
+.compare [data-mark="yes"] {
+  color: var(--accent-text);
+}
+
+.compare [data-mark="partly"],
+.compare [data-mark="no"] {
+  color: var(--muted);
+}
+
+.compare [data-mark="no"] .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.compare figcaption {
+  margin-top: 12px;
 }
 
 /* The words to copy, in a well: what the person pastes into their assistant. */
@@ -790,6 +901,10 @@ fieldset.field {
 
 .copy-labels > [aria-hidden="true"] {
   visibility: hidden;
+}
+
+.support .button-row {
+  margin-top: 4px;
 }
 
 .good-to-know ul {

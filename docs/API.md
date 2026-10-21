@@ -99,7 +99,7 @@ send a credential casting ballots as a stranger is not.
 | `POST` | `/api/mcp` | the same services as Model Context Protocol tools |
 | `GET` | `/v3/api-docs` | this API as OpenAPI (`.yaml` too) |
 | `GET` | `/llms.txt` | this API for agents, in Markdown ([llmstxt.org](https://llmstxt.org)) |
-| `GET` | `/actuator/health` | `{"status":"UP"}`: readiness probe |
+| `GET` | `/actuator/health` | `{"status":"UP"}`, or `DOWN` with a `503`: readiness probe and uptime monitors |
 
 Answers under `/api` carry `Cache-Control: no-store` unless the table says
 otherwise: most hold the caller's own ballot, polls or invitations, which no

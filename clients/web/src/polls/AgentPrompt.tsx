@@ -25,7 +25,7 @@ export default function AgentPrompt() {
   }
 
   return (
-    <section className="home-section agent">
+    <section className="home-section beside">
       <div>
         <h2>{t.home.agent.title}</h2>
         <p>{t.home.agent.text}</p>

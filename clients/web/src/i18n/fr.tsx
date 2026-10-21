@@ -56,12 +56,10 @@ export const fr: Messages = {
     'poll-closed': 'Ce sondage est fermé : il n’accepte plus de bulletins.',
     'invitation-used': 'Quelqu’un a déjà voté avec cette invitation, dans un autre navigateur ou sur un autre appareil.',
     'collision': 'Cette modification est arrivée au même moment qu’une autre. Veuillez réessayer.',
-    'too-many-polls': (wait: string) => 'Cette connexion a créé ses sondages pour la journée. Les ressources de '
-      + 'super-vote étant limitées, chaque connexion peut créer un nombre limité de sondages par jour, pour être juste '
-      + `envers tout le monde : vous pourrez en créer d’autres dans ${wait}.`,
-    'too-many-wrong-codes': (wait: string) => 'Trop de codes erronés ont été essayés depuis cette connexion. Pour '
-      + `protéger les sondages des essais au hasard, ses codes sont refusés pendant ${wait}, mais les liens vers les `
-      + 'sondages fonctionnent toujours.',
+    'too-many-polls': (wait: string) => 'Cette connexion a créé ses sondages pour aujourd’hui. Pour être juste '
+      + `envers tout le monde, chacune en a quelques-uns par jour : vous pourrez en créer d’autres dans ${wait}.`,
+    'too-many-wrong-codes': (wait: string) => 'Trop de codes erronés depuis cette connexion : pour protéger les '
+      + `sondages des essais au hasard, ses codes sont refusés pendant ${wait}. Les liens fonctionnent toujours.`,
     'server-error': 'Un problème est survenu de notre côté. Veuillez réessayer dans un instant.',
   },
 
@@ -123,8 +121,8 @@ export const fr: Messages = {
   home: {
     title: 'super-vote · décider ensemble',
     headline: 'Décider ensemble, équitablement.',
-    lead: 'Posez une question à votre groupe, partagez son lien ou son code, et regardez les résultats '
-      + 'arriver en direct. Personne n’a besoin de compte.',
+    lead: 'Chaque personne évalue chaque option, et la mieux évaluée par le groupe l’emporte. Gratuit, en direct, '
+      + 'sans compte.',
     createPoll: 'Décider ensemble !',
     yourPolls: 'Décider ensemble…',
     publicPolls: 'Sondages publics',
@@ -134,73 +132,74 @@ export const fr: Messages = {
 
     howItWorks: 'Comment ça marche',
     steps: [
-      { title: 'Posez la question', text: 'Écrivez-la, listez les options, et choisissez quand les résultats s’affichent. Sans compte, rien à installer.' },
-      { title: 'Partagez-la', text: 'Envoyez le lien dans la conversation du groupe, affichez son code QR sur un écran, ou lisez son code à voix haute.' },
-      { title: 'Décidez', text: 'Chaque personne évalue chaque option. Les résultats bougent en direct, et l’option la mieux évaluée par le groupe l’emporte.' },
+      { title: 'Demandez', text: 'Une question et ses options.' },
+      { title: 'Partagez', text: 'Un lien, un code QR ou un code.' },
+      { title: 'Décidez', text: 'Tout le monde évalue, les résultats arrivent en direct.' },
     ],
 
     agent: {
-      title: 'Ou demandez à un agent d’IA',
-      text: 'Un assistant d’IA qui a accès au Web peut s’en charger pour vous : super-vote explique aux agents '
-        + 'comment faire. Donnez au vôtre une demande comme celle-ci, avec votre propre question.',
+      title: 'Ou demandez à votre agent d’IA',
+      text: 'Collez ceci dans un assistant qui a accès au Web, avec votre propre question.',
       prompt: (site: string, guide: string) => `Utilisez ${site} pour créer un sondage pour mon équipe (instructions `
         + `pour les agents : ${guide}). La question : « Où organiser notre séminaire ? » Les options : `
         + 'Lisbonne, Berlin, Barcelone. Utilisez le jugement majoritaire, et cachez les résultats jusqu’à ce que je '
         + 'ferme le sondage. Transmettez-moi le sondage, puis donnez-moi le lien à partager avec l’équipe.',
       copy: 'Copier la demande',
       copied: 'Demande copiée',
-      caption: 'L’agent répond avec deux liens. Ouvrez le premier vous-même : il vous transmet le sondage, dans le '
-        + 'navigateur qui l’ouvre. Envoyez le second au groupe.',
+      caption: 'Il répond avec deux liens : ouvrez le premier pour que le sondage soit le vôtre, envoyez le second '
+        + 'au groupe.',
     },
 
     gradeTitle: 'Évaluer chaque option, pas seulement une',
-    gradeText: 'La plupart des votes demandent un seul choix, ce qui cache l’essentiel de ce que pensent les gens. '
-      + 'Au jugement majoritaire, chaque votant donne une mention à chaque option, de « Excellent » à « À rejeter », '
-      + 'et l’option la mieux évaluée par une majorité l’emporte.',
+    gradeText: 'Chaque personne donne une mention à chaque option, de « Excellent » à « À rejeter ». L’option qui '
+      + 'a la meilleure mention majoritaire, celle que plus de la moitié lui donne ou mieux, l’emporte.',
     example: {
       options: ['Pizza', 'Sushis', 'Burgers'],
       question: 'On mange où ce soir ?',
       caption: 'Les sushis ont le plus d’adeptes, mais la majorité du groupe juge la pizza Bien ou mieux : la pizza '
-        + 'l’emporte. Pointez une mention, ou touchez-la, pour voir combien l’ont donnée.',
+        + 'l’emporte.',
     },
 
-    whyTitle: 'Pourquoi c’est important',
-    whyText: 'La façon dont un groupe décide façonne ce qu’il décide. Un choix unique divise les options proches, et '
-      + 'peut faire gagner une option que beaucoup rejettent, portée par une minorité bruyante. Évaluer, c’est ainsi '
-      + 'que des jurys notent les vins et les patineurs, et que le jugement majoritaire de Michel Balinski et Rida '
-      + 'Laraki élit.',
-    reasons: [
-      { title: 'Le consensus gagne', text: 'L’option gagnante est celle que le plus de gens jugent bonne, pas celle qui a les adeptes les plus fervents.' },
-      { title: 'Aucune voix perdue', text: 'Soutenir une option ne nuit jamais à une autre que vous aimez : chacune est jugée pour elle-même, et personne ne vote pour le moindre mal.' },
-      { title: 'Chaque avis compte', text: 'Chaque votant évalue chaque option : les résultats montrent combien chacune plaît, et combien elle est rejetée.' },
-    ],
-    vision: <>
-      <AppName /> est gratuit, libre et confidentiel par conception : sans compte, sans publicité, sans pistage. Son
-      but : rendre de meilleures façons de décider aussi simples qu’une conversation de groupe, pour les amis et les
-      équipes aujourd’hui, pour les associations et les collectivités demain.
-    </>,
-    support: <>
-      S’il a aidé votre groupe à décider, vous pouvez le soutenir{' '}
-      <a href="https://ko-fi.com/jean64" target="_blank" rel="noreferrer">d’un pourboire sur Ko-fi</a>.
-    </>,
+    compare: {
+      title: 'Plus juste que la plupart des élections officielles',
+      text: 'La plupart des élections demandent un seul nom. Les candidatures proches se partagent les voix, et '
+        + 'l’une que la majorité rejette peut tout de même gagner. Le jugement majoritaire, issu des travaux de '
+        + 'Michel Balinski et Rida Laraki, mesure plutôt ce que chaque personne pense de chaque option.',
+      science: 'La science derrière',
+      single: 'Choix unique',
+      singleNote: 'la plupart des élections',
+      approval: 'Approbation',
+      majorityJudgment: 'Jugement majoritaire',
+      criteria: {
+        nuance: 'Dire ce que vous pensez de chaque option',
+        splitting: 'Les options proches ne divisent pas les voix',
+        lesserEvil: 'Pas de vote pour le moindre mal',
+        tactics: 'Difficile à manipuler',
+        quick: 'Rapide à remplir',
+        familiar: 'Familier',
+      },
+      marks: { yes: 'Oui', partly: 'En partie', no: 'Non' },
+      caption: <><AppName /> propose l’approbation et le jugement majoritaire. Aucun mode de scrutin n’est
+        parfait, mais certains sont bien plus justes que d’autres.</>,
+    },
+
+    supportTitle: 'Gratuit, libre, sans publicité',
+    supportText: 'Fait par une personne, sur son temps libre. S’il a aidé votre groupe à décider, vous pouvez '
+      + 'l’aider.',
 
     limitsTitle: 'Bon à savoir',
     limits: {
-      everyday: <><strong>Pour les décisions du quotidien.</strong> Pas pour les votes officiels ou engageants, comme
-        les élections : sans compte, une personne déterminée peut revoter depuis un autre navigateur. Les invitations
-        comptent chaque personne une seule fois.</>,
-      private: <><strong>Confidentiel, mais pas caché au serveur.</strong> Personne d’autre ne voit votre bulletin, et
-        les bulletins conservés ne disent pas qui les a déposés ; le serveur, géré par le projet, traite votre
-        bulletin au moment où vous votez.</>,
-      browser: (days: number) => <><strong>Lié à ce navigateur.</strong> Vos bulletins et vos sondages ne peuvent être
-        modifiés ou gérés que depuis le navigateur où vous les avez faits. Un seul cookie s’en souvient, {days} jours
-        après votre dernier bulletin ou sondage, et rien d’autre : ni publicité, ni pistage.</>,
-      deleted: (days: number) => <><strong>Supprimés après {days} jours.</strong> Les sondages partent avec leurs
-        bulletins : ils servent à décider, pas à archiver.</>,
+      everyday: <><strong>Pour les décisions du quotidien,</strong> pas les élections officielles : sans compte, une
+        personne peut revoter depuis un autre navigateur. Les invitations comptent chaque personne une seule
+        fois.</>,
+      private: <><strong>Confidentiel, mais pas caché au serveur.</strong> Personne d’autre ne voit votre bulletin, et les bulletins conservés
+        ne disent pas qui les a déposés.</>,
+      browser: (days: number) => <><strong>Lié à ce navigateur,</strong> par un seul cookie, gardé {days} jours
+        après votre dernier bulletin ou sondage. Ni publicité, ni pistage.</>,
+      deleted: (days: number) => <><strong>Supprimés après {days} jours,</strong> sondages et bulletins.</>,
     },
     limitsLink: 'Tout sur la confidentialité et les limites',
   },
-
   join: {
     label: 'Vous avez un code ?',
     typeTheCode: 'Tapez le code qu’on vous a donné.',
@@ -240,12 +239,11 @@ export const fr: Messages = {
     anyone: 'Tout le monde',
     invitedOnly: 'Sur invitation',
     anyoneHint: <>
-      Toute personne qui a le lien ou le code peut voter. Une personne déterminée peut revoter depuis un autre
-      navigateur ou appareil : <AppName /> compte sur la bonne foi, et le nombre de bulletins montre si quelqu’un
-      l’a fait. Pour compter chaque personne une seule fois, invitez-les.
+      Toute personne qui a le lien ou le code. Une personne déterminée peut revoter depuis un autre navigateur : pour
+      compter chaque personne une seule fois, invitez-les.
     </>,
-    invitedHint: 'Vous envoyez à chaque personne un lien bien à elle, qui vaut un bulletin. Vous verrez quels liens '
-      + 'ont servi, jamais ce que chaque personne a choisi.',
+    invitedHint: 'Chaque personne reçoit un lien bien à elle, qui vaut un bulletin. Vous voyez quels liens ont servi, '
+      + 'jamais ce que chaque personne a choisi.',
 
     whoVoted: 'Qui a voté',
     anonymous: 'Anonyme',
@@ -260,12 +258,11 @@ export const fr: Messages = {
       AFTER_CLOSING: 'À la clôture',
     },
     resultsHints: {
-      LIVE: 'Attention : tout le monde voit les résultats bouger à chaque bulletin. Dans un petit groupe, cela montre '
-        + 'qui a choisi quoi.',
-      AFTER_BALLOTS: 'Les résultats restent cachés jusqu’à ce nombre de bulletins, pour ne pas exposer les premiers '
-        + 'votants. Ensuite, ils bougent à chaque nouveau bulletin, ce qui peut encore montrer le choix d’un votant.',
-      AFTER_CLOSING: 'Les résultats s’affichent quand vous fermez le sondage. D’ici là, tout le monde voit combien ont '
-        + 'voté.',
+      LIVE: 'Attention : tout le monde voit chaque bulletin faire bouger les résultats. Dans un petit groupe, cela '
+        + 'montre qui a choisi quoi.',
+      AFTER_BALLOTS: 'Cachés jusqu’à ce nombre de bulletins, pour protéger les premiers votes. Ensuite, chaque bulletin '
+        + 'les fait bouger, ce qui peut encore trahir un vote ultérieur.',
+      AFTER_CLOSING: 'Affichés quand vous fermez le sondage. D’ici là, tout le monde voit seulement combien ont voté.',
     },
     ballotsBeforeResults: 'Bulletins avant d’afficher les résultats',
 
@@ -276,12 +273,11 @@ export const fr: Messages = {
       AS_WRITTEN: 'Tel quel',
     },
     orderHints: {
-      ALPHABETICAL: 'Les votants les voient de A à Z, les nombres selon leur valeur : 2 avant 10. Les dates se '
-        + 'trient bien écrites année d’abord, comme 2026-10-24.',
-      SHUFFLED: 'Chaque votant les voit dans un ordre bien à lui, tiré à nouveau à chaque ouverture du sondage, pour '
-        + 'qu’aucune option ne profite de sa place.',
-      AS_WRITTEN: 'Les votants voient les options dans votre ordre. Les premières places attirent plus de soutien '
-        + 'que les autres : un ordre choisi par vous peut passer pour une manipulation du résultat.',
+      ALPHABETICAL: 'De A à Z, les nombres selon leur valeur : 2 avant 10. Écrivez les dates en commençant par l’année, '
+        + 'comme 2026-10-24.',
+      SHUFFLED: 'Un nouvel ordre pour chaque personne à chaque visite, pour qu’aucune option ne profite de sa place.',
+      AS_WRITTEN: 'Votre ordre. Les premières places attirent plus de soutien : cela peut passer pour une tentative '
+        + 'd’influencer le résultat.',
     },
 
     deletedAfter: (days: number) => `Les sondages sont supprimés ${days} jours après leur création, avec leurs bulletins.`,
@@ -325,10 +321,7 @@ export const fr: Messages = {
     deletedOn: (date: string) => `Ce sondage et ses bulletins seront supprimés le ${date}.`,
     lastPoll: (wait: string) => `C’était votre dernier sondage pour l’instant : vous pourrez en créer d’autres dans ${wait}.`,
     pollsLeft: (count: number, wait: string) => `Vous pouvez encore créer ${counted(count, 'sondage', 'sondages')} dans les ${wait} qui viennent.`,
-    fairShare: (perDay: number) => <>
-      Les ressources de <AppName /> étant limitées, chaque connexion peut créer {perDay} sondages par jour, pour être
-      juste envers tout le monde.
-    </>,
+    fairShare: (perDay: number) => `Pour être juste envers tout le monde, chaque connexion peut créer ${perDay} sondages par jour.`,
   },
 
   ballot: {
@@ -342,12 +335,12 @@ export const fr: Messages = {
     approval: 'Cochez chaque option qui vous conviendrait.',
     shuffled: 'Les options sont mélangées pour chaque votant, pour qu’aucune ne profite de sa place.',
     alphabetical: 'Les options sont rangées de A à Z.',
-    invited: 'Votre invitation vaut un bulletin, que seul ce navigateur peut modifier une fois déposé. La personne '
-      + 'qui vous l’a envoyée voit qu’elle a servi, jamais ce que vous avez choisi.',
+    invited: 'Votre invitation vaut un bulletin, que seul ce navigateur peut modifier. La personne qui vous l’a '
+      + 'envoyée voit qu’elle a servi, jamais ce que vous avez choisi.',
     counted: 'Votre bulletin est compté. Vous pouvez le modifier depuis ce navigateur jusqu’à la clôture du sondage.',
     notVoted: 'Vous n’avez pas encore voté.',
     hide: 'Masquer mon bulletin',
-    hidden: 'Votre bulletin est compté. Il reste caché ici, pour que personne ne voie vos choix en regardant cet écran.',
+    hidden: 'Votre bulletin est compté, et caché ici : personne ne voit vos choix en regardant cet écran.',
     change: 'Modifier mon bulletin',
     invitationUsed: 'Cette invitation a déjà servi, dans un autre navigateur ou sur un autre appareil. Son bulletin ne '
       + 'peut être modifié que là-bas.',
@@ -357,8 +350,8 @@ export const fr: Messages = {
     yourName: 'Votre nom',
     namePlaceholder: 'Laissez vide pour rester anonyme',
     namesAtClose: 'Tout le monde sur ce sondage voit les noms donnés, jamais qui a choisi quoi.',
-    namesLive: 'Tout le monde sur ce sondage voit les noms donnés. Les résultats bougent à chaque bulletin : celles et '
-      + 'ceux qui regardent peuvent deviner qui a choisi quoi.',
+    namesLive: 'Tout le monde ici voit les noms donnés. Les résultats bougent en direct : qui regarde peut deviner qui '
+      + 'a choisi quoi.',
     notRatedYet: 'Pas encore évaluée',
     chooseAMention: 'Choisissez une mention…',
     optionsYouApprove: 'Les options que vous approuvez',
@@ -398,16 +391,15 @@ export const fr: Messages = {
 
   owner: {
     manage: 'Gérer votre sondage',
-    onlyThisBrowser: 'Seul ce navigateur peut gérer ce sondage : depuis un autre appareil, ou une fois ses données '
-      + 'effacées, il ne peut plus être fermé ni supprimé avant l’heure.',
+    onlyThisBrowser: 'Seul ce navigateur peut fermer ou supprimer ce sondage avant l’heure.',
     close: 'Clore le vote',
     delete: 'Supprimer le sondage',
-    closeQuestion: 'Clore le vote pour de bon ? Personne ne pourra plus voter ni modifier son bulletin, et tout le '
-      + 'monde verra les résultats définitifs. Un sondage clos ne peut pas être rouvert.',
+    closeQuestion: 'Clore le vote pour de bon ? Personne ne pourra plus voter ni modifier son bulletin, et tout le monde '
+      + 'verra les résultats définitifs.',
     keepOpen: 'Le garder ouvert',
     closeForGood: 'Clore pour de bon',
-    deleteQuestion: 'Supprimer ce sondage et tous ses bulletins ? Les personnes qui le regardent le verront '
-      + 'disparaître. C’est irréversible.',
+    deleteQuestion: 'Supprimer pour de bon ce sondage et ses bulletins ? Les personnes qui le regardent le verront '
+      + 'disparaître.',
     keep: 'Le garder',
     deleteForGood: 'Supprimer pour de bon',
     deletedToast: 'Le sondage a été supprimé.',
@@ -417,9 +409,8 @@ export const fr: Messages = {
     heading: 'Invitations',
     count: (count: number) => counted(count, 'invitation', 'invitations'),
     used: (used: number, count: number) => `${number(used)} sur ${number(count)} utilisées`,
-    hint: 'Seules les personnes que vous invitez peuvent voter. Envoyez à chacune un lien bien à elle, qui vaut un '
-      + 'bulletin. Vous voyez quels liens ont servi, jamais ce que chaque personne a choisi. Vous pouvez voter '
-      + 'vous-même sans lien.',
+    hint: 'Seules les personnes que vous invitez peuvent voter, chacune avec un lien bien à elle, qui vaut un '
+      + 'bulletin. Vous voyez quels liens ont servi, jamais ce que chaque personne a choisi. Vous pouvez voter sans lien.',
     invite: 'Inviter',
     inviting: 'Invitation…',
     inviteSomeone: 'Inviter quelqu’un',
@@ -429,8 +420,7 @@ export const fr: Messages = {
     newestShown: (count: number) => `Les ${number(count)} plus récentes sont affichées.`,
     invitationFor: (label: string) => `Invitation pour ${label}`,
     invitationNumber: (number: number) => `Invitation ${number}`,
-    shareHint: 'Envoyez ce lien à cette personne seulement. Il vaut un bulletin, que seul le navigateur d’où elle vote '
-      + 'peut modifier.',
+    shareHint: 'Pour cette personne seulement. Il vaut un bulletin, que seul le navigateur d’où elle vote peut modifier.',
     linkLabel: 'Lien de l’invitation',
     message: (title: string) => `Voici votre invitation à voter au sondage « ${title} ». Ce lien n’est que pour vous.`,
     isUsed: 'Utilisée',
@@ -457,14 +447,6 @@ export const fr: Messages = {
     qrCode: (url: string) => `Code QR de ${url}`,
     throughAnApp: 'Partager avec une app',
     byEmail: 'Envoyer par courriel',
-  },
-
-  feeder: {
-    heading: 'Distributeur de bulletins',
-    devOnly: 'dév. seulement',
-    count: 'Nombre de bulletins au hasard',
-    cast: 'Déposer des bulletins au hasard',
-    casting: (cast: number, count: number) => `Dépôt ${cast} sur ${count}…`,
   },
 
   statistics: {
@@ -555,9 +537,9 @@ export const fr: Messages = {
     </>,
     howDecided: 'Comment les résultats sont décidés',
     howDecidedText: <>
-      Choisir un seul favori jette l’essentiel de ce que pensent les gens. Deux options proches se partagent leurs
-      soutiens, et une option que la plupart trouvent bien peut perdre face à une autre que la moitié du groupe
-      n’aime pas. <AppName /> demande plus qu’un seul choix, de l’une de ces deux façons.
+      Un seul choix jette l’essentiel de ce que pensent les gens : les options proches se partagent leurs soutiens,
+      et une option que la plupart trouvent bien peut perdre face à une autre que la moitié du groupe n’aime pas.
+      <AppName /> demande plus, de l’une de ces deux façons.
     </>,
     majorityJudgment: 'Le jugement majoritaire',
     majorityJudgmentText: <>
@@ -573,9 +555,8 @@ export const fr: Messages = {
       + 'l’emporte. C’est rapide, et cela ne pénalise jamais le fait de soutenir plusieurs options.',
     science: 'La science derrière',
     scienceText: 'Aucune règle de vote n’est parfaite : Condorcet a vu en 1785 qu’un groupe peut préférer A à B, B à C '
-      + 'et C à A, et des résultats plus récents ont montré que toute règle raisonnable peut être manipulée. Évaluer '
-      + 'plutôt que classer évite une bonne part de ces écueils. C’est pourquoi les auteurs du jugement majoritaire '
-      + 'ont étudié comment des jurys notent des patineurs et des vins, autant que comment des citoyens élisent.',
+      + 'et C à A, et toute règle raisonnable peut être manipulée. Évaluer plutôt que classer évite une bonne part '
+      + 'de ces écueils, comme le savent les jurys de vins et de patinage.',
     notes: {
       pnas2007: 'Présente le jugement majoritaire : évaluer, puis classer selon la mention médiane.',
       book2011: 'Le livre : la théorie, ses propriétés, et de vraies élections et de vrais jurys.',

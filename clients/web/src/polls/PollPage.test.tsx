@@ -94,8 +94,8 @@ describe('a poll page', () => {
     openPoll({ pathname: '/p/abc', state: { created: true, pollsLeft: { count: 4, perDay: 20, resetsAt } } });
 
     expect(await screen.findByText(/You can create 4 more polls in the next 5 hours\./)).toHaveTextContent(
-      "You can create 4 more polls in the next 5 hours. As super-vote's resources are limited, each connection can "
-      + 'create 20 polls a day, to be fair to everyone.',
+      'You can create 4 more polls in the next 5 hours. To be fair to everyone, each connection can create 20 polls a '
+      + 'day.',
     );
   });
 
@@ -238,7 +238,7 @@ describe('managing a poll', () => {
     openPoll();
 
     await userEvent.click(await screen.findByRole('button', { name: 'Close voting' }));
-    expect(screen.getByRole('alertdialog')).toHaveTextContent('A closed poll cannot be reopened.');
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('Close voting for good?');
     expect(closePoll).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole('button', { name: 'Close for good' }));
 
@@ -420,7 +420,7 @@ describe('a counted ballot', () => {
   it('stays hidden until the voter opens it to change it, and can be hidden again', async () => {
     openPoll();
 
-    expect(await screen.findByText(/It stays hidden here/)).toBeInTheDocument();
+    expect(await screen.findByText(/hidden here/)).toBeInTheDocument();
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Change my ballot' }));

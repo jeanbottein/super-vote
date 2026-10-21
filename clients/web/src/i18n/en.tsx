@@ -57,11 +57,10 @@ export const en = {
     'poll-closed': 'This poll is closed: it takes no more ballots.',
     'invitation-used': 'Someone has already voted with this invitation, in another browser or on another device.',
     'collision': 'That change collided with another one made at the same moment. Please try again.',
-    'too-many-polls': (wait: string) => 'This connection has created its polls for the day. As '
-      + "super-vote's resources are limited, each connection can create a limited number of polls a day, to be fair "
-      + `to everyone: you can create more in ${wait}.`,
-    'too-many-wrong-codes': (wait: string) => 'Too many wrong codes were tried from this connection. To keep polls '
-      + `safe from guessing, codes from it are refused for the next ${wait}, but links to polls still work.`,
+    'too-many-polls': (wait: string) => 'This connection has created its polls for today. To be fair to everyone, '
+      + `each gets a few a day: you can create more in ${wait}.`,
+    'too-many-wrong-codes': (wait: string) => 'Too many wrong codes from this connection: to keep polls safe '
+      + `from guessing, its codes are refused for the next ${wait}. Links still work.`,
     'server-error': 'Something went wrong on our side. Please try again in a moment.',
   },
 
@@ -122,8 +121,7 @@ export const en = {
   home: {
     title: 'super-vote · decide together',
     headline: 'Decide together, fairly.',
-    lead: 'Ask your group a question, share its link or code with them, and watch the results come in live. '
-      + 'Nobody needs an account.',
+    lead: 'Everyone grades every option, and the one the group rates best wins. Free, live, no account.',
     createPoll: 'Decide together!',
     yourPolls: 'Decide together…',
     publicPolls: 'Public polls',
@@ -133,72 +131,70 @@ export const en = {
 
     howItWorks: 'How it works',
     steps: [
-      { title: 'Ask the question', text: 'Write it, list the options, and choose how the results show. No account, nothing to install.' },
-      { title: 'Share it', text: 'Send the link to your group chat, show its QR code on a screen, or read its code out loud.' },
-      { title: 'Decide', text: 'Everyone grades every option. The results move live, and the option the group rates best wins.' },
+      { title: 'Ask', text: 'A question and its options.' },
+      { title: 'Share', text: 'A link, a QR code or a code.' },
+      { title: 'Decide', text: 'Everyone grades, results come in live.' },
     ],
 
     agent: {
-      title: 'Or ask an AI agent',
-      text: 'An AI assistant with access to the web can set it up for you: super-vote tells agents how. '
-        + 'Give yours a prompt like this one, with your own question.',
+      title: 'Or ask your AI agent',
+      text: 'Paste this into an assistant that can browse the web, with your own question.',
       prompt: (site: string, guide: string) => `Use ${site} to create a poll for my team (instructions for `
         + `agents: ${guide}). The question: “Where should we hold the offsite?” The options: Lisbon, Berlin, `
         + 'Barcelona. Use majority judgment, and keep the results hidden until I close the poll. Hand the poll '
         + 'over to me, then give me the link to share with the team.',
       copy: 'Copy the prompt',
       copied: 'Prompt copied',
-      caption: 'The agent answers with two links. Open the first yourself: it makes the poll yours, in the '
-        + 'browser that opens it. Send the second to the group.',
+      caption: 'It answers with two links: open the first to make the poll yours, send the second to the group.',
     },
 
     gradeTitle: 'Grade every option, not just one',
-    gradeText: 'Most votes ask for a single choice, which hides most of what people think. With majority '
-      + 'judgment, every voter gives every option a mention, from Excellent to Bad, and the option a majority '
-      + 'rates best wins.',
+    gradeText: 'Each voter gives every option a mention, from Excellent to Bad. The option with the best majority '
+      + 'mention, the grade more than half the voters give it or better, wins.',
     example: {
       question: 'Where do we eat tonight?',
       options: ['Pizza', 'Sushi', 'Burgers'],
-      caption: 'Sushi has the most fans, but most of the group rates pizza Good or better: pizza wins. Point at a '
-        + 'mention, or tap it, to see how many gave it.',
+      caption: 'Sushi has the most fans, but most of the group rates pizza Good or better: pizza wins.',
     },
 
-    whyTitle: 'Why it matters',
-    whyText: 'How a group decides shapes what it decides. A single choice splits similar options, and can let an '
-      + 'option many people reject win with a loud minority behind it. Grading is how judges score wines and '
-      + "figure skaters, and how Michel Balinski and Rida Laraki's majority judgment elects.",
-    reasons: [
-      { title: 'Consensus wins', text: 'The winner is the option most people judge good, not the one with the most devoted fans.' },
-      { title: 'No wasted vote', text: 'Supporting one option never hurts another you like: each is judged on its own, so nobody votes for the lesser evil.' },
-      { title: 'Every view shows', text: 'Every voter grades every option, so the results show how much each is liked, and how much it is rejected.' },
-    ],
-    vision: <>
-      <AppName /> is free, open source and private by design: no account, no ads, no tracking. Its aim is to make
-      better ways of deciding as easy as a group chat: for friends and teams today, for associations and
-      communities tomorrow.
-    </>,
-    support: <>
-      If it helped your group decide, you can support it with{' '}
-      <a href="https://ko-fi.com/jean64" target="_blank" rel="noreferrer">a tip on Ko-fi</a>.
-    </>,
+    compare: {
+      title: 'Fairer than most official elections',
+      text: 'Most elections ask for a single name. Similar candidates split their voters, and one that most people '
+        + 'reject can still win. Majority judgment, from the research of Michel Balinski and Rida Laraki, measures '
+        + 'what everyone thinks of every option instead.',
+      science: 'The science behind it',
+      single: 'One choice',
+      singleNote: 'most elections',
+      approval: 'Approval',
+      majorityJudgment: 'Majority judgment',
+      criteria: {
+        nuance: 'Say what you think of each option',
+        splitting: 'Similar options do not split the vote',
+        lesserEvil: 'No voting for the lesser evil',
+        tactics: 'Hard to game',
+        quick: 'Quick to fill in',
+        familiar: 'Familiar',
+      },
+      marks: { yes: 'Yes', partly: 'Partly', no: 'No' },
+      caption: <><AppName /> offers approval and majority judgment. No voting rule is perfect, but some are much
+        fairer than others.</>,
+    },
+
+    supportTitle: 'Free, open source, no ads',
+    supportText: 'Made by one person, in their free time. If it helped your group decide, you can help it.',
 
     limitsTitle: 'Good to know',
     limits: {
-      everyday: <><strong>For everyday decisions.</strong> Not for official or binding votes, such as elections:
-        without accounts, someone set on it can vote again from another browser. Invitations count each person
-        once.</>,
+      everyday: <><strong>For everyday decisions,</strong> not official elections: without accounts, someone can
+        vote again from another browser. Invitations count each person once.</>,
       private: <><strong>Private, but not hidden from the server.</strong> Nobody else sees your ballot, and the
-        ballots kept do not say who cast them; the server, run by the project, handles your ballot as you cast
-        it.</>,
-      browser: (days: number) => <><strong>Tied to this browser.</strong> Your ballots and polls can only be changed
-        or managed from the browser you made them in. One cookie remembers them, for {days} days after your last ballot
-        or poll, and nothing else: no advertising, no tracking.</>,
-      deleted: (days: number) => <><strong>Deleted after {days} days.</strong> Polls go with their ballots: they are
-        for deciding, not archiving.</>,
+        ballots kept do not say who cast them.</>,
+      browser: (days: number) => <><strong>Tied to this browser,</strong> through one cookie, kept {days} days
+        after your last ballot or poll. No ads, no tracking.</>,
+      deleted: (days: number) => <><strong>Deleted after {days} days,</strong> polls and ballots alike.</>,
     },
     limitsLink: 'All about privacy and limits',
   },
-
   join: {
     label: 'Got a code?',
     typeTheCode: 'Type the code you were given.',
@@ -237,12 +233,11 @@ export const en = {
     anyone: 'Anyone',
     invitedOnly: 'Invited only',
     anyoneHint: <>
-      Anyone with the link or the code can vote. Someone set on it can vote again from another browser or
-      device: <AppName /> counts on good faith, and the number of ballots shows if someone did. To count each
-      person once, invite them.
+      Anyone with the link or the code. Someone set on it can vote again from another browser: to count each person
+      once, invite them.
     </>,
-    invitedHint: 'You send each person a link of their own, which holds one ballot. You will see which links were '
-      + 'used, never what anyone chose.',
+    invitedHint: 'Each person gets a link of their own, good for one ballot. You see which links were used, never what '
+      + 'anyone chose.',
 
     whoVoted: 'Who voted',
     anonymous: 'Anonymous',
@@ -257,11 +252,10 @@ export const en = {
       AFTER_CLOSING: 'At close',
     },
     resultsHints: {
-      LIVE: 'Careful: everyone sees the results move as each ballot arrives. In a small group, that shows who chose '
-        + 'what.',
-      AFTER_BALLOTS: 'Results stay hidden until that many ballots are in, so the first voters are not exposed. After '
-        + 'that they move with each new ballot, which can still show what a later voter chose.',
-      AFTER_CLOSING: 'Results show once you close the poll. Until then, everyone sees how many have voted.',
+      LIVE: 'Careful: everyone sees each ballot move the results. In a small group, that shows who chose what.',
+      AFTER_BALLOTS: 'Hidden until that many ballots are in, to protect the first voters. After that, each ballot moves '
+        + 'them, which can still give a later voter away.',
+      AFTER_CLOSING: 'Shown once you close the poll. Until then, everyone sees only how many voted.',
     },
     ballotsBeforeResults: 'Ballots before the results show',
 
@@ -272,12 +266,9 @@ export const en = {
       AS_WRITTEN: 'As written',
     },
     orderHints: {
-      ALPHABETICAL: 'Voters see them from A to Z, numbers by their value: 2 before 10. Dates sort right when '
-        + 'written year first, such as 2026-10-24.',
-      SHUFFLED: 'Each voter sees them in an order of their own, drawn again each time they open the poll, so that '
-        + 'no option gains from its place.',
-      AS_WRITTEN: 'Voters see the options in your order. The first places draw more support than the others, so an '
-        + 'order of your choosing can be taken for an attempt to sway the result.',
+      ALPHABETICAL: 'From A to Z, numbers by value: 2 before 10. Write dates year first, such as 2026-10-24.',
+      SHUFFLED: 'A new order for each voter at each visit, so that no option gains from its place.',
+      AS_WRITTEN: 'Your order. The first places draw more support, so it can look like an attempt to sway the result.',
     },
 
     deletedAfter: (days: number) => `Polls are deleted ${days} days after they are created, with their ballots.`,
@@ -320,10 +311,7 @@ export const en = {
     deletedOn: (date: string) => `This poll and its ballots will be deleted on ${date}.`,
     lastPoll: (wait: string) => `That was your last poll for now: you can create more in ${wait}.`,
     pollsLeft: (count: number, wait: string) => `You can create ${counted(count, 'more poll', 'more polls')} in the next ${wait}.`,
-    fairShare: (perDay: number) => <>
-      As <AppName />'s resources are limited, each connection can create {perDay} polls a day, to be fair to
-      everyone.
-    </>,
+    fairShare: (perDay: number) => `To be fair to everyone, each connection can create ${perDay} polls a day.`,
   },
 
   ballot: {
@@ -337,12 +325,12 @@ export const en = {
     approval: 'Tick every option you would be happy with.',
     shuffled: 'The options are shuffled for each voter, so that none gains from its place.',
     alphabetical: 'The options are listed from A to Z.',
-    invited: 'Your invitation holds one ballot, which only this browser can change once cast. Whoever invited you '
-      + 'sees that it was used, never what you chose.',
+    invited: 'Your invitation holds one ballot, which only this browser can change. Whoever invited you sees it was '
+      + 'used, never what you chose.',
     counted: 'Your ballot is counted. You can change it from this browser until the poll closes.',
     notVoted: 'You have not voted yet.',
     hide: 'Hide my ballot',
-    hidden: 'Your ballot is counted. It stays hidden here, so nobody looking at this screen sees your choices.',
+    hidden: 'Your ballot is counted, and hidden here: nobody looking at this screen sees your choices.',
     change: 'Change my ballot',
     invitationUsed: 'This invitation was already used, in another browser or on another device. Its ballot can only '
       + 'be changed there.',
@@ -351,8 +339,7 @@ export const en = {
     yourName: 'Your name',
     namePlaceholder: 'Leave blank to stay anonymous',
     namesAtClose: 'Everyone on this poll sees the names given, never who chose what.',
-    namesLive: 'Everyone on this poll sees the names given. The results move as ballots arrive, so people watching '
-      + 'may tell who chose what.',
+    namesLive: 'Everyone here sees the names given. As the results move live, people watching may tell who chose what.',
     notRatedYet: 'Not rated yet',
     chooseAMention: 'Choose a mention…',
     optionsYouApprove: 'Options you approve',
@@ -392,16 +379,14 @@ export const en = {
 
   owner: {
     manage: 'Manage your poll',
-    onlyThisBrowser: 'Only this browser can manage this poll: from another device, or once its data is cleared, it '
-      + 'can no longer be closed or deleted early.',
+    onlyThisBrowser: 'Only this browser can close or delete this poll early.',
     close: 'Close voting',
     delete: 'Delete poll',
-    closeQuestion: 'Close voting for good? Nobody can vote or change their ballot any more, and everyone sees the '
-      + 'final results. A closed poll cannot be reopened.',
+    closeQuestion: 'Close voting for good? Nobody can vote or change their ballot any more, and everyone sees the final '
+      + 'results.',
     keepOpen: 'Keep it open',
     closeForGood: 'Close for good',
-    deleteQuestion: 'Delete this poll and all its ballots? Everyone watching it will see it disappear. This cannot '
-      + 'be undone.',
+    deleteQuestion: 'Delete this poll and its ballots for good? Everyone watching it sees it disappear.',
     keep: 'Keep it',
     deleteForGood: 'Delete for good',
     deletedToast: 'The poll was deleted.',
@@ -411,8 +396,8 @@ export const en = {
     heading: 'Invitations',
     count: (count: number) => counted(count, 'invitation', 'invitations'),
     used: (used: number, count: number) => `${number(used)} of ${number(count)} used`,
-    hint: 'Only the people you invite can vote. Send each one a link of their own, which holds one ballot. You see '
-      + 'which links were used, never what anyone chose. You can vote yourself without one.',
+    hint: 'Only the people you invite can vote, each with a link of their own, good for one ballot. You see which '
+      + 'links were used, never what anyone chose. You can vote without one.',
     invite: 'Invite',
     inviting: 'Inviting…',
     inviteSomeone: 'Invite someone',
@@ -422,8 +407,7 @@ export const en = {
     newestShown: (count: number) => `The newest ${number(count)} are shown.`,
     invitationFor: (label: string) => `Invitation for ${label}`,
     invitationNumber: (number: number) => `Invitation ${number}`,
-    shareHint: 'Send this link to this person only. It holds one ballot, which only the browser they vote from can '
-      + 'change.',
+    shareHint: 'For this person only. It holds one ballot, which only the browser they vote from can change.',
     linkLabel: 'Link of the invitation',
     message: (title: string) => `You are invited to vote on “${title}”. This link is for you alone.`,
     isUsed: 'Used',
@@ -449,14 +433,6 @@ export const en = {
     qrCode: (url: string) => `QR code for ${url}`,
     throughAnApp: 'Share through an app',
     byEmail: 'Send by email',
-  },
-
-  feeder: {
-    heading: 'Ballot feeder',
-    devOnly: 'dev only',
-    count: 'Number of random ballots',
-    cast: 'Cast random ballots',
-    casting: (cast: number, count: number) => `Casting ${cast} of ${count}…`,
   },
 
   statistics: {
@@ -545,9 +521,8 @@ export const en = {
     </>,
     howDecided: 'How the results are decided',
     howDecidedText: <>
-      Picking a single favourite throws most of what people think away. Two similar options split their
-      supporters, and an option most people find fine can lose to one that half the group dislikes.{' '}
-      <AppName /> asks for more than a single choice, in one of two ways.
+      A single choice throws most of what people think away: similar options split their supporters, and one most
+      people find fine can lose to one half the group dislikes. <AppName /> asks for more, in one of two ways.
     </>,
     majorityJudgment: 'Majority judgment',
     majorityJudgmentText: <>
@@ -561,10 +536,9 @@ export const en = {
     approvalText: 'Every voter ticks each option they would be happy with. The option approved by the most voters '
       + 'wins. It is quick, and it never punishes you for supporting more than one option.',
     science: 'The science behind it',
-    scienceText: 'No voting rule is perfect: Condorcet saw in 1785 that a group can prefer A to B, B to C and C to A, '
-      + 'and later results showed that every reasonable rule can be gamed. Grading rather than ranking sidesteps '
-      + "much of this. That is why majority judgment's authors studied how judges score figure skaters and wines as "
-      + 'well as how citizens elect.',
+    scienceText: 'No voting rule is perfect: Condorcet saw in 1785 that a group can prefer A to B, B to C and C to A, and '
+      + 'every reasonable rule can be gamed. Grading rather than ranking sidesteps much of this, as judges of wines '
+      + 'and figure skaters know.',
     notes: {
       pnas2007: 'Introduces majority judgment: grade, then rank by the median grade.',
       book2011: 'The book: the theory, its properties, and real elections and juries.',

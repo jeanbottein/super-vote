@@ -4,17 +4,25 @@ import type { JudgmentCounts, PollOption } from '../api/types';
 import MajorityJudgmentResults from '../features/VotingSystem/MajorityJudgment/MajorityJudgmentResults';
 import { errorMessage } from '../i18n/errorMessage';
 import { useI18n } from '../i18n/i18n';
+import { CupIcon, HeartIcon, QuestionIcon, ResultsIcon, ShareIcon } from '../ui/icons';
 import Logo from '../ui/Logo';
 import AgentPrompt from './AgentPrompt';
 import JoinForm from './JoinForm';
 import PollList from './PollList';
 import { usePollLists } from './usePollLists';
 import { useServerInfo } from './useServerInfo';
+import VotingSystemsTable from './VotingSystemsTable';
+
+export const KO_FI_URL = 'https://ko-fi.com/jean64';
+export const GITHUB_SPONSORS_URL = 'https://github.com/sponsors/jeanbottein';
+
+const STEP_ICONS = [QuestionIcon, ShareIcon, ResultsIcon];
 
 /**
- * First what people come to do, create a poll or join one; below, how it
- * works, how to have an AI agent create one, what super-vote is, what
- * difference it makes, how to support it, and what it is not for.
+ * First what people come to do, create a poll or join one; below, in few
+ * words, how it works, how majority judgment decides and how it compares,
+ * how to have an AI agent create a poll, how to support super-vote, and what
+ * it is not for.
  */
 export default function HomePage() {
   const { t } = useI18n();
@@ -55,19 +63,21 @@ export default function HomePage() {
 
       <section className="home-section">
         <h2>{t.home.howItWorks}</h2>
-        <ol className="home-cards steps">
-          {t.home.steps.map((step) => (
-            <li key={step.title} className="panel">
-              <h3>{step.title}</h3>
-              <p>{step.text}</p>
-            </li>
-          ))}
+        <ol className="steps">
+          {t.home.steps.map((step, index) => {
+            const Icon = STEP_ICONS[index];
+            return (
+              <li key={step.title}>
+                <span className="step-icon"><Icon /></span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </li>
+            );
+          })}
         </ol>
       </section>
 
-      <AgentPrompt />
-
-      <section className="home-section grade">
+      <section className="home-section beside">
         <div>
           <h2>{t.home.gradeTitle}</h2>
           <p>{t.home.gradeText}</p>
@@ -79,19 +89,28 @@ export default function HomePage() {
         </figure>
       </section>
 
-      <section className="home-section">
-        <h2>{t.home.whyTitle}</h2>
-        <p className="home-text">{t.home.whyText}</p>
-        <ul className="home-cards reasons">
-          {t.home.reasons.map((reason) => (
-            <li key={reason.title} className="panel">
-              <h3>{reason.title}</h3>
-              <p>{reason.text}</p>
-            </li>
-          ))}
-        </ul>
-        <p className="home-text">{t.home.vision}</p>
-        <p className="home-text">{t.home.support}</p>
+      <section className="home-section beside">
+        <div>
+          <h2>{t.home.compare.title}</h2>
+          <p>{t.home.compare.text}</p>
+          <Link to="/about">{t.home.compare.science}</Link>
+        </div>
+        <VotingSystemsTable />
+      </section>
+
+      <AgentPrompt />
+
+      <section className="home-section support">
+        <h2>{t.home.supportTitle}</h2>
+        <p>{t.home.supportText}</p>
+        <div className="button-row">
+          <a className="button secondary" href={KO_FI_URL} target="_blank" rel="noreferrer">
+            <CupIcon />Ko-fi
+          </a>
+          <a className="button secondary" href={GITHUB_SPONSORS_URL} target="_blank" rel="noreferrer">
+            <HeartIcon />GitHub Sponsors
+          </a>
+        </div>
       </section>
 
       <section className="panel home-section good-to-know">
