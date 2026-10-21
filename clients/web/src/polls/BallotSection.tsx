@@ -205,7 +205,7 @@ function BallotFrame(props: BallotFrameProps) {
             {counted ? t.ballot.counted : t.ballot.notVoted}
           </p>
           {counted && !unsent && (
-            <button type="button" className="button paper" onClick={hide}>
+            <button type="button" className="button paper wide" onClick={hide}>
               {t.ballot.hide}
             </button>
           )}
@@ -284,7 +284,8 @@ function VoterNameField({ poll, voter, onCommit }: VoterNameFieldProps) {
         }}
       />
       <p id={hintId} className="hint">
-        {poll.resultsShown === 'AFTER_CLOSING' ? t.ballot.namesAtClose : t.ballot.namesLive}
+        {t.ballot.namesGiven}
+        {poll.resultsShown !== 'AFTER_CLOSING' && <><br />{t.ballot.namesLive}</>}
       </p>
     </div>
   );
