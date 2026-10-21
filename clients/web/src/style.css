@@ -731,7 +731,8 @@ fieldset.field {
 
   .start .join-row input {
     flex: none;
-    width: 9em;
+    width: 7.5em;
+    padding-inline: 10px;
   }
 
   .start > form {
@@ -1068,7 +1069,7 @@ fieldset.field {
 /* A join code, typed or shown: capitals and digits that stay apart. */
 .join-code {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.08em;
 }
 
