@@ -137,7 +137,7 @@ export const fr: Messages = {
     ],
 
     agent: {
-      title: 'Ou demandez à votre agent d’IA',
+      title: 'Prêt pour l’IA',
       text: 'Collez ceci dans un assistant qui a accès au Web, avec votre propre question.',
       prompt: (site: string, guide: string) => `Utilisez ${site} pour créer un sondage pour mon équipe (instructions `
         + `pour les agents : ${guide}). La question : « Où organiser notre séminaire ? » Les options : `

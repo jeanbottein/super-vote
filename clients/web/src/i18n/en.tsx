@@ -137,7 +137,7 @@ export const en = {
     ],
 
     agent: {
-      title: 'Or ask your AI agent',
+      title: 'Ready for AI',
       text: 'Paste this into an assistant that can browse the web, with your own question.',
       prompt: (site: string, guide: string) => `Use ${site} to create a poll for my team (instructions for `
         + `agents: ${guide}). The question: “Where should we hold the offsite?” The options: Lisbon, Berlin, `

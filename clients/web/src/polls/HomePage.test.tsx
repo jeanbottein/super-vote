@@ -79,7 +79,7 @@ describe('the home page', () => {
     openHome();
 
     for (const heading of ['How it works', 'Two ways to decide', 'Fairer than most official elections',
-      'Or ask your AI agent', 'Free, open source, no ads', 'Good to know']) {
+      'Ready for AI', 'Free, open source, no ads', 'Good to know']) {
       expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
     }
     expect(screen.getByRole('link', { name: 'Ko-fi' })).toHaveAttribute('href', 'https://ko-fi.com/jean64');
@@ -107,7 +107,7 @@ describe('the home page', () => {
     const user = userEvent.setup();
     openHome();
 
-    const agent = section('Or ask your AI agent');
+    const agent = section('Ready for AI');
     const opening = `Use ${window.location.host} to create a poll for my team (instructions for agents: `
       + `${window.location.origin}/llms.txt).`;
     const prompt = within(agent).getByText((text) => text.startsWith(opening)).textContent;
