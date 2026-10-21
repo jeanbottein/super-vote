@@ -1,13 +1,12 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import type { JudgmentCounts, PollOption } from '../api/types';
-import MajorityJudgmentResults from '../features/VotingSystem/MajorityJudgment/MajorityJudgmentResults';
 import { errorMessage } from '../i18n/errorMessage';
 import { useI18n } from '../i18n/i18n';
 import { CupIcon, HeartIcon, QuestionIcon, ResultsIcon, ShareIcon } from '../ui/icons';
 import AgentPrompt from './AgentPrompt';
 import JoinForm from './JoinForm';
 import PollList from './PollList';
+import TwoSystems from './TwoSystems';
 import { usePollLists } from './usePollLists';
 import { useServerInfo } from './useServerInfo';
 import VotingSystemsTable from './VotingSystemsTable';
@@ -80,17 +79,7 @@ export default function HomePage() {
         </ol>
       </section>
 
-      <section className="home-section beside">
-        <div>
-          <h2>{t.home.gradeTitle}</h2>
-          <p>{t.home.gradeText}</p>
-        </div>
-        <figure className="panel example">
-          <h3>{t.home.example.question}</h3>
-          <MajorityJudgmentResults options={exampleOptions(t.home.example.options)} />
-          <figcaption className="hint">{t.home.example.caption}</figcaption>
-        </figure>
-      </section>
+      <TwoSystems />
 
       <section className="home-section beside">
         <div>
@@ -137,39 +126,4 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
       {children}
     </section>
   );
-}
-
-/**
- * Twenty friends choosing dinner: one option most of them like, one with the
- * most fans that as many reject, one in between. The places are what the
- * server ranks them (api/Ranking.java): pizza has the best majority mention,
- * Good; sushi and burgers share Fair, and the GMJ score, (above - below) /
- * at, separates them: (10 - 9) / 1 against (8 - 7) / 5.
- */
-const EXAMPLE: { counts: JudgmentCounts; rank: number; majorityMention: PollOption['majorityMention'];
-  score: PollOption['score'] }[] = [
-  {
-    counts: { Excellent: 3, VeryGood: 7, Good: 6, Fair: 3, Passable: 1, Inadequate: 0, Bad: 0 },
-    rank: 1, majorityMention: 'Good', score: { numerator: 6, denominator: 6 },
-  },
-  {
-    counts: { Excellent: 8, VeryGood: 1, Good: 1, Fair: 1, Passable: 2, Inadequate: 3, Bad: 4 },
-    rank: 2, majorityMention: 'Fair', score: { numerator: 1, denominator: 1 },
-  },
-  {
-    counts: { Excellent: 1, VeryGood: 3, Good: 4, Fair: 5, Passable: 4, Inadequate: 2, Bad: 1 },
-    rank: 3, majorityMention: 'Fair', score: { numerator: 1, denominator: 5 },
-  },
-];
-
-function exampleOptions(labels: readonly string[]): PollOption[] {
-  return EXAMPLE.map((option, index) => ({
-    id: `example-${index}`,
-    label: labels[index],
-    approvalCount: null,
-    judgmentCounts: option.counts,
-    rank: option.rank,
-    majorityMention: option.majorityMention,
-    score: option.score,
-  }));
 }

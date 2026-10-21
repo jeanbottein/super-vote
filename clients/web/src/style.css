@@ -810,12 +810,11 @@ fieldset.field {
 }
 
 /*
- * Words beside what they speak of, on a wide screen: example results, the
+ * Words beside what they speak of, on a wide screen: the
  * comparison of voting systems, a prompt for an AI agent. On a phone, the
  * words come first.
  */
 .beside > div,
-.example,
 .agent-prompt {
   display: flex;
   flex-direction: column;
@@ -824,7 +823,6 @@ fieldset.field {
   margin: 0;
 }
 
-.example,
 .agent-prompt {
   align-items: stretch;
 }
@@ -843,6 +841,78 @@ fieldset.field {
     top: calc(var(--header-height) + 24px);
     padding-top: 8px;
   }
+}
+
+/* Two systems, side by side from 640 px, each a small drawing over its name and a line. */
+.systems {
+  display: grid;
+  gap: 12px;
+}
+
+.systems article {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.systems h3,
+.systems p {
+  margin: 0;
+}
+
+.systems p {
+  color: var(--muted);
+}
+
+@media (min-width: 640px) {
+  .systems {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--section-gap);
+  }
+}
+
+.schema {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.schema-bar {
+  display: flex;
+  height: 14px;
+  overflow: hidden;
+  border-radius: 7px;
+  background: var(--surface-sunken);
+}
+
+/* The mentions' own colours, from Excellent on the left; a line marks the half. */
+.graded .schema-bar > span {
+  flex-basis: 0;
+  background: var(--mention);
+}
+
+.graded {
+  position: relative;
+}
+
+.graded::after {
+  content: "";
+  position: absolute;
+  inset: -3px auto -3px 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--fg);
+  opacity: 0.6;
+}
+
+/* Ink, not the mentions' colours: approving is not grading. */
+.approved .schema-bar > span {
+  background: var(--border-strong);
+}
+
+.approved .schema-bar[data-first] > span {
+  background: var(--accent);
 }
 
 /* The comparison: marks in ink, never green or red, which belong to the mentions; majority judgment's column tinted. */

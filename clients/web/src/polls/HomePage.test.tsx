@@ -78,7 +78,7 @@ describe('the home page', () => {
   it('then says how it works, how it decides and compares, how to support it, and what it is not for', () => {
     openHome();
 
-    for (const heading of ['How it works', 'Grade every option, not just one', 'Fairer than most official elections',
+    for (const heading of ['How it works', 'Two ways to decide', 'Fairer than most official elections',
       'Or ask your AI agent', 'Free, open source, no ads', 'Good to know']) {
       expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
     }
@@ -130,13 +130,12 @@ describe('the home page', () => {
     expect(screen.getByRole('button', { name: 'Copy the prompt' })).toBeInTheDocument();
   });
 
-  it('shows how majority judgment decides, with results the server could have ranked', () => {
+  it('names the two ways to decide, in a few words', () => {
     openHome();
 
-    const example = within(section('Grade every option, not just one')).getByRole('figure');
-    const options = within(example).getAllByRole('img').map((bar) => bar.getAttribute('aria-label')?.split(':')[0]);
-    expect(options).toEqual(['Pizza', 'Sushi', 'Burgers']);
-    expect(within(example).getAllByText('Fair')).not.toHaveLength(0);
+    const systems = section('Two ways to decide');
+    expect(within(systems).getByRole('heading', { name: 'Majority judgment' })).toBeInTheDocument();
+    expect(within(systems).getByRole('heading', { name: 'Approval' })).toBeInTheDocument();
   });
 
   it('says why the polls could not be listed', async () => {

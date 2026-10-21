@@ -149,14 +149,16 @@ export const fr: Messages = {
         + 'au groupe.',
     },
 
-    gradeTitle: 'Évaluer chaque option, pas seulement une',
-    gradeText: 'Chaque personne donne une mention à chaque option, de « Excellent » à « À rejeter ». L’option qui '
-      + 'a la meilleure mention majoritaire, celle que plus de la moitié lui donne ou mieux, l’emporte.',
-    example: {
-      options: ['Pizza', 'Sushis', 'Burgers'],
-      question: 'On mange où ce soir ?',
-      caption: 'Les sushis ont le plus d’adeptes, mais la majorité du groupe juge la pizza Bien ou mieux : la pizza '
-        + 'l’emporte.',
+    systems: {
+      title: 'Deux façons de décider',
+      majorityJudgment: {
+        title: 'Jugement majoritaire',
+        text: 'Donnez une mention à chaque option, d’Excellent à « À rejeter ». La meilleure mention majoritaire l’emporte.',
+      },
+      approval: {
+        title: 'Approbation',
+        text: 'Cochez chaque option acceptable. La plus cochée l’emporte.',
+      },
     },
 
     compare: {

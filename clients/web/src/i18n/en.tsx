@@ -148,13 +148,16 @@ export const en = {
       caption: 'It answers with two links: open the first to make the poll yours, send the second to the group.',
     },
 
-    gradeTitle: 'Grade every option, not just one',
-    gradeText: 'Each voter gives every option a mention, from Excellent to Bad. The option with the best majority '
-      + 'mention, the grade more than half the voters give it or better, wins.',
-    example: {
-      question: 'Where do we eat tonight?',
-      options: ['Pizza', 'Sushi', 'Burgers'],
-      caption: 'Sushi has the most fans, but most of the group rates pizza Good or better: pizza wins.',
+    systems: {
+      title: 'Two ways to decide',
+      majorityJudgment: {
+        title: 'Majority judgment',
+        text: 'Grade every option from Excellent to Bad. The best majority grade wins.',
+      },
+      approval: {
+        title: 'Approval',
+        text: 'Tick every option you would accept. The most ticked wins.',
+      },
     },
 
     compare: {
