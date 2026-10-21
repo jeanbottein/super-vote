@@ -321,6 +321,9 @@ export const fr: Messages = {
     byInvitation: 'Sur invitation',
     created: (ago: string) => `Créé ${ago}`,
     closed: 'Fermé',
+    keepTitle: 'Gardez ce navigateur',
+    keepText: 'Vous gérez ce sondage depuis ce navigateur seulement. Si vous effacez ses données ou changez '
+      + 'd’appareil, vous ne pourrez plus le fermer ni le supprimer avant l’heure.',
     readyToInvite: <><strong>Votre sondage est prêt.</strong> Invitez des personnes ci-dessous : chacune reçoit un lien
       bien à elle.</>,
     readyToShare: <><strong>Votre sondage est prêt.</strong> Partagez son lien pour recueillir des bulletins.</>,

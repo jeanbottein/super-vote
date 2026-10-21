@@ -313,6 +313,9 @@ export const en = {
     byInvitation: 'By invitation',
     created: (ago: string) => `Created ${ago}`,
     closed: 'Closed',
+    keepTitle: 'Keep this browser',
+    keepText: 'You manage this poll from this browser alone. Clear its data or switch device, and you can no longer '
+      + 'close or delete the poll early.',
     readyToInvite: <><strong>Your poll is ready.</strong> Invite people below: each gets a link of their own.</>,
     readyToShare: <><strong>Your poll is ready.</strong> Share its link to collect ballots.</>,
     closedAgo: (ago: string) => `Voting closed ${ago}. These are the final results.`,

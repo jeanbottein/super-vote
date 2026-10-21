@@ -1198,6 +1198,32 @@ fieldset.field {
   gap: 12px;
 }
 
+/* What a creator must not lose, in amber like a warning: the poll is managed from this browser alone. */
+.keep {
+  border-color: var(--warning-text);
+}
+
+.keep h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  color: var(--warning-text);
+}
+
+.keep h2::before {
+  content: "";
+  flex: none;
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  mask: var(--icon-warning) center / contain no-repeat;
+}
+
+.keep p {
+  margin: 0;
+}
+
 .callout {
   display: flex;
   flex-wrap: wrap;

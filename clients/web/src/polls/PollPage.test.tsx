@@ -80,6 +80,7 @@ describe('a poll page', () => {
     openPoll({ pathname: '/p/abc', state: { created: true } });
 
     expect(await screen.findByText('Your poll is ready.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Keep this browser' })).toBeInTheDocument();
     await user.click(screen.getAllByRole('button', { name: 'Share' })[0]);
     const dialog = screen.getByRole('dialog', { name: 'Share this poll' });
     await user.click(within(dialog).getByRole('button', { name: 'Copy' }));

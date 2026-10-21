@@ -88,12 +88,20 @@ function PollScreen({ id, invitation }: { id: string; invitation: string | null 
     <>
       <title>{t.poll.title(poll.title)}</title>
       <PollHeader poll={poll} />
-      {justCreated && poll.isMine && poll.totalBallots === 0 && (poll.invitationOnly
-        ? <p className="panel callout"><span>{t.poll.readyToInvite}</span></p>
-        : <section className="panel callout">
-          <p>{t.poll.readyToShare}</p>
-          <ShareButton poll={poll} className="button primary" />
-        </section>)}
+      {justCreated && poll.isMine && poll.totalBallots === 0 && (
+        <>
+          {poll.invitationOnly
+            ? <p className="panel callout"><span>{t.poll.readyToInvite}</span></p>
+            : <section className="panel callout">
+              <p>{t.poll.readyToShare}</p>
+              <ShareButton poll={poll} className="button primary" />
+            </section>}
+          <section className="panel keep">
+            <h2>{t.poll.keepTitle}</h2>
+            <p>{t.poll.keepText}</p>
+          </section>
+        </>
+      )}
       {pollsLeft && pollsLeft.count < LAST_POLLS && <PollsLeftHint pollsLeft={pollsLeft} />}
       {poll.closedAt
         ? <p className="panel callout">{t.poll.closedAgo(t.timeAgo(poll.closedAt))}</p>
