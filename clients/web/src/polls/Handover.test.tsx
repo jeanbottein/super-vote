@@ -1,6 +1,7 @@
 import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getPoll, takePollOver, watchPoll } from '../api/client';
+import { ApiError, getPoll, takePollOver, watchPoll } from '../api/client';
 import { lunchPoll } from '../test/fixtures';
 import { renderAt } from '../test/render';
 import PollPage from './PollPage';
@@ -71,12 +72,25 @@ describe('an admin link', () => {
     expect(window.location.hash).toBe('');
   });
 
-  it('is shown to the creator, to open elsewhere', async () => {
+  /** Asked for, not in plain view: a creator's page is often the one on a projector. */
+  it('is shown to the creator who asks, to open elsewhere', async () => {
     vi.mocked(getPoll).mockResolvedValue(lunchPoll({ isMine: true, adminToken: 'admin-token' }));
 
     renderAt('/p/abc', [{ path: '/p/:id', element: <PollPage /> }]);
+    await userEvent.click(await screen.findByRole('button', { name: 'Show the admin link' }));
 
-    expect(await screen.findByRole('textbox', { name: 'Admin link of the poll' }))
+    expect(screen.getByRole('textbox', { name: 'Admin link of the poll' }))
       .toHaveValue(`${window.location.origin}/p/abc#admin=admin-token`);
+  });
+
+  it('says when it is not this poll’s', async () => {
+    vi.mocked(takePollOver).mockRejectedValue(
+      new ApiError(403, 'This admin link is not this poll’s.', '/problems/not-admin-link'));
+    vi.mocked(getPoll).mockResolvedValue(lunchPoll({ isMine: false }));
+
+    renderAt('/p/abc#admin=truncated', [{ path: '/p/:id', element: <PollPage /> }]);
+
+    expect(await screen.findByText(/Check that it was copied whole/)).toBeInTheDocument();
+    expect(await screen.findByText('Where do we eat?')).toBeInTheDocument();
   });
 });

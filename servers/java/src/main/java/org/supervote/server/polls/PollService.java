@@ -142,11 +142,11 @@ public class PollService {
     @Transactional
     public Poll handOver(String shareToken, String token, String newCreatorId) {
         var poll = find(shareToken);
-        if (!poll.handoverOpen() || !handovers.isFor(poll.id(), token)) {
+        if (!handovers.isFor(poll.id(), token) || polls.handOver(poll.id(), newCreatorId) == 0) {
             throw new HandoverUnavailableException(
                 "This link cannot hand this poll over: it was used already, or it is not this poll's.");
         }
-        return polls.save(poll.withCreator(newCreatorId));
+        return find(shareToken);
     }
 
     /**
@@ -169,10 +169,10 @@ public class PollService {
     @Transactional
     public Poll administer(String shareToken, String token, String newCreatorId) {
         var poll = find(shareToken);
-        if (poll.handoverOpen() || !admins.isFor(poll.id(), token)) {
+        if (!admins.isFor(poll.id(), token) || polls.setCreator(poll.id(), newCreatorId) == 0) {
             throw new NotAdminLinkException("This admin link is not this poll's. Check that it was copied whole.");
         }
-        return poll.isCreatedBy(newCreatorId) ? poll : polls.save(poll.withCreator(newCreatorId));
+        return find(shareToken);
     }
 
     /**
@@ -247,7 +247,15 @@ public class PollService {
     @Transactional
     public Poll close(String shareToken, String voterId) {
         var poll = createdBy(shareToken, voterId);
-        return poll.isClosed() ? poll : polls.save(poll.withClosedAt(now()));
+        if (poll.isClosed()) {
+            return poll;
+        }
+        var closed = polls.close(poll.id(), voterId, now());
+        var after = find(shareToken);
+        if (closed == 0 && !after.isClosed()) {
+            throw new NotPollCreatorException(); // its admin link took it elsewhere a moment ago
+        }
+        return after;
     }
 
     /**

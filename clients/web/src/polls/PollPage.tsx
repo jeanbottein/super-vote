@@ -36,9 +36,10 @@ const LAST_POLLS = 5;
 export default function PollPage() {
   const { t } = useI18n();
   const { id = '' } = useParams();
-  const hash = useLocation().hash;
+  const location = useLocation();
+  const hash = location.hash;
   const invitation = invitationIn(hash);
-  const handover = useHandover(id, handoverIn(hash), adminIn(hash));
+  const handover = useHandover(id, handoverIn(hash), adminIn(hash), location.key);
 
   if (handover.taking) {
     return <p className="panel">{t.poll.takingOver}</p>;

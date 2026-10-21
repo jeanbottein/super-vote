@@ -208,6 +208,7 @@ export const en = {
   join: {
     label: 'Got a code?',
     typeTheCode: 'Type the code you were given.',
+    notACode: 'A code is six letters and digits, such as K7M-4QX.',
     joining: 'Joining…',
     join: 'Vote!',
   },
@@ -316,8 +317,8 @@ export const en = {
     created: (ago: string) => `Created ${ago}`,
     closed: 'Closed',
     keepTitle: 'Keep your admin link',
-    keepText: 'Open it in any browser to manage this poll from there: close it, delete it, invite people. Keep it to '
-      + 'yourself: whoever has it can do the same.',
+    keepText: 'Open it in another browser or device to manage this poll from there instead of here: close it, '
+      + 'delete it, invite people. Keep it to yourself: whoever has it can do the same.',
     readyToInvite: <><strong>Your poll is ready.</strong> Invite people below: each gets a link of their own.</>,
     readyToShare: <><strong>Your poll is ready.</strong> Share its link to collect ballots.</>,
     closedAgo: (ago: string) => `Voting closed ${ago}. These are the final results.`,
@@ -393,8 +394,9 @@ export const en = {
   owner: {
     manage: 'Manage your poll',
     adminLink: 'Admin link of the poll',
-    adminLinkHint: 'Your admin link: open it in another browser or device to manage the poll from there. Keep it to '
-      + 'yourself.',
+    adminLinkHint: 'Your admin link: open it in another browser or device to manage the poll from there instead of '
+      + 'here. Keep it to yourself.',
+    showAdminLink: 'Show the admin link',
     onlyThisBrowser: 'Only this browser can close or delete this poll early.',
     close: 'Close voting',
     delete: 'Delete poll',

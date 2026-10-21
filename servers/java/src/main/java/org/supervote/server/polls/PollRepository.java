@@ -49,6 +49,28 @@ interface PollRepository extends ListCrudRepository<Poll, Long> {
     @Query("DELETE FROM poll_removal WHERE poll_id = :pollId")
     void removalDone(Long pollId);
 
+    /*
+     * Changes to one poll that may come at the same moment as another, each
+     * writing only its own columns: saving the whole row read a moment before
+     * would undo the other one - reopen a poll just closed, or give a poll
+     * back to the browser that just lost it.
+     */
+
+    /** Closes the poll if it is still its creator's and open: how many rows changed, 0 or 1. */
+    @Modifying
+    @Query("UPDATE poll SET closed_at = :closedAt WHERE id = :id AND creator_id = :creatorId AND closed_at IS NULL")
+    int close(Long id, String creatorId, Instant closedAt);
+
+    /** Hands the poll over if its handover is still open, and closes the handover: 0 or 1. */
+    @Modifying
+    @Query("UPDATE poll SET creator_id = :creatorId, handover_open = FALSE WHERE id = :id AND handover_open = TRUE")
+    int handOver(Long id, String creatorId);
+
+    /** Gives the poll a new creator, unless a handover is open: 0 or 1. */
+    @Modifying
+    @Query("UPDATE poll SET creator_id = :creatorId WHERE id = :id AND handover_open = FALSE")
+    int setCreator(Long id, String creatorId);
+
     long countByClosedAtIsNull();
 
     List<Poll> findTop50ByVisibilityOrderByCreatedAtDesc(Poll.Visibility visibility);

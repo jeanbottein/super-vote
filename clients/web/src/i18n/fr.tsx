@@ -211,6 +211,7 @@ export const fr: Messages = {
   join: {
     label: 'Vous avez un code ?',
     typeTheCode: 'Tapez le code qu’on vous a donné.',
+    notACode: 'Un code compte six lettres et chiffres, comme K7M-4QX.',
     joining: 'Ouverture…',
     join: 'Vote !',
   },
@@ -323,8 +324,8 @@ export const fr: Messages = {
     created: (ago: string) => `Créé ${ago}`,
     closed: 'Fermé',
     keepTitle: 'Gardez votre lien d’administration',
-    keepText: 'Ouvrez-le dans n’importe quel navigateur pour gérer ce sondage depuis celui-ci : le fermer, le '
-      + 'supprimer, inviter. Gardez-le pour vous : qui l’a peut en faire autant.',
+    keepText: 'Ouvrez-le dans un autre navigateur ou appareil pour gérer ce sondage depuis celui-là plutôt '
+      + 'qu’ici : le fermer, le supprimer, inviter. Gardez-le pour vous : qui l’a peut en faire autant.',
     readyToInvite: <><strong>Votre sondage est prêt.</strong> Invitez des personnes ci-dessous : chacune reçoit un lien
       bien à elle.</>,
     readyToShare: <><strong>Votre sondage est prêt.</strong> Partagez son lien pour recueillir des bulletins.</>,
@@ -404,7 +405,8 @@ export const fr: Messages = {
     manage: 'Gérer votre sondage',
     adminLink: 'Lien d’administration du sondage',
     adminLinkHint: 'Votre lien d’administration : ouvrez-le dans un autre navigateur ou appareil pour gérer le '
-      + 'sondage depuis celui-ci. Gardez-le pour vous.',
+      + 'sondage depuis celui-là plutôt qu’ici. Gardez-le pour vous.',
+    showAdminLink: 'Afficher le lien d’administration',
     onlyThisBrowser: 'Seul ce navigateur peut fermer ou supprimer ce sondage avant l’heure.',
     close: 'Clore le vote',
     delete: 'Supprimer le sondage',

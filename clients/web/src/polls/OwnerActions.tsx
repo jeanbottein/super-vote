@@ -27,6 +27,8 @@ export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
   const titleId = useId();
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState<'close' | 'delete' | null>(null);
+  // Shown on demand: a creator's page is often the one on a projector, for its code and results.
+  const [showingAdminLink, setShowingAdminLink] = useState(false);
   const closeButton = useRef<HTMLButtonElement>(null);
   const deleteButton = useRef<HTMLButtonElement>(null);
 
@@ -66,7 +68,13 @@ export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
       {poll.adminToken ? (
         <>
           <p className="hint">{t.owner.adminLinkHint}</p>
-          <CopyableLink url={adminUrl(poll.id, poll.adminToken)} label={t.owner.adminLink} />
+          {showingAdminLink
+            ? <CopyableLink url={adminUrl(poll.id, poll.adminToken)} label={t.owner.adminLink} />
+            : (
+              <button type="button" className="button secondary admin-reveal" onClick={() => setShowingAdminLink(true)}>
+                {t.owner.showAdminLink}
+              </button>
+            )}
         </>
       ) : <p className="hint">{t.owner.onlyThisBrowser}</p>}
       {confirming === null && (

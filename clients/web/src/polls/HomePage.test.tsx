@@ -174,6 +174,25 @@ describe('the home page', () => {
     }
     await userEvent.type(field, '{Backspace}{Backspace}{Backspace}');
     expect(field).toHaveValue('K7M');
+    await userEvent.clear(field);
+    await userEvent.type(field, 'k7m4qx');
+    await userEvent.type(field, '{Backspace}', { initialSelectionStart: 4, initialSelectionEnd: 4 });
+    expect(field).toHaveValue('K74-QX'); // backspace after the dash takes the M before it, not just the dash
+  });
+
+  /** Cut down to six, a pasted link would be a wrong code, which counts against the room's network. */
+  it('refuses a paste that is no code, rather than cutting it into one', async () => {
+    openHome();
+    const field = screen.getByLabelText('Got a code?');
+
+    await userEvent.click(field);
+    await userEvent.paste('https://super-vote.org/p/abc');
+
+    expect(field).toHaveValue('');
+    expect(screen.getByRole('alert')).toHaveTextContent('A code is six letters and digits, such as K7M-4QX.');
+    await userEvent.type(field, 'K7M');
+    await userEvent.click(screen.getByRole('button', { name: 'Vote!' }));
+    expect(joinPoll).not.toHaveBeenCalled();
   });
 
   it('says when no poll has the code', async () => {

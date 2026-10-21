@@ -1525,7 +1525,8 @@ fieldset.field {
 }
 
 /* The admin link, then what it lets you do. */
-.owner-actions .share-link {
+.owner-actions .share-link,
+.owner-actions .admin-reveal {
   margin-bottom: 16px;
 }
 
