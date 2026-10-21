@@ -1907,6 +1907,13 @@ fieldset.field {
   margin: 0;
 }
 
+/* Which version this is, beside the sentence, as quiet as can be read. */
+.app-version {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .app-footer nav {
   display: flex;
   flex-wrap: wrap;

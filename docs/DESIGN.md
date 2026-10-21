@@ -325,7 +325,7 @@ lines.
 | Invitations | `.invitation[data-used]`, `.invitation-status`, `.invite-form` | |
 | Dialog | `.dialog`, `.dialog-body`, `.dialog-header`; `.share-code`, `.share-link`, `.share-qr` (white in every theme: QR codes need it) | |
 | Toasts | `.toasts`, `.toast`, `.toast[data-kind="error"]` | under the header |
-| Footer | `.app-footer`; its other languages are buttons that read like its links | each language named in its own words, with its `lang` |
+| Footer | `.app-footer`, `.app-version`; its other languages are buttons that read like its links | each language named in its own words, with its `lang`; the version (`v` and the build's time in UTC, `v202610212110`) after the first sentence, 12 px mono |
 | Badge | `.badge` | neutral pill |
 | Statistics (`statistics.css`) | `.statistics-totals`, `.statistics-panel`, `.world-map`, `.world-map-view`, `.world-map-land`, `.world-map-dot`, `.world-map-chosen`, `.world-map-legend`, `.world-map-zoom`, `.statistics-chosen`, `.activity-chart`, `.places-table` | the map runs to the panel's edges; a dot's area is its count, and dots keep their size on screen when zoomed; the chosen dot gets a 2 px `--fg` ring drawn on top, so nothing moves; the zoom buttons sit under the map, never over it |
 

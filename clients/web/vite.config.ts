@@ -10,8 +10,12 @@ import { defineConfig } from 'vitest/config';
 const server = 'http://127.0.0.1:8080';
 const api = { '/api': server, '/llms.txt': server, '/v3/api-docs': server };
 
+/** The version the footer shows: "v" and the time of the build, to the minute, in UTC (v202610212030). */
+const version = 'v' + new Date().toISOString().slice(0, 16).replace(/\D/g, '');
+
 export default defineConfig({
   plugins: [react()],
+  define: { __SUPER_VOTE_VERSION__: JSON.stringify(version) },
   server: {
     port: 5173,
     host: true, // reachable from a phone on the same network
