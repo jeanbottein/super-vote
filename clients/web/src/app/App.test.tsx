@@ -142,6 +142,7 @@ describe('the settings', () => {
 
 describe('the language', () => {
   it("is the device's until one is chosen, in Settings, where each is named in its own words", async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0); // the first tagline, in each language
     openAt('/');
     expect(document.documentElement.lang).toBe('en');
 

@@ -256,7 +256,7 @@ lines.
 - Home is the one exception: from 960 px, `.layout[data-page="home"]` sets
   `--page-width` to 1080 px, so that header, page and footer widen together.
   What people come to do comes first, as on a search page, centred: the name
-  alone in wide capitals (`.wordmark`), one line under it, then one card
+  alone in wide capitals (`.wordmark`), one line under it (a tagline drawn from a dozen, some of them jokes, in `home.taglines`), then one card
   divided in two, the code to type on the left and "Decide together!" on the
   right (stacked on a phone), and the visitor's polls once they have some.
   Below, few words and more pictures: how it works (three

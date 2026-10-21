@@ -120,7 +120,21 @@ export const fr: Messages = {
 
   home: {
     title: 'super-vote · décider ensemble',
-    lead: 'Un système de vote moderne, pour les décisions de groupe du quotidien',
+    /** One is drawn each visit: the same places in every language, so a switch keeps the joke. */
+    taglines: [
+      'Un système de vote moderne, pour les décisions de groupe du quotidien',
+      'Probablement mieux que le système de vote de votre gouvernement',
+      'Enfin un système de vote qui fonctionne',
+      'Pourquoi ne vote-t-on pas toujours comme ça ?',
+      'Pizza ou sushis ? Réglez ça en adultes',
+      'Parce que « comme tu veux » n’est pas une décision',
+      'La démocratie, sans les cris',
+      'Chaque option a son mot à dire, même les bizarres',
+      'Là où la voix la plus forte ne gagne pas',
+      'Sans compte, sans pub, sans drame',
+      'Les maths disent que c’est plus juste. Les maths se trompent rarement',
+      'Le nouveau meilleur ami de la conversation de groupe',
+    ],
     createPoll: 'Décider ensemble !',
     yourPolls: 'Décider ensemble…',
     publicPolls: 'Sondages publics',
