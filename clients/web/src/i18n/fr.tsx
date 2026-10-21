@@ -456,6 +456,7 @@ export const fr: Messages = {
     toEnterAt: (host: string) => `à taper sur ${host}`,
     copy: 'Copier',
     copied: 'Copié',
+    copyCode: 'Copier le code',
     qrCode: (url: string) => `Code QR de ${url}`,
     throughAnApp: 'Partager avec une app',
     byEmail: 'Envoyer par courriel',

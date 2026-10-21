@@ -1293,13 +1293,22 @@ fieldset.field {
   color: var(--muted);
 }
 
+.ready-code {
+  align-items: center;
+}
+
 .ready-code .join-code {
   color: var(--fg);
   font-size: 22px;
 }
 
-.ready > .button {
-  align-self: flex-start;
+/* On a phone the link keeps a line of its own, its buttons under it. */
+.ready .share-link {
+  flex-wrap: wrap;
+}
+
+.ready .share-link input {
+  flex: 1 1 14em;
 }
 
 /* What a creator must not lose, in amber like a warning: the admin link, which brings the poll to any browser. */

@@ -7,6 +7,7 @@ import { useI18n } from '../i18n/i18n';
 import Notice from '../ui/Notice';
 import BallotSection from './BallotSection';
 import CopyableLink from './CopyableLink';
+import CopyButton from './CopyButton';
 import DevBallotFeeder from './DevBallotFeeder';
 import Invitations from './Invitations';
 import { formatJoinCode } from './format';
@@ -96,11 +97,13 @@ function PollScreen({ id, invitation }: { id: string; invitation: string | null 
             ? <p className="panel callout"><span>{t.poll.readyToInvite}</span></p>
             : <section className="panel callout ready">
               <p>{t.poll.readyToShare}</p>
-              <CopyableLink url={pollUrl(poll.id)} label={t.share.linkLabel} />
+              <CopyableLink url={pollUrl(poll.id)} label={t.share.linkLabel}>
+                <ShareButton poll={poll} />
+              </CopyableLink>
               <p className="ready-code">
                 <span>{t.share.joinCode}</span> <strong className="join-code">{formatJoinCode(poll.joinCode)}</strong>
+                <CopyButton text={formatJoinCode(poll.joinCode)} label={t.share.copyCode} />
               </p>
-              <ShareButton poll={poll} />
             </section>}
           {poll.adminToken && (
             <section className="panel keep">

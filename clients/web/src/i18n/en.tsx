@@ -445,6 +445,7 @@ export const en = {
     toEnterAt: (host: string) => `to enter at ${host}`,
     copy: 'Copy',
     copied: 'Copied',
+    copyCode: 'Copy the join code',
     qrCode: (url: string) => `QR code for ${url}`,
     throughAnApp: 'Share through an app',
     byEmail: 'Send by email',

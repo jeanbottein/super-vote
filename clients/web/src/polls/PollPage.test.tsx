@@ -91,6 +91,10 @@ describe('a poll page', () => {
     expect(await navigator.clipboard.readText()).toBe(link);
     expect(within(row).getByRole('button', { name: 'Copied' })).toBeInTheDocument();
 
+    const code = screen.getByText((_, element) => element?.classList.contains('join-code') ?? false).textContent!;
+    await user.click(screen.getByRole('button', { name: 'Copy the join code' }));
+    expect(await navigator.clipboard.readText()).toBe(code);
+
     await user.click(screen.getAllByRole('button', { name: 'Share' })[0]); // more ways: a QR code, an email
     expect(screen.getByRole('dialog', { name: 'Share this poll' })).toBeInTheDocument();
   });
