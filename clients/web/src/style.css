@@ -791,18 +791,17 @@ fieldset.field {
 /* How it works beside who makes it possible, from 720 px; one under the other on a phone. */
 .how-and-support {
   display: grid;
-  gap: 24px;
+  gap: var(--section-gap);
 }
 
-.how-and-support > section > h2 {
+.how-and-support > section:first-child > h2 {
   margin-bottom: 16px;
 }
 
 @media (min-width: 720px) {
   .how-and-support {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: start;
-    gap: 32px;
+    gap: var(--section-gap);
   }
 }
 

@@ -65,7 +65,7 @@ export default function HomePage() {
       </div>
 
       <div className="home-section how-and-support">
-        <section>
+        <section className="panel">
           <h2>{t.home.howItWorks}</h2>
           <ol className="steps">
             {t.home.steps.map((step) => (
