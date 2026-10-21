@@ -81,12 +81,23 @@ describe('a poll page', () => {
 
     expect(await screen.findByText('Your poll is ready.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Keep this browser' })).toBeInTheDocument();
-    await user.click(screen.getAllByRole('button', { name: 'Share' })[0]);
-    const dialog = screen.getByRole('dialog', { name: 'Share this poll' });
-    await user.click(within(dialog).getByRole('button', { name: 'Copy' }));
+    const link = `${window.location.origin}/p/abc`;
+    expect(screen.getByRole('textbox', { name: 'Link to the poll' })).toHaveValue(link); // in plain view
+    await user.click(screen.getByRole('button', { name: 'Copy' }));
+    expect(await navigator.clipboard.readText()).toBe(link);
+    expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument();
 
-    expect(await navigator.clipboard.readText()).toBe(`${window.location.origin}/p/abc`);
-    expect(within(dialog).getByRole('button', { name: 'Copied' })).toBeInTheDocument();
+    await user.click(screen.getAllByRole('button', { name: 'Share' })[0]); // more ways: a QR code, an email
+    expect(screen.getByRole('dialog', { name: 'Share this poll' })).toBeInTheDocument();
+  });
+
+  it('gives no link to share for a poll by invitation: each person has their own', async () => {
+    vi.mocked(getPoll).mockResolvedValue({ ...lunch, isMine: true, invitationOnly: true });
+    openPoll({ pathname: '/p/abc', state: { created: true } });
+
+    expect(await screen.findByText(/Invite people below/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Share' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Link to the poll' })).not.toBeInTheDocument();
   });
 
   it('warns its creator when it was one of the last polls their connection may create in its day', async () => {

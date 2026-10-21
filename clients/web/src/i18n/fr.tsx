@@ -445,8 +445,6 @@ export const fr: Messages = {
   share: {
     share: 'Partager',
     title: 'Partager ce sondage',
-    invitedOnly: 'Toute personne qui a le code ou le lien peut voir le sondage. Seules les personnes que vous invitez '
-      + 'peuvent voter.',
     anyone: 'Toute personne qui a le code ou le lien peut voter.',
     unlisted: 'Le sondage n’est listé nulle part ailleurs.',
     linkLabel: 'Lien du sondage',

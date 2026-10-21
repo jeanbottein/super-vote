@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import ShareButton from './ShareButton';
 
 const lunch = {
-  id: 'abc', joinCode: 'K7M4QX', title: 'Where do we eat?', visibility: 'UNLISTED' as const, invitationOnly: false,
+  id: 'abc', joinCode: 'K7M4QX', title: 'Where do we eat?', visibility: 'UNLISTED' as const,
 };
 const link = `${window.location.origin}/p/abc`;
 
@@ -56,11 +56,5 @@ describe('sharing a poll', () => {
 
     expect(screen.getByRole('link', { name: 'Send by email' }))
       .toHaveAttribute('href', `mailto:?subject=Where%20do%20we%20eat%3F&body=${encodeURIComponent(link)}`);
-  });
-
-  it('says that only invited people can vote on a poll that takes invitations', async () => {
-    await openShare({ ...lunch, invitationOnly: true });
-
-    expect(screen.getByText(/Only the people you invite can vote/)).toBeInTheDocument();
   });
 });

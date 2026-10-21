@@ -1,8 +1,9 @@
 import { QRCodeSVG } from 'qrcode.react';
-import { useId, useRef, useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useI18n } from '../i18n/i18n';
 import Dialog from '../ui/Dialog';
 import { MailIcon, ShareIcon } from '../ui/icons';
+import CopyableLink from './CopyableLink';
 import { formatJoinCode } from './format';
 
 interface ShareDialogProps {
@@ -30,20 +31,7 @@ interface ShareDialogProps {
 export default function ShareDialog(props: ShareDialogProps) {
   const { open, onClose, title, hint, url, linkLabel, subject, message, joinCode } = props;
   const { t } = useI18n();
-  const [copied, setCopied] = useState(false);
-  const input = useRef<HTMLInputElement>(null);
-  const inputId = useId();
   const body = message ? `${message}\n\n${url}` : url;
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      input.current?.select(); // no clipboard access (e.g. plain http): let the person copy it
-    }
-  }
 
   return (
     <Dialog open={open} onClose={onClose} title={title}>
@@ -55,11 +43,7 @@ export default function ShareDialog(props: ShareDialogProps) {
           <span className="hint">{t.share.toEnterAt(window.location.host)}</span>
         </div>
       )}
-      <label className="visually-hidden" htmlFor={inputId}>{linkLabel}</label>
-      <div className="share-link">
-        <input id={inputId} ref={input} value={url} readOnly onFocus={(event) => event.target.select()} />
-        <button type="button" className="button primary" onClick={copy}>{copied ? t.share.copied : t.share.copy}</button>
-      </div>
+      <CopyableLink url={url} label={linkLabel} />
       <div className="share-qr">
         <QRCodeSVG value={url} size={192} marginSize={2} title={t.share.qrCode(url)} />
       </div>

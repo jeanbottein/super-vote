@@ -6,11 +6,11 @@ import { pollUrl } from './links';
 import ShareDialog from './ShareDialog';
 
 interface ShareButtonProps {
-  poll: Pick<Poll, 'id' | 'title' | 'visibility' | 'joinCode' | 'invitationOnly'>;
+  poll: Pick<Poll, 'id' | 'title' | 'visibility' | 'joinCode'>;
   className?: string;
 }
 
-/** The poll's link and join code, to share. */
+/** The link and join code of a poll anyone may vote on, to share: a poll by invitation has none. */
 export default function ShareButton({ poll, className = 'button secondary' }: ShareButtonProps) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -25,7 +25,7 @@ export default function ShareButton({ poll, className = 'button secondary' }: Sh
         onClose={() => setOpen(false)}
         title={t.share.title}
         hint={<>
-          {poll.invitationOnly ? t.share.invitedOnly : t.share.anyone}
+          {t.share.anyone}
           {poll.visibility === 'UNLISTED' && ` ${t.share.unlisted}`}
         </>}
         url={pollUrl(poll.id)}

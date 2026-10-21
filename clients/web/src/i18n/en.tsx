@@ -434,7 +434,6 @@ export const en = {
   share: {
     share: 'Share',
     title: 'Share this poll',
-    invitedOnly: 'Anyone with the code or the link can see the poll. Only the people you invite can vote.',
     anyone: 'Anyone with the code or the link can vote.',
     unlisted: 'The poll is not listed anywhere else.',
     linkLabel: 'Link to the poll',

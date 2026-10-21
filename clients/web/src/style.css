@@ -1269,6 +1269,38 @@ fieldset.field {
   gap: 12px;
 }
 
+/* A poll just created: its link to copy, and its code, in plain view. */
+.ready {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.ready p {
+  margin: 0;
+}
+
+.ready > p:first-child {
+  font-weight: 600;
+}
+
+.ready-code {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.ready-code .join-code {
+  color: var(--fg);
+  font-size: 22px;
+}
+
+.ready > .button {
+  align-self: flex-start;
+}
+
 /* What a creator must not lose, in amber like a warning: the poll is managed from this browser alone. */
 .keep {
   border-color: var(--warning-text);

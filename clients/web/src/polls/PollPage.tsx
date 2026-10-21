@@ -6,9 +6,11 @@ import { errorMessage } from '../i18n/errorMessage';
 import { useI18n } from '../i18n/i18n';
 import Notice from '../ui/Notice';
 import BallotSection from './BallotSection';
+import CopyableLink from './CopyableLink';
 import DevBallotFeeder from './DevBallotFeeder';
 import Invitations from './Invitations';
-import { handoverIn, invitationIn } from './links';
+import { formatJoinCode } from './format';
+import { handoverIn, invitationIn, pollUrl } from './links';
 import OwnerActions from './OwnerActions';
 import ResultsSection, { resultsKeptBack } from './ResultsSection';
 import ShareButton from './ShareButton';
@@ -92,9 +94,13 @@ function PollScreen({ id, invitation }: { id: string; invitation: string | null 
         <>
           {poll.invitationOnly
             ? <p className="panel callout"><span>{t.poll.readyToInvite}</span></p>
-            : <section className="panel callout">
+            : <section className="panel callout ready">
               <p>{t.poll.readyToShare}</p>
-              <ShareButton poll={poll} className="button primary" />
+              <CopyableLink url={pollUrl(poll.id)} label={t.share.linkLabel} />
+              <p className="ready-code">
+                <span>{t.share.joinCode}</span> <strong className="join-code">{formatJoinCode(poll.joinCode)}</strong>
+              </p>
+              <ShareButton poll={poll} />
             </section>}
           <section className="panel keep">
             <h2>{t.poll.keepTitle}</h2>
@@ -145,7 +151,7 @@ function PollHeader({ poll }: { poll: Poll }) {
           <span>{t.poll.created(t.timeAgo(poll.createdAt))}</span>
           {poll.closedAt && <span className="badge">{t.poll.closed}</span>}
         </p>
-        <ShareButton poll={poll} />
+        {!poll.invitationOnly && <ShareButton poll={poll} />}
       </div>
     </section>
   );
