@@ -719,7 +719,7 @@ fieldset.field {
 @media (min-width: 640px) {
   /* A code is six characters: the card is as wide as its content, not the page's column. */
   .start {
-    grid-template-columns: auto auto;
+    grid-template-columns: 1fr 1fr;
     justify-content: center;
     width: fit-content;
     margin-inline: auto;
