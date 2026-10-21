@@ -167,7 +167,7 @@ describe('the home page', () => {
     await userEvent.clear(field);
     await userEvent.paste(' k7m 4qx ');
     expect(field).toHaveValue('K7M-4QX');
-    await userEvent.type(field, '{Backspace}{Backspace}{Backspace}{Backspace}');
+    await userEvent.type(field, '{Backspace}{Backspace}{Backspace}');
     expect(field).toHaveValue('K7M');
   });
 
