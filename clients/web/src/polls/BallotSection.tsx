@@ -212,7 +212,7 @@ function BallotFrame(props: BallotFrameProps) {
         </div>
         : <>
           <p className="ballot-status" data-counted={true}>{t.ballot.hidden}</p>
-          <button type="button" className="button secondary wide" ref={changeButton} onClick={reveal}>
+          <button type="button" className="button paper wide" ref={changeButton} onClick={reveal}>
             {t.ballot.change}
           </button>
         </>}

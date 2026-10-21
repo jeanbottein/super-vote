@@ -60,8 +60,9 @@ Its settings are four, in `deploy/.env` ([.env.example](.env.example)):
 
 ## The first time
 
-1. **A VPS.** At OVHcloud, in France, on Debian 13 or Ubuntu 24.04. Two
-   gigabytes of memory are plenty: the server takes about 300 MB at rest and
+1. **A VPS.** At OVHcloud, on Debian 13 or Ubuntu 24.04: super-vote.org's
+   is in Montréal, Canada, which the legal notice and the privacy page name.
+   Two gigabytes of memory are plenty: the server takes about 300 MB at rest and
    600 under load ([PERFORMANCE.md](../docs/PERFORMANCE.md)), PostgreSQL and
    Caddy little. Leave OVHcloud's automated backup and snapshots off: they
    copy PostgreSQL's files, which say which name goes with which ballot (see
