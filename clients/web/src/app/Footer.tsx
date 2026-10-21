@@ -15,6 +15,7 @@ export default function Footer() {
       <nav aria-label={t.app.footerLinks}>
         <Link to="/about">{t.app.about}</Link>
         <Link to="/privacy">{t.app.privacy}</Link>
+        <Link to="/legal">{t.app.legal}</Link>
         <Link to="/statistics">{t.app.statistics}</Link>
         <a href={SOURCE_CODE_URL} target="_blank" rel="noreferrer">{t.app.sourceCode}</a>
         {LANGUAGES.filter((other) => other !== language).map((other) => (

@@ -92,6 +92,7 @@ export const fr: Messages = {
     footerLinks: 'À propos de super-vote',
     about: 'À propos, et la science derrière',
     privacy: 'Confidentialité et limites',
+    legal: 'Mentions légales',
     statistics: 'Statistiques',
     sourceCode: 'Code source',
     notFound: 'Page introuvable',
@@ -177,6 +178,10 @@ export const fr: Messages = {
       <AppName /> est gratuit, libre et confidentiel par conception : sans compte, sans publicité, sans pistage. Son
       but : rendre de meilleures façons de décider aussi simples qu’une conversation de groupe, pour les amis et les
       équipes aujourd’hui, pour les associations et les collectivités demain.
+    </>,
+    support: <>
+      S’il a aidé votre groupe à décider, vous pouvez le soutenir{' '}
+      <a href="https://ko-fi.com/jean64" target="_blank" rel="noreferrer">d’un pourboire sur Ko-fi</a>.
     </>,
 
     limitsTitle: 'Bon à savoir',
@@ -623,6 +628,8 @@ export const fr: Messages = {
       'L’adresse de votre réseau, gardée en mémoire un jour au plus, pour limiter le nombre de sondages que chaque '
         + 'réseau crée. Elle n’est jamais écrite nulle part.',
       'Vos réglages et le dernier nom que vous avez donné, dans ce navigateur seulement.',
+      'Tout ce que garde le serveur, sur une seule machine à Montréal, au Canada, un pays dont l’Union européenne '
+        + 'reconnaît qu’il protège les données personnelles de façon adéquate.',
     ],
 
     whoSees: 'Qui voit quoi',
@@ -668,6 +675,24 @@ export const fr: Messages = {
       Rien ici n’est à croire sur parole : le code de <AppName />, comptage et protection des bulletins compris, est{' '}
       <a href="https://github.com/jeanbottein/super-vote" target="_blank" rel="noreferrer">ouvert à la lecture de
       tous</a>.
+    </>,
+  },
+
+  legal: {
+    title: 'Mentions légales · super-vote',
+    heading: 'Mentions légales',
+    publisher: 'Édition',
+    publisherText: 'super-vote est édité par une personne physique, à titre non professionnel. Comme la loi le permet '
+      + 'dans ce cas, son nom et son adresse ne figurent pas ici : l’hébergeur les détient.',
+    host: 'Hébergement',
+    hostText: 'OVH Hosting Inc., 800-1801 avenue McGill College, Montréal (Québec) H3A 2N4, Canada. '
+      + 'Téléphone : +1 855 684 5463.',
+    report: 'Signaler un sondage',
+    reportText: <>
+      Les sondages sont écrits par les personnes qui les créent. Pour en signaler un qui enfreint la loi, par son
+      titre, ses options ou le nom d’une personne qui a voté :{' '}
+      <a href="https://github.com/jeanbottein/super-vote/issues" target="_blank" rel="noreferrer">écrivez-nous sur
+      GitHub</a>. Chaque signalement est examiné promptement, et ce qui est illicite est retiré.
     </>,
   },
 };

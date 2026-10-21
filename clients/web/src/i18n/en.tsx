@@ -92,6 +92,7 @@ export const en = {
     footerLinks: 'About super-vote',
     about: 'About and the science behind it',
     privacy: 'Privacy and limits',
+    legal: 'Legal notice',
     statistics: 'Statistics',
     sourceCode: 'Source code',
     notFound: 'Page not found',
@@ -175,6 +176,10 @@ export const en = {
       <AppName /> is free, open source and private by design: no account, no ads, no tracking. Its aim is to make
       better ways of deciding as easy as a group chat: for friends and teams today, for associations and
       communities tomorrow.
+    </>,
+    support: <>
+      If it helped your group decide, you can support it with{' '}
+      <a href="https://ko-fi.com/jean64" target="_blank" rel="noreferrer">a tip on Ko-fi</a>.
     </>,
 
     limitsTitle: 'Good to know',
@@ -608,6 +613,8 @@ export const en = {
       "Your network's address, held in memory for a day at most, to limit how many polls each network creates. It "
         + 'is never written down.',
       'Your settings and the name you last gave, in this browser only.',
+      'All that the server keeps, on one machine in Montréal, Canada, a country the European Union recognises as '
+        + 'protecting personal data adequately.',
     ],
 
     whoSees: 'Who sees what',
@@ -648,6 +655,24 @@ export const en = {
       Nothing here needs to be taken on faith: <AppName />'s code, the counting and the protection of ballots
       included, is <a href="https://github.com/jeanbottein/super-vote" target="_blank" rel="noreferrer">open for
       anyone to read</a>.
+    </>,
+  },
+
+  legal: {
+    title: 'Legal notice · super-vote',
+    heading: 'Legal notice',
+    publisher: 'Publisher',
+    publisherText: 'super-vote is published by a private person, with no commercial purpose. As French law allows '
+      + 'such a publisher, their name and address are not given here: the host has them.',
+    host: 'Host',
+    hostText: 'OVH Hosting Inc., 800-1801 McGill College Avenue, Montréal (Québec) H3A 2N4, Canada. '
+      + 'Telephone: +1 855 684 5463.',
+    report: 'Reporting a poll',
+    reportText: <>
+      Polls are written by the people who create them. To report one that breaks the law, by its title, its options
+      or a voter's name:{' '}
+      <a href="https://github.com/jeanbottein/super-vote/issues" target="_blank" rel="noreferrer">write to us on
+      GitHub</a>. Every report is looked at promptly, and what is unlawful is removed.
     </>,
   },
 };
