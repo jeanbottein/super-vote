@@ -156,6 +156,21 @@ describe('the home page', () => {
     expect(await screen.findByText('Poll page lunch')).toBeInTheDocument();
   });
 
+  it('writes the code as it is typed: capitals, six characters, a dash after three', async () => {
+    openHome();
+    const field = screen.getByLabelText('Got a code?');
+
+    await userEvent.type(field, 'k7m');
+    expect(field).toHaveValue('K7M');
+    await userEvent.type(field, '4qxzz');
+    expect(field).toHaveValue('K7M-4QX');
+    await userEvent.clear(field);
+    await userEvent.paste(' k7m 4qx ');
+    expect(field).toHaveValue('K7M-4QX');
+    await userEvent.type(field, '{Backspace}{Backspace}{Backspace}{Backspace}');
+    expect(field).toHaveValue('K7M');
+  });
+
   it('says when no poll has the code', async () => {
     vi.mocked(joinPoll).mockRejectedValue(new ApiError(404, 'No poll has this code.'));
     openHome();

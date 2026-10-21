@@ -4,6 +4,15 @@ import { joinPoll } from '../api/client';
 import { errorMessage } from '../i18n/errorMessage';
 import { useI18n } from '../i18n/i18n';
 
+/** A code is six letters and digits, shown as the server writes it down: K7M-4QX. */
+const CODE_LENGTH = 6;
+
+/** What was typed or pasted, as a code: capitals and digits only, six at most, a dash after the third. */
+function formatCode(typed: string): string {
+  const characters = typed.replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, CODE_LENGTH);
+  return characters.length > 3 ? `${characters.slice(0, 3)}-${characters.slice(3)}` : characters;
+}
+
 /** Opens a poll from the short code someone read out or showed on a screen. */
 export default function JoinForm() {
   const { t } = useI18n();
@@ -16,8 +25,7 @@ export default function JoinForm() {
 
   async function join(event: FormEvent) {
     event.preventDefault();
-    // A code is letters and digits: dashes and spaces, whatever their kind, only help reading it.
-    const typed = code.replace(/[^a-z0-9]/gi, '').toUpperCase();
+    const typed = code.replace('-', '');
     if (typed === '') {
       setProblem(t.join.typeTheCode);
       return;
@@ -41,7 +49,6 @@ export default function JoinForm() {
           id={inputId}
           className="join-code"
           value={code}
-          maxLength={12}
           placeholder="K7M-4QX"
           autoComplete="off"
           autoCapitalize="characters"
@@ -49,7 +56,7 @@ export default function JoinForm() {
           enterKeyHint="go"
           aria-invalid={problem ? true : undefined}
           aria-describedby={problem ? problemId : undefined}
-          onChange={(event) => setCode(event.target.value)}
+          onChange={(event) => setCode(formatCode(event.target.value))}
         />
         <button type="submit" className="button primary" disabled={joining}>
           {joining ? t.join.joining : t.join.join}
