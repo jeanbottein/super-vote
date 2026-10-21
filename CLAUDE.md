@@ -39,7 +39,8 @@ workflows, Java, TypeScript, Python), `dependencies.yml` (dependency review
 on pull requests; the server's Maven tree submitted from `main`, so that
 Dependabot sees transitive CVEs), `images.yml` (both images built, started
 with PostgreSQL as `deploy/compose.yaml` runs them, and checked over HTTPS;
-published to GHCR from `main`), `scorecard.yml`, `dependabot.yml` (one
+published to GHCR from `main`, then run on the VPS by `deploy/update.sh`,
+through SSH as a user that can run nothing else), `scorecard.yml`, `dependabot.yml` (one
 weekly pull request for Maven, npm, actions and base images together, majors
 included but PostgreSQL's, Java's and Node's; security updates come at once,
 one pull request each). The main branch's ruleset requires them before

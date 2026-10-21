@@ -97,18 +97,46 @@ Its settings are four, in `deploy/.env` ([.env.example](.env.example)):
 
 ## Updating, and going back
 
+Each commit on main runs on the VPS by itself, once CI has checked and
+published its images: the last job of
+[images.yml](../.github/workflows/images.yml) logs in as `deploy`, whose key
+can run nothing but [update.sh](update.sh), with the commit's SHA. It checks
+that commit out, sets `SUPER_VOTE_TAG` to it, and starts its images; if they
+do not come up healthy, the previous commit runs again and the job fails.
+Two commits close together deploy one after the other, in order: main's runs
+wait for each other, and update.sh takes a lock and refuses a commit older
+than the one running.
+
+To set it up, once (the key pair is made for this alone, on your computer):
+
 ```bash
-cd /opt/super-vote && sudo git pull
-cd deploy && sudo docker compose pull && sudo docker compose up -d --wait
-sudo docker image prune -f
+ssh-keygen -t ed25519 -N '' -C super-vote-deploy -f deploy_key
+scp deploy/update.sh deploy_key.pub ubuntu@<the VPS>:
+ssh ubuntu@<the VPS>
+  sudo install -m 755 update.sh /usr/local/sbin/super-vote-update
+  sudo adduser --system --group --shell /bin/sh deploy
+  echo 'deploy ALL=(root) NOPASSWD: /usr/local/sbin/super-vote-update' | sudo tee /etc/sudoers.d/super-vote-deploy
+  sudo chmod 440 /etc/sudoers.d/super-vote-deploy
+  sudo install -d -m 700 -o deploy -g deploy ~deploy/.ssh
+  echo "restrict,command=\"sudo -n /usr/local/sbin/super-vote-update \\\"\$SSH_ORIGINAL_COMMAND\\\"\" $(cat deploy_key.pub)" \
+    | sudo install -m 600 -o deploy -g deploy /dev/stdin ~deploy/.ssh/authorized_keys
 ```
+
+Then, in the repository's settings, an environment `production` that only
+main may deploy to, with the secrets `DEPLOY_SSH_KEY` (`deploy_key`, the
+private half) and `DEPLOY_KNOWN_HOSTS` (`ssh-keyscan <the VPS>`, checked
+against what the VPS says of its keys), and the variable `DEPLOY_HOST`.
+Delete `deploy_key` from your computer once it is in GitHub.
+
+By hand, the same: `sudo super-vote-update <SHA>`.
 
 While the server restarts, Caddy holds each request for it, 15 seconds at
 most, rather than failing it: nobody's ballot is lost to an update, and open
 poll pages reconnect by themselves.
 
-To go back, put the SHA of the commit to run in `.env` (`SUPER_VOTE_TAG`),
-then `sudo docker compose up -d --wait`; `main` again to come forward. An
+To go back, the simplest is a revert on main, which deploys like any commit.
+By hand: put the SHA of the commit to run in `.env` (`SUPER_VOTE_TAG`), then
+`sudo docker compose up -d --wait`; the next commit on main comes forward. An
 older server starts on a database a newer one migrated: Flyway skips the
 migrations it does not know, and since migrations only ever add, with
 defaults ([servers/java/README.md](../servers/java/README.md#schema-changes)),
