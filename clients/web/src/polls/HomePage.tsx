@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import type { JudgmentCounts, PollOption } from '../api/types';
 import MajorityJudgmentResults from '../features/VotingSystem/MajorityJudgment/MajorityJudgmentResults';
@@ -27,7 +27,6 @@ export default function HomePage() {
   const { t } = useI18n();
   const { features, limits } = useServerInfo();
   const { lists, failure } = usePollLists(features.publicPolls);
-  const [tagline] = useState(() => Math.floor(Math.random() * t.home.taglines.length));
 
   return (
     <>
@@ -35,7 +34,7 @@ export default function HomePage() {
       <div className="home-start">
         <section className="hero home-hero">
           <h1 className="wordmark">SUPER VOTE</h1>
-          <p>{t.home.taglines[tagline]}</p>
+          <p>{t.home.lead}</p>
         </section>
         <div className="panel start">
           <JoinForm />

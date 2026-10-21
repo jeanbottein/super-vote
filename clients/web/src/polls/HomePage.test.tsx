@@ -167,13 +167,6 @@ describe('the home page', () => {
     expect(screen.getByLabelText('Got a code?')).toHaveAttribute('aria-invalid', 'true');
   });
 
-  it('draws a tagline for each visit, the same one in the other language', () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0.99);
-    openHome();
-
-    expect(screen.getByText('The group chat’s new best friend')).toBeInTheDocument();
-  });
-
   it('leads to creating a poll', () => {
     openHome();
 

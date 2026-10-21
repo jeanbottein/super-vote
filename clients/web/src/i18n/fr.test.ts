@@ -66,8 +66,4 @@ describe('the French messages', () => {
     };
     expect(lengths(fr)).toEqual(lengths(en));
   });
-
-  it('has as many taglines as English, in the same order', () => {
-    expect(fr.home.taglines).toHaveLength(en.home.taglines.length);
-  });
 });

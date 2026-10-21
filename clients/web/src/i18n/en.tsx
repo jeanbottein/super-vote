@@ -120,21 +120,7 @@ export const en = {
 
   home: {
     title: 'super-vote · decide together',
-    /** One is drawn each visit: the same places in every language, so a switch keeps the joke. */
-    taglines: [
-      'Modern voting system, for everyday group decisions',
-      'Probably better than your government’s voting system',
-      'Finally, a voting system that works',
-      'Why don’t we all vote like this?',
-      'Pizza or sushi? Settle it like grown-ups',
-      'Because “whatever, you pick” is not a decision',
-      'Democracy, minus the shouting',
-      'Every option gets a say, even the weird ones',
-      'Where the loudest voice does not win',
-      'No account, no ads, no drama',
-      'Maths says it’s fairer. Maths is rarely wrong',
-      'The group chat’s new best friend',
-    ],
+    lead: 'Maths says it’s fairer.',
     createPoll: 'Decide together!',
     yourPolls: 'Decide together…',
     publicPolls: 'Public polls',

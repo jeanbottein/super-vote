@@ -142,7 +142,6 @@ describe('the settings', () => {
 
 describe('the language', () => {
   it("is the device's until one is chosen, in Settings, where each is named in its own words", async () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0); // the first tagline, in each language
     openAt('/');
     expect(document.documentElement.lang).toBe('en');
 
@@ -150,7 +149,7 @@ describe('the language', () => {
     await userEvent.click(within(screen.getByRole('dialog', { name: 'Settings' })).getByRole('radio', { name: 'Français' }));
 
     expect(screen.getByRole('dialog', { name: 'Réglages' })).toBeInTheDocument();
-    expect(screen.getByText('Un système de vote moderne, pour les décisions de groupe du quotidien')).toBeInTheDocument();
+    expect(screen.getByText('Les maths disent que c’est plus juste.')).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('fr');
     expect(loadPreferences().language).toBe('fr');
   });
