@@ -717,8 +717,21 @@ fieldset.field {
 }
 
 @media (min-width: 640px) {
+  /* A code is six characters: the card is as wide as its content, not the page's column. */
   .start {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    width: fit-content;
+    margin-inline: auto;
+  }
+
+  .start > * {
+    padding: 20px;
+  }
+
+  .start .join-row input {
+    flex: none;
+    width: 9em;
   }
 
   .start > form {
