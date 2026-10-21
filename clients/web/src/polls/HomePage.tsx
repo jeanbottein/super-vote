@@ -38,7 +38,10 @@ export default function HomePage() {
         </section>
         <div className="panel start">
           <JoinForm />
-          <Link className="button primary" to="/new">{t.home.createPoll}</Link>
+          <div className="start-new">
+            <p>{t.home.createQuestion}</p>
+            <Link className="button primary" to="/new">{t.home.createPoll}</Link>
+          </div>
         </div>
         <div className="home-actions">
           {failure !== null ? (

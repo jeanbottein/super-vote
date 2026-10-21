@@ -703,15 +703,16 @@ fieldset.field {
   padding: var(--panel-padding);
 }
 
-.start > .button {
-  align-self: center;
-  justify-self: center;
-  margin: var(--panel-padding);
-  padding: 0 18px;
+.start-new {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.start > form + .button {
-  border-top: none;
+/* Like the join form's label, so the two halves line up. */
+.start-new p {
+  margin: 0;
+  font-weight: 600;
 }
 
 @media (min-width: 640px) {
