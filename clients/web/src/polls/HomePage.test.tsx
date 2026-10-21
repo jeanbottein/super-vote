@@ -167,6 +167,11 @@ describe('the home page', () => {
     await userEvent.clear(field);
     await userEvent.paste(' k7m 4qx ');
     expect(field).toHaveValue('K7M-4QX');
+    for (const pasted of ['K7M-4QX', 'k7m4qx', 'K7M–4QX', 'K7M 4QX\n']) { // a dash, none, a typographic one, a space
+      await userEvent.clear(field);
+      await userEvent.paste(pasted);
+      expect(field).toHaveValue('K7M-4QX');
+    }
     await userEvent.type(field, '{Backspace}{Backspace}{Backspace}');
     expect(field).toHaveValue('K7M');
   });
