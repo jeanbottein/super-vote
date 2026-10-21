@@ -185,8 +185,8 @@ export const fr: Messages = {
     },
 
     supportTitle: 'Gratuit, libre, sans publicité',
-    supportText: 'Fait par une personne, sur son temps libre. S’il a aidé votre groupe à décider, vous pouvez '
-      + 'l’aider.',
+    supportText: 'Vous n’êtes pas le produit : le but est de promouvoir de meilleurs modes de scrutin. Fait par '
+      + 'une personne, sur son temps libre. S’il a aidé votre groupe à décider, vous pouvez l’aider.',
 
     limitsTitle: 'Bon à savoir',
     limits: {

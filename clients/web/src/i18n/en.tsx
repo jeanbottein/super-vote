@@ -184,7 +184,8 @@ export const en = {
     },
 
     supportTitle: 'Free, open source, no ads',
-    supportText: 'Made by one person, in their free time. If it helped your group decide, you can help it.',
+    supportText: 'You are not the product: the goal is to promote better voting systems. Made by one person, in '
+      + 'their free time. If it helped your group decide, you can help it.',
 
     limitsTitle: 'Good to know',
     limits: {
