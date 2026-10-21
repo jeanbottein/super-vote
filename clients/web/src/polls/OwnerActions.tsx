@@ -7,6 +7,8 @@ import { errorMessage } from '../i18n/errorMessage';
 import { useI18n } from '../i18n/i18n';
 import Confirmation from '../ui/Confirmation';
 import { useToast } from '../ui/Toasts';
+import CopyableLink from './CopyableLink';
+import { adminUrl } from './links';
 
 interface OwnerActionsProps {
   poll: Poll;
@@ -15,8 +17,8 @@ interface OwnerActionsProps {
 
 /**
  * What only the poll's creator can do: close voting, for good, and delete the
- * poll. Both ask first. Only this browser can: it says so, since another
- * device, or clearing its data, loses the poll for good.
+ * poll. Both ask first. It is done from one browser at a time; the admin link
+ * brings the poll to another one.
  */
 export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
   const { t } = useI18n();
@@ -25,6 +27,8 @@ export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
   const titleId = useId();
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState<'close' | 'delete' | null>(null);
+  // Shown on demand: a creator's page is often the one on a projector, for its code and results.
+  const [showingAdminLink, setShowingAdminLink] = useState(false);
   const closeButton = useRef<HTMLButtonElement>(null);
   const deleteButton = useRef<HTMLButtonElement>(null);
 
@@ -61,7 +65,18 @@ export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
   return (
     <section className="panel owner-actions" aria-labelledby={titleId}>
       <h2 id={titleId}>{t.owner.manage}</h2>
-      <p className="hint">{t.owner.onlyThisBrowser}</p>
+      {poll.adminToken ? (
+        <>
+          <p className="hint">{t.owner.adminLinkHint}</p>
+          {showingAdminLink
+            ? <CopyableLink url={adminUrl(poll.id, poll.adminToken)} label={t.owner.adminLink} />
+            : (
+              <button type="button" className="button secondary admin-reveal" onClick={() => setShowingAdminLink(true)}>
+                {t.owner.showAdminLink}
+              </button>
+            )}
+        </>
+      ) : <p className="hint">{t.owner.onlyThisBrowser}</p>}
       {confirming === null && (
         <div className="button-row">
           {poll.closedAt === null && (

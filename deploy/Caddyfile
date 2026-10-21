@@ -40,7 +40,9 @@
 		-Server
 	}
 
-	@server path /api/* /v3/api-docs /v3/api-docs/* /v3/api-docs.yaml /llms.txt
+	# /actuator/health is for an uptime monitor: {"status":"UP"}, or DOWN with a 503 when the server cannot
+	# reach its database. The rest of the actuator stays out of reach.
+	@server path /api/* /v3/api-docs /v3/api-docs/* /v3/api-docs.yaml /llms.txt /actuator/health
 	handle @server {
 		request_body {
 			max_size 64KB

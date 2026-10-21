@@ -76,16 +76,36 @@ describe('a poll page', () => {
 
   it('gives its creator the link to share it, right after creating it', async () => {
     const user = userEvent.setup();
-    vi.mocked(getPoll).mockResolvedValue({ ...lunch, isMine: true });
+    vi.mocked(getPoll).mockResolvedValue({ ...lunch, isMine: true, adminToken: 'admin-token' });
     openPoll({ pathname: '/p/abc', state: { created: true } });
 
     expect(await screen.findByText('Your poll is ready.')).toBeInTheDocument();
-    await user.click(screen.getAllByRole('button', { name: 'Share' })[0]);
-    const dialog = screen.getByRole('dialog', { name: 'Share this poll' });
-    await user.click(within(dialog).getByRole('button', { name: 'Copy' }));
+    expect(screen.getByRole('heading', { name: 'Keep your admin link' })).toBeInTheDocument();
+    expect(screen.getAllByRole('textbox', { name: 'Admin link of the poll' })[0])
+      .toHaveValue(`${window.location.origin}/p/abc#admin=admin-token`);
+    const link = `${window.location.origin}/p/abc`;
+    const field = screen.getByRole('textbox', { name: 'Link to the poll' });
+    expect(field).toHaveValue(link); // in plain view
+    const row = field.closest<HTMLElement>('.share-link')!;
+    await user.click(within(row).getByRole('button', { name: 'Copy' }));
+    expect(await navigator.clipboard.readText()).toBe(link);
+    expect(within(row).getByRole('button', { name: 'Copied' })).toBeInTheDocument();
 
-    expect(await navigator.clipboard.readText()).toBe(`${window.location.origin}/p/abc`);
-    expect(within(dialog).getByRole('button', { name: 'Copied' })).toBeInTheDocument();
+    const code = screen.getByText((_, element) => element?.classList.contains('join-code') ?? false).textContent!;
+    await user.click(screen.getByRole('button', { name: 'Copy the join code' }));
+    expect(await navigator.clipboard.readText()).toBe(code);
+
+    await user.click(screen.getAllByRole('button', { name: 'Share' })[0]); // more ways: a QR code, an email
+    expect(screen.getByRole('dialog', { name: 'Share this poll' })).toBeInTheDocument();
+  });
+
+  it('gives no link to share for a poll by invitation: each person has their own', async () => {
+    vi.mocked(getPoll).mockResolvedValue({ ...lunch, isMine: true, invitationOnly: true });
+    openPoll({ pathname: '/p/abc', state: { created: true } });
+
+    expect(await screen.findByText(/Invite people below/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Share' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Link to the poll' })).not.toBeInTheDocument();
   });
 
   it('warns its creator when it was one of the last polls their connection may create in its day', async () => {
@@ -94,8 +114,8 @@ describe('a poll page', () => {
     openPoll({ pathname: '/p/abc', state: { created: true, pollsLeft: { count: 4, perDay: 20, resetsAt } } });
 
     expect(await screen.findByText(/You can create 4 more polls in the next 5 hours\./)).toHaveTextContent(
-      "You can create 4 more polls in the next 5 hours. As super-vote's resources are limited, each connection can "
-      + 'create 20 polls a day, to be fair to everyone.',
+      'You can create 4 more polls in the next 5 hours. To be fair to everyone, each connection can create 20 polls a '
+      + 'day.',
     );
   });
 
@@ -238,7 +258,7 @@ describe('managing a poll', () => {
     openPoll();
 
     await userEvent.click(await screen.findByRole('button', { name: 'Close voting' }));
-    expect(screen.getByRole('alertdialog')).toHaveTextContent('A closed poll cannot be reopened.');
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('Close voting for good?');
     expect(closePoll).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole('button', { name: 'Close for good' }));
 
@@ -420,7 +440,7 @@ describe('a counted ballot', () => {
   it('stays hidden until the voter opens it to change it, and can be hidden again', async () => {
     openPoll();
 
-    expect(await screen.findByText(/It stays hidden here/)).toBeInTheDocument();
+    expect(await screen.findByText(/hidden here/)).toBeInTheDocument();
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Change my ballot' }));

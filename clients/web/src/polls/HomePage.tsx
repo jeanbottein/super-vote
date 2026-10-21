@@ -1,20 +1,24 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
-import type { JudgmentCounts, PollOption } from '../api/types';
-import MajorityJudgmentResults from '../features/VotingSystem/MajorityJudgment/MajorityJudgmentResults';
 import { errorMessage } from '../i18n/errorMessage';
 import { useI18n } from '../i18n/i18n';
-import Logo from '../ui/Logo';
+import { CupIcon, HeartIcon } from '../ui/icons';
 import AgentPrompt from './AgentPrompt';
 import JoinForm from './JoinForm';
 import PollList from './PollList';
+import TwoSystems from './TwoSystems';
 import { usePollLists } from './usePollLists';
 import { useServerInfo } from './useServerInfo';
+import VotingSystemsTable from './VotingSystemsTable';
+
+export const KO_FI_URL = 'https://ko-fi.com/jean64';
+export const GITHUB_SPONSORS_URL = 'https://github.com/sponsors/jeanbottein';
 
 /**
- * First what people come to do, create a poll or join one; below, how it
- * works, how to have an AI agent create one, what super-vote is, what
- * difference it makes, how to support it, and what it is not for.
+ * First what people come to do, create a poll or join one; below, in few
+ * words, how it works, how majority judgment decides and how it compares,
+ * how to have an AI agent create a poll, how to support super-vote, and what
+ * it is not for.
  */
 export default function HomePage() {
   const { t } = useI18n();
@@ -25,14 +29,21 @@ export default function HomePage() {
     <>
       <title>{t.home.title}</title>
       <div className="home-start">
-        <section className="hero">
-          <Logo />
-          <h1>{t.home.headline}</h1>
+        <section className="hero home-hero">
+          <h1 className="wordmark">
+            {/* The mark is an S: it stands for the first letter, which assistive technology reads. */}
+            <img className="logo wordmark-s" src="/favicon.svg" alt="S" />UPER VOTE
+          </h1>
           <p>{t.home.lead}</p>
-          <Link className="button primary" to="/new">{t.home.createPoll}</Link>
         </section>
-        <div className="home-actions">
+        <div className="panel start">
+          <div className="start-new">
+            <p>{t.home.createQuestion}</p>
+            <Link className="button primary" to="/new">{t.home.createPoll}</Link>
+          </div>
           <JoinForm />
+        </div>
+        <div className="home-actions">
           {failure !== null ? (
             <p className="panel error-text" role="alert">{errorMessage(failure, t)}</p>
           ) : (
@@ -53,46 +64,44 @@ export default function HomePage() {
         </div>
       </div>
 
-      <section className="home-section">
-        <h2>{t.home.howItWorks}</h2>
-        <ol className="home-cards steps">
-          {t.home.steps.map((step) => (
-            <li key={step.title} className="panel">
-              <h3>{step.title}</h3>
-              <p>{step.text}</p>
-            </li>
-          ))}
-        </ol>
+      <div className="home-section how-and-support">
+        <section className="panel">
+          <h2>{t.home.howItWorks}</h2>
+          <ol className="steps">
+            {t.home.steps.map((step) => (
+              <li key={step.title}>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+        <section className="panel support">
+          <h2>{t.home.supportTitle}</h2>
+          <p>{t.home.supportText}</p>
+          <div className="button-row">
+            <a className="button secondary" href={KO_FI_URL} target="_blank" rel="noreferrer">
+              <CupIcon />Ko-fi
+            </a>
+            <a className="button secondary" href={GITHUB_SPONSORS_URL} target="_blank" rel="noreferrer">
+              <HeartIcon />GitHub Sponsors
+            </a>
+          </div>
+        </section>
+      </div>
+
+      <TwoSystems />
+
+      <section className="home-section beside">
+        <div>
+          <h2>{t.home.compare.title}</h2>
+          <p>{t.home.compare.text}</p>
+          <Link to="/about">{t.home.compare.science}</Link>
+        </div>
+        <VotingSystemsTable />
       </section>
 
       <AgentPrompt />
-
-      <section className="home-section grade">
-        <div>
-          <h2>{t.home.gradeTitle}</h2>
-          <p>{t.home.gradeText}</p>
-        </div>
-        <figure className="panel example">
-          <h3>{t.home.example.question}</h3>
-          <MajorityJudgmentResults options={exampleOptions(t.home.example.options)} />
-          <figcaption className="hint">{t.home.example.caption}</figcaption>
-        </figure>
-      </section>
-
-      <section className="home-section">
-        <h2>{t.home.whyTitle}</h2>
-        <p className="home-text">{t.home.whyText}</p>
-        <ul className="home-cards reasons">
-          {t.home.reasons.map((reason) => (
-            <li key={reason.title} className="panel">
-              <h3>{reason.title}</h3>
-              <p>{reason.text}</p>
-            </li>
-          ))}
-        </ul>
-        <p className="home-text">{t.home.vision}</p>
-        <p className="home-text">{t.home.support}</p>
-      </section>
 
       <section className="panel home-section good-to-know">
         <h2>{t.home.limitsTitle}</h2>
@@ -101,6 +110,7 @@ export default function HomePage() {
           <li>{t.home.limits.private}</li>
           <li>{t.home.limits.browser(limits.pollLifetimeDays)}</li>
           <li>{t.home.limits.deleted(limits.pollLifetimeDays)}</li>
+          <li>{t.home.limits.disclaimer}</li>
         </ul>
         <Link to="/privacy">{t.home.limitsLink}</Link>
       </section>
@@ -115,39 +125,4 @@ function Panel({ title, children }: { title: string; children: ReactNode }) {
       {children}
     </section>
   );
-}
-
-/**
- * Twenty friends choosing dinner: one option most of them like, one with the
- * most fans that as many reject, one in between. The places are what the
- * server ranks them (api/Ranking.java): pizza has the best majority mention,
- * Good; sushi and burgers share Fair, and the GMJ score, (above - below) /
- * at, separates them: (10 - 9) / 1 against (8 - 7) / 5.
- */
-const EXAMPLE: { counts: JudgmentCounts; rank: number; majorityMention: PollOption['majorityMention'];
-  score: PollOption['score'] }[] = [
-  {
-    counts: { Excellent: 3, VeryGood: 7, Good: 6, Fair: 3, Passable: 1, Inadequate: 0, Bad: 0 },
-    rank: 1, majorityMention: 'Good', score: { numerator: 6, denominator: 6 },
-  },
-  {
-    counts: { Excellent: 8, VeryGood: 1, Good: 1, Fair: 1, Passable: 2, Inadequate: 3, Bad: 4 },
-    rank: 2, majorityMention: 'Fair', score: { numerator: 1, denominator: 1 },
-  },
-  {
-    counts: { Excellent: 1, VeryGood: 3, Good: 4, Fair: 5, Passable: 4, Inadequate: 2, Bad: 1 },
-    rank: 3, majorityMention: 'Fair', score: { numerator: 1, denominator: 5 },
-  },
-];
-
-function exampleOptions(labels: readonly string[]): PollOption[] {
-  return EXAMPLE.map((option, index) => ({
-    id: `example-${index}`,
-    label: labels[index],
-    approvalCount: null,
-    judgmentCounts: option.counts,
-    rank: option.rank,
-    majorityMention: option.majorityMention,
-    score: option.score,
-  }));
 }

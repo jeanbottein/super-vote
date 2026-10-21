@@ -87,7 +87,7 @@ send a credential casting ballots as a stranger is not.
 | `GET` | `/api/polls/{id}` | `PollView` |
 | `GET` | `/api/polls/{id}/places` | `PollPlaces`: where its ballots come from, once its results show; `Cache-Control: max-age=60` |
 | `GET` | `/api/polls/{id}/results` | `PollUpdate`: the results, the same for everyone, `Cache-Control: max-age=1` |
-| `POST` | `/api/polls/{id}/creator` | `PollView`: becomes the poll's creator, with `Super-Vote-Handover` |
+| `POST` | `/api/polls/{id}/creator` | `PollView`: becomes the poll's creator, with `Super-Vote-Handover` or `Super-Vote-Admin` |
 | `GET` | `/api/join/{code}` | `PollSummary`: the poll behind a join code (only its letters and digits count, in any case) |
 | `PATCH` | `/api/polls/{id}` | `PollView`: creator only, `{"closed": true}` closes it for good; anything else answers `400` |
 | `DELETE` | `/api/polls/{id}` | `204`: creator only |
@@ -99,7 +99,7 @@ send a credential casting ballots as a stranger is not.
 | `POST` | `/api/mcp` | the same services as Model Context Protocol tools |
 | `GET` | `/v3/api-docs` | this API as OpenAPI (`.yaml` too) |
 | `GET` | `/llms.txt` | this API for agents, in Markdown ([llmstxt.org](https://llmstxt.org)) |
-| `GET` | `/actuator/health` | `{"status":"UP"}`: readiness probe |
+| `GET` | `/actuator/health` | `{"status":"UP"}`, or `DOWN` with a `503`: readiness probe and uptime monitors |
 
 Answers under `/api` carry `Cache-Control: no-store` unless the table says
 otherwise: most hold the caller's own ballot, polls or invitations, which no
@@ -161,7 +161,8 @@ A poll as the calling voter sees it.
     "judgments": { "1": "Excellent" },   // majority judgment: option id -> mention
     "voterName": "Zoé"                   // the name the caller gave, or null
   },
-  "handover": null                       // see "Creating a poll for somebody else"
+  "handover": null,                      // see "Creating a poll for somebody else"
+  "adminToken": "Xk2_..."                // the creator's only: see "The admin link"
 }
 ```
 
@@ -390,6 +391,32 @@ signed rather than stored, so the database holds no credential, and a client
 retrying the request that created the poll is told it again. `handover` is null
 in every other answer: only the request that created the poll ever carries it.
 
+## The admin link
+
+A poll is managed from one browser: its creator's. So that it can be managed
+from another, its creator's view carries `adminToken` (null for anyone else),
+which the web app shows as a link to keep:
+
+```
+https://super-vote.org/p/R0JsGfPEiNuO7CoMMd_I5g#admin=Xk2_...
+```
+
+Opening it makes that browser the poll's creator, in place of the one before.
+Unlike a handover, it works as often as it is used: the poll moves to whichever
+browser opened the link last, and the link brings it back. A client sends it in
+a header:
+
+```
+POST /api/polls/{id}/creator
+Super-Vote-Admin: Xk2_...
+```
+
+A token that is not this poll's answers `403`, `/problems/not-admin-link`. It
+is signed rather than stored, and cannot be revoked: whoever holds the link
+can manage the poll until it is deleted, so it is to be kept, not shared.
+While a handover is open there is none, so that a client creating a poll for
+somebody else never holds a link that outlives the handover.
+
 ## Casting a ballot
 
 `PUT` replaces the caller's whole ballot. Casting, revising and withdrawing are
@@ -566,6 +593,7 @@ to a machine, and is what to branch on.
 | `/problems/not-poll-creator` | `403` | Only the poll's creator can do that |
 | `/problems/not-invited` | `403` | Only invited people can vote on this poll |
 | `/problems/handover-unavailable` | `403` | That handover token is spent, or not this poll's |
+| `/problems/not-admin-link` | `403` | That admin token is not this poll's |
 | `/problems/cross-site` | `403` | Another website's page made the request (see [Identity](#identity)) |
 | `/problems/poll-not-found` | `404` | No poll has that id or join code (or it was deleted) |
 | `/problems/poll-closed` | `409` | The poll is closed |

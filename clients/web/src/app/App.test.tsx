@@ -34,7 +34,7 @@ describe('the app', () => {
   it('opens on the home page, with no way back from there', async () => {
     openAt('/');
 
-    expect(await screen.findByRole('heading', { name: 'Decide together, fairly.' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'SUPER VOTE' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Home' })).not.toBeInTheDocument();
   });
 
@@ -44,7 +44,7 @@ describe('the app', () => {
     expect(screen.getByRole('heading', { name: 'Decide together' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('link', { name: 'Home' }));
 
-    expect(await screen.findByRole('heading', { name: 'Decide together, fairly.' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'SUPER VOTE' })).toBeInTheDocument();
   });
 
   it('shows the statistics from every page, once their page has loaded', async () => {
@@ -149,7 +149,7 @@ describe('the language', () => {
     await userEvent.click(within(screen.getByRole('dialog', { name: 'Settings' })).getByRole('radio', { name: 'Français' }));
 
     expect(screen.getByRole('dialog', { name: 'Réglages' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Décider ensemble, équitablement.' })).toBeInTheDocument();
+    expect(screen.getByText('Les maths disent que c’est plus juste.')).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('fr');
     expect(loadPreferences().language).toBe('fr');
   });

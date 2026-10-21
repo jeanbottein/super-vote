@@ -110,8 +110,8 @@ themes, components, contrast) is `docs/DESIGN.md`: read it before changing a
 stylesheet.
 
 **Edge**: `deploy/Caddyfile` is the one public address, HTTPS only: it serves
-the built web app and passes `/api`, `/v3/api-docs` and `/llms.txt` to the
-server, which only the machine reaches (`127.0.0.1:8080`). It runs as
+the built web app and passes `/api`, `/v3/api-docs`, `/llms.txt` and
+`/actuator/health` (for uptime monitors) to the server, which only the machine reaches (`127.0.0.1:8080`). It runs as
 `deploy/compose.yaml` says, from two images (`servers/java/Dockerfile`, and
 `clients/web/Dockerfile`: Caddy with the Caddyfile and the built app) that
 `.github/workflows/images.yml` starts together and checks on every pull
@@ -161,7 +161,8 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
   moves: ballots name options by id, and exports keep the poll's order.
 - **Everything people read is in `src/i18n`**: `en.tsx` is the source, each
   translation (`fr.tsx`) is typed by it, so a missing or extra message does
-  not compile. No sentence in a component: add it to both files. Messages are
+  not compile. No sentence in a component: add it to both files (the one
+  exception is the dev ballot feeder, a developer's English that never ships). Messages are
   strings, elements, or functions of plain values; numbers, dates and plurals
   go through `format.ts` (Intl). French follows its typography, which
   `fr.test.ts` enforces: no-break spaces before `:` and inside « », narrow
@@ -183,6 +184,12 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
 - **A problem's `type` is contract, its `detail` is prose.** Every failure the
   server raises has a `ProblemType`; machine clients branch on it, so adding a
   failure means adding one. `detail` stays the sentence a person reads.
+- **`PollView.adminToken` is the creator's alone**, every time they read the
+  poll, never while a handover is open, and never in what watchers receive
+  (`PollUpdate`). Brought to `POST /api/polls/{id}/creator` (`Super-Vote-Admin`),
+  it makes the caller the creator in place of the one before, as often as it
+  is used: a poll is managed from one browser at a time, and the link moves
+  it. Signed (`AdminLinks`), never stored, not revocable.
 - **`PollView.handover` is a write-once secret.** Only the answer that created
   the poll carries it, and only when the request asked for it. A test pins
   that `GET /api/polls/{id}` never does.

@@ -20,6 +20,10 @@ import java.util.List;
  * that created the poll for somebody else and now sends it to them. It is only
  * ever answered by the request that created the poll, and only when that
  * request asked for it: null everywhere else, this being a credential.
+ *
+ * adminToken is the token of the poll's admin link, answered to its creator
+ * only, and to none while a handover is open: whoever brings it to POST
+ * /api/polls/{id}/creator becomes the creator, from any browser.
  */
 public record PollView(
     String id,
@@ -42,5 +46,6 @@ public record PollView(
     List<String> voterNames,
     boolean moreVoterNames,
     MyBallotView myBallot,
-    String handover
+    String handover,
+    String adminToken
 ) {}

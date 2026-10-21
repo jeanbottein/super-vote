@@ -1,6 +1,7 @@
 import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getPoll, takePollOver, watchPoll } from '../api/client';
+import { ApiError, getPoll, takePollOver, watchPoll } from '../api/client';
 import { lunchPoll } from '../test/fixtures';
 import { renderAt } from '../test/render';
 import PollPage from './PollPage';
@@ -28,7 +29,7 @@ describe('a handover link', () => {
 
     renderAt('/p/abc#handover=secret-token', [{ path: '/p/:id', element: <PollPage /> }]);
 
-    await waitFor(() => expect(takePollOver).toHaveBeenCalledWith('abc', 'secret-token'));
+    await waitFor(() => expect(takePollOver).toHaveBeenCalledWith('abc', { handover: 'secret-token' }));
     expect(await screen.findByText('Where do we eat?')).toBeInTheDocument();
     expect(window.location.hash).toBe('');
   });
@@ -50,5 +51,46 @@ describe('a handover link', () => {
 
     expect(await screen.findByText('Where do we eat?')).toBeInTheDocument();
     expect(takePollOver).not.toHaveBeenCalled();
+  });
+});
+
+/** A poll's admin link: its creator opens it in another browser to manage the poll from there. */
+describe('an admin link', () => {
+  beforeEach(() => {
+    vi.mocked(watchPoll).mockReturnValue(() => {});
+    window.history.replaceState(null, '', '/p/abc');
+  });
+
+  it('makes the poll yours, then takes the token out of the address', async () => {
+    vi.mocked(takePollOver).mockResolvedValue(lunchPoll({ isMine: true }));
+    vi.mocked(getPoll).mockResolvedValue(lunchPoll({ isMine: true, adminToken: 'admin-token' }));
+
+    renderAt('/p/abc#admin=admin-token', [{ path: '/p/:id', element: <PollPage /> }]);
+
+    await waitFor(() => expect(takePollOver).toHaveBeenCalledWith('abc', { admin: 'admin-token' }));
+    expect(await screen.findByRole('heading', { name: 'Manage your poll' })).toBeInTheDocument();
+    expect(window.location.hash).toBe('');
+  });
+
+  /** Asked for, not in plain view: a creator's page is often the one on a projector. */
+  it('is shown to the creator who asks, to open elsewhere', async () => {
+    vi.mocked(getPoll).mockResolvedValue(lunchPoll({ isMine: true, adminToken: 'admin-token' }));
+
+    renderAt('/p/abc', [{ path: '/p/:id', element: <PollPage /> }]);
+    await userEvent.click(await screen.findByRole('button', { name: 'Show the admin link' }));
+
+    expect(screen.getByRole('textbox', { name: 'Admin link of the poll' }))
+      .toHaveValue(`${window.location.origin}/p/abc#admin=admin-token`);
+  });
+
+  it('says when it is not this poll’s', async () => {
+    vi.mocked(takePollOver).mockRejectedValue(
+      new ApiError(403, 'This admin link is not this poll’s.', '/problems/not-admin-link'));
+    vi.mocked(getPoll).mockResolvedValue(lunchPoll({ isMine: false }));
+
+    renderAt('/p/abc#admin=truncated', [{ path: '/p/:id', element: <PollPage /> }]);
+
+    expect(await screen.findByText(/Check that it was copied whole/)).toBeInTheDocument();
+    expect(await screen.findByText('Where do we eat?')).toBeInTheDocument();
   });
 });

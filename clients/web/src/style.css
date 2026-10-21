@@ -653,30 +653,122 @@ fieldset.field {
   font-size: 17px;
 }
 
-/* Create or join first: one column on a phone, the hero beside the join form on a wide screen. */
+/* Like a search page: the name, one line under it, and what to do, centred. */
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 4px 8px;
+  text-align: center;
+}
+
+.home-hero .wordmark {
+  margin: 0;
+  font-size: clamp(36px, 11vw, 60px);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  /* The tracking trails the last letter: shift back so the word sits in the middle. */
+  margin-inline-end: -0.14em;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+/* The logo is the S: as tall as the capitals, and the gap the letters' tracking would leave. */
+.home-hero .wordmark-s {
+  display: inline-block;
+  width: 0.85em;
+  margin-inline-end: 0.14em;
+  vertical-align: -0.08em;
+}
+
+.home-hero p {
+  max-width: 24em;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  font-style: italic;
+  text-wrap: balance;
+}
+
 .home-start,
 .home-actions {
   display: flex;
   flex-direction: column;
   gap: var(--section-gap);
+  width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
 }
 
-@media (min-width: 960px) {
-  .home-start {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    align-items: center;
-    gap: 48px;
-    padding-bottom: 16px;
+/* Two halves divided by a hairline: the button to start, then the code to type. */
+.start {
+  display: grid;
+  gap: 0;
+  padding: 0;
+}
+
+.start > * {
+  padding: var(--panel-padding);
+}
+
+/* Each half's content centred under its question. */
+.start-new {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+/* Like the join form's label, so the two halves line up. */
+.start-new p {
+  margin: 0;
+  font-weight: 600;
+}
+
+@media (min-width: 640px) {
+  /* A code is six characters: the card is as wide as its content, not the page's column. */
+  .start {
+    grid-template-columns: 1fr 1fr;
+    justify-content: center;
+    width: fit-content;
+    margin-inline: auto;
+  }
+
+  .start > * {
+    padding: 20px 36px;
+  }
+
+  .start .join-row input {
+    flex: none;
+    width: 7.5em;
+    padding-inline: 10px;
+  }
+
+  .start > .start-new {
+    border-inline-end: 1px solid var(--border);
   }
 }
 
-/* What super-vote is, under what people come to do: more air, and headings that start a chapter. */
+@media (max-width: 639.98px) {
+  .start > .start-new {
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+/* What super-vote is, under what people come to do: few words, and air between chapters. */
 .home-section {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 24px;
+}
+
+@media (min-width: 960px) {
+  .home-section {
+    margin-top: 48px;
+  }
 }
 
 .home-section h2 {
@@ -686,84 +778,288 @@ fieldset.field {
 }
 
 .home-section h3 {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 17px;
 }
 
-.home-text {
-  max-width: 44em;
+.home-section p {
+  margin: 0;
+  max-width: 34em;
 }
 
-.home-cards {
+/* Three steps, each an icon in ink and a few words: a list on a phone, a row from 720 px. */
+/* How it works beside who makes it possible, from 720 px; one under the other on a phone. */
+.how-and-support {
   display: grid;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  gap: var(--section-gap);
+}
+
+.how-and-support > section:first-child > h2 {
+  margin-bottom: 16px;
 }
 
 @media (min-width: 720px) {
-  .home-cards {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .how-and-support {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--section-gap);
   }
 }
 
-/* The steps say their number in ink: what to do first, then next. */
+/* Three steps, one under the other, numbered in ink and joined by a line. */
 .steps {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   counter-reset: step;
 }
 
-.steps li::before {
+.steps li {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 0 0 20px 56px;
   counter-increment: step;
+}
+
+.steps li:last-child {
+  padding-bottom: 0;
+}
+
+.steps li::before {
   content: counter(step);
+  position: absolute;
+  inset: 0 auto auto 0;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  margin-bottom: 12px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--accent-soft);
   color: var(--accent-text);
   font-weight: 700;
 }
 
-/*
- * An example beside what it shows, on a wide screen: results (.grade), a
- * prompt for an AI agent (.agent). On a phone, the words come first.
- */
-.example,
-.agent-prompt,
-.grade > div,
-.agent > div {
+.steps li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  inset: 44px auto 4px 19px;
+  width: 2px;
+  background: var(--border-strong);
+  opacity: 0.5;
+}
+
+.steps h3 {
+  align-self: end;
+}
+
+.steps p {
+  color: var(--muted);
+}
+
+.support {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.example,
+/*
+ * Words beside what they speak of, on a wide screen: the
+ * comparison of voting systems, a prompt for an AI agent. On a phone, the
+ * words come first.
+ */
+.beside > div,
 .agent-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
   margin: 0;
 }
 
+.agent-prompt {
+  align-items: stretch;
+}
+
 @media (min-width: 960px) {
-  .grade,
-  .agent {
+  .beside {
     display: grid;
     grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
     align-items: start;
     gap: 32px;
   }
 
-  .grade > div,
-  .agent > div {
-    padding-top: 8px;
-  }
-
-  /* The explanation stays in view while the example, taller, scrolls past. */
-  .grade > div {
+  /* The words stay in view while what they speak of, taller, scrolls past. */
+  .beside > div {
     position: sticky;
     top: calc(var(--header-height) + 24px);
+    padding-top: 8px;
   }
+}
+
+/* Two systems, side by side from 640 px, each a small drawing over its name and a line. */
+.systems {
+  display: grid;
+  gap: 12px;
+}
+
+.systems article {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.systems h3,
+.systems p {
+  margin: 0;
+}
+
+.systems p {
+  color: var(--muted);
+}
+
+@media (min-width: 640px) {
+  .systems {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--section-gap);
+  }
+}
+
+.schema {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.schema-bar {
+  display: flex;
+  height: 14px;
+  overflow: hidden;
+  border-radius: 7px;
+  background: var(--surface-sunken);
+}
+
+/* The mentions' own colours, from Excellent on the left; a line marks the half. */
+.graded .schema-bar > span {
+  flex-basis: 0;
+  background: var(--mention);
+}
+
+.graded {
+  position: relative;
+}
+
+.graded::after {
+  content: "";
+  position: absolute;
+  inset: -3px auto -3px 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--fg);
+  opacity: 0.6;
+}
+
+/* Ink, not the mentions' colours: approving is not grading. */
+.approved .schema-bar > span {
+  background: var(--border-strong);
+}
+
+.approved .schema-bar[data-first] > span {
+  background: var(--accent);
+}
+
+/* The comparison: marks in ink, never green or red, which belong to the mentions; majority judgment's column tinted. */
+.compare {
+  margin: 0;
+}
+
+.compare table {
+  width: 100%;
+  font-size: 15px;
+  line-height: 1.35;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.compare th,
+.compare td {
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.compare tbody tr:last-child > * {
+  border-bottom: none;
+}
+
+.compare thead th {
+  font-size: 13px;
+  hyphens: auto;
+  font-weight: 600;
+  line-height: 1.25;
+  vertical-align: bottom;
+}
+
+.compare thead .hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* A fixed layout takes its widths from the first row: the empty corner sets the criteria's. */
+.compare thead td {
+  width: 34%;
+}
+
+@media (min-width: 400px) {
+  .compare thead td {
+    width: 46%;
+  }
+}
+
+.compare tbody th {
+  padding-inline-start: 0;
+  font-weight: 400;
+  text-align: start;
+}
+
+.compare [data-highlight] {
+  background: var(--accent-soft);
+}
+
+.compare thead [data-highlight] {
+  border-radius: var(--radius-small) var(--radius-small) 0 0;
+}
+
+.compare tbody tr:last-child [data-highlight] {
+  border-radius: 0 0 var(--radius-small) var(--radius-small);
+}
+
+.compare td .icon {
+  display: block;
+  margin: auto;
+}
+
+.compare [data-mark="yes"] {
+  color: var(--accent-text);
+}
+
+.compare [data-mark="partly"],
+.compare [data-mark="no"] {
+  color: var(--muted);
+}
+
+.compare [data-mark="no"] .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.compare figcaption {
+  margin-top: 12px;
 }
 
 /* The words to copy, in a well: what the person pastes into their assistant. */
@@ -792,11 +1088,19 @@ fieldset.field {
   visibility: hidden;
 }
 
+.support .button-row {
+  margin-top: 4px;
+}
+
 .good-to-know ul {
   display: grid;
   gap: 12px;
   margin: 0;
   padding-left: 20px;
+}
+
+.good-to-know li:last-child {
+  grid-column: 1 / -1;
 }
 
 .good-to-know li::marker {
@@ -813,7 +1117,7 @@ fieldset.field {
 /* A join code, typed or shown: capitals and digits that stay apart. */
 .join-code {
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.08em;
 }
 
@@ -825,6 +1129,15 @@ fieldset.field {
 
 .join-form > label {
   font-weight: 600;
+}
+
+.start .join-form {
+  align-items: center;
+  text-align: center;
+}
+
+.start .join-row {
+  justify-content: center;
 }
 
 .join-row {
@@ -954,6 +1267,77 @@ fieldset.field {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+/* A poll just created: its link to copy, and its code, in plain view. */
+.callout.ready {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: start;
+}
+
+.ready p {
+  margin: 0;
+}
+
+.ready > p:first-child {
+  font-weight: 600;
+}
+
+.ready-code {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.ready-code {
+  align-items: center;
+}
+
+.ready-code .join-code {
+  color: var(--fg);
+  font-size: 22px;
+}
+
+/* On a phone the link keeps a line of its own, its buttons under it. */
+.ready .share-link {
+  flex-wrap: wrap;
+}
+
+.ready .share-link input {
+  flex: 1 1 14em;
+}
+
+/* What a creator must not lose, in amber like a warning: the admin link, which brings the poll to any browser. */
+.keep {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-color: var(--warning-text);
+}
+
+.keep h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--warning-text);
+}
+
+.keep h2::before {
+  content: "";
+  flex: none;
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  mask: var(--icon-warning) center / contain no-repeat;
+}
+
+.keep p {
+  margin: 0;
 }
 
 .callout {
@@ -1138,6 +1522,12 @@ fieldset.field {
 
 .owner-actions .confirm {
   margin-top: 16px;
+}
+
+/* The admin link, then what it lets you do. */
+.owner-actions .share-link,
+.owner-actions .admin-reveal {
+  margin-bottom: 16px;
 }
 
 .invitations {

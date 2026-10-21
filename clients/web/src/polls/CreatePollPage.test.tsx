@@ -55,9 +55,9 @@ describe('creating a poll', () => {
     expect(screen.getAllByRole('radio', { name: /A to Z|Shuffled|As written/ }).map((radio) => radio.getAttribute('value')))
       .toEqual(['ALPHABETICAL', 'SHUFFLED', 'AS_WRITTEN']);
     expect(screen.getByRole('radio', { name: 'Shuffled' })).toBeChecked();
-    expect(screen.getByText(/Each voter sees them in an order of their own/)).not.toHaveAttribute('data-tone');
+    expect(screen.getByText(/A new order for each voter/)).not.toHaveAttribute('data-tone');
     await userEvent.click(screen.getByRole('radio', { name: 'As written' }));
-    expect(screen.getByText(/can be taken for an attempt to sway the result/)).toHaveAttribute('data-tone', 'warning');
+    expect(screen.getByText(/can look like an attempt to sway the result/)).toHaveAttribute('data-tone', 'warning');
     await userEvent.type(screen.getByLabelText('Question'), 'Where do we eat?');
     await userEvent.type(screen.getByLabelText('Option 1'), 'Ramen');
     await userEvent.type(screen.getByLabelText('Option 2'), 'Tacos');
@@ -97,7 +97,7 @@ describe('creating a poll', () => {
 
     expect(await screen.findByText(/In a small group, that shows who chose what/)).toHaveAttribute('data-tone', 'warning');
     await userEvent.click(screen.getByRole('radio', { name: 'At close' }));
-    expect(screen.getByText(/Results show once you close the poll/)).not.toHaveAttribute('data-tone');
+    expect(screen.getByText(/Shown once you close the poll/)).not.toHaveAttribute('data-tone');
   });
 
   it('warns that anyone with the link can vote again from another browser, unless invited', async () => {
@@ -107,7 +107,7 @@ describe('creating a poll', () => {
     await userEvent.type(screen.getByLabelText('Option 1'), 'Ana');
     await userEvent.type(screen.getByLabelText('Option 2'), 'Bob');
 
-    expect(screen.getByText(/counts on good faith/)).toHaveAttribute('data-tone', 'warning');
+    expect(screen.getByText(/can vote again from another browser/)).toHaveAttribute('data-tone', 'warning');
     await userEvent.click(screen.getByRole('radio', { name: 'Invited only' }));
     expect(screen.getByText(/a link of their own/)).not.toHaveAttribute('data-tone');
     await userEvent.click(screen.getByRole('button', { name: 'Ask the question' }));

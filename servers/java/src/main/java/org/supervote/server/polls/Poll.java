@@ -86,15 +86,4 @@ public record Poll(
     public boolean isClosed() {
         return closedAt != null;
     }
-
-    Poll withClosedAt(Instant closedAt) {
-        return new Poll(id, shareToken, joinCode, creatorId, title, votingSystem, visibility, invitationOnly,
-            showVoterNames, resultsShown, resultsAfterBallots, optionOrder, createdAt, closedAt, handoverOpen);
-    }
-
-    /** Handed over: its new creator, and the handover closed for good. */
-    Poll withCreator(String creatorId) {
-        return new Poll(id, shareToken, joinCode, creatorId, title, votingSystem, visibility, invitationOnly,
-            showVoterNames, resultsShown, resultsAfterBallots, optionOrder, createdAt, closedAt, false);
-    }
 }

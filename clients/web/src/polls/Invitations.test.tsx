@@ -58,7 +58,7 @@ describe("a poll's invitations", () => {
     await openInvitations({ pathname: '/p/abc', state: { created: true } });
 
     expect(screen.getByText(/Invite people below/)).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Share' })).toHaveLength(1); // the header's, for the poll's link
+    expect(screen.queryByRole('button', { name: 'Share' })).not.toBeInTheDocument(); // no link for the poll itself
   });
 
   it('come one per person, whose link the creator shares', async () => {

@@ -6,9 +6,12 @@ import { errorMessage } from '../i18n/errorMessage';
 import { useI18n } from '../i18n/i18n';
 import Notice from '../ui/Notice';
 import BallotSection from './BallotSection';
+import CopyableLink from './CopyableLink';
+import CopyButton from './CopyButton';
 import DevBallotFeeder from './DevBallotFeeder';
 import Invitations from './Invitations';
-import { handoverIn, invitationIn } from './links';
+import { formatJoinCode } from './format';
+import { adminIn, adminUrl, handoverIn, invitationIn, pollUrl } from './links';
 import OwnerActions from './OwnerActions';
 import ResultsSection, { resultsKeptBack } from './ResultsSection';
 import ShareButton from './ShareButton';
@@ -28,20 +31,21 @@ const LAST_POLLS = 5;
 /**
  * A poll: your ballot, and the results as they come in. Its address is its
  * share link; an invitation's link adds the invitation in the fragment, and a
- * handover link the token that makes you the poll's creator.
+ * handover or admin link the token that makes you the poll's creator.
  */
 export default function PollPage() {
   const { t } = useI18n();
   const { id = '' } = useParams();
-  const hash = useLocation().hash;
+  const location = useLocation();
+  const hash = location.hash;
   const invitation = invitationIn(hash);
-  const handover = useHandover(id, handoverIn(hash));
+  const handover = useHandover(id, handoverIn(hash), adminIn(hash), location.key);
 
-  if (handover === 'taking') {
+  if (handover.taking) {
     return <p className="panel">{t.poll.takingOver}</p>;
   }
-  // Keyed, so that moving to another poll, or another invitation, starts from a clean slate.
-  return <PollScreen key={`${id}#${invitation}`} id={id} invitation={invitation} />;
+  // Keyed, so that moving to another poll, another invitation, or taking it over, starts from a clean slate.
+  return <PollScreen key={`${id}#${invitation}#${handover.settled}`} id={id} invitation={invitation} />;
 }
 
 function PollScreen({ id, invitation }: { id: string; invitation: string | null }) {
@@ -88,17 +92,35 @@ function PollScreen({ id, invitation }: { id: string; invitation: string | null 
     <>
       <title>{t.poll.title(poll.title)}</title>
       <PollHeader poll={poll} />
-      {justCreated && poll.isMine && poll.totalBallots === 0 && (poll.invitationOnly
-        ? <p className="panel callout"><span>{t.poll.readyToInvite}</span></p>
-        : <section className="panel callout">
-          <p>{t.poll.readyToShare}</p>
-          <ShareButton poll={poll} className="button primary" />
-        </section>)}
+      {justCreated && poll.isMine && poll.totalBallots === 0 && (
+        <>
+          {poll.invitationOnly
+            ? <p className="panel callout"><span>{t.poll.readyToInvite}</span></p>
+            : <section className="panel callout ready">
+              <p>{t.poll.readyToShare}</p>
+              <CopyableLink url={pollUrl(poll.id)} label={t.share.linkLabel}>
+                <ShareButton poll={poll} />
+              </CopyableLink>
+              <p className="ready-code">
+                <span>{t.share.joinCode}</span> <strong className="join-code">{formatJoinCode(poll.joinCode)}</strong>
+                <CopyButton text={formatJoinCode(poll.joinCode)} label={t.share.copyCode} />
+              </p>
+            </section>}
+          {poll.adminToken && (
+            <section className="panel keep">
+              <h2>{t.poll.keepTitle}</h2>
+              <p>{t.poll.keepText}</p>
+              <CopyableLink url={adminUrl(poll.id, poll.adminToken)} label={t.owner.adminLink} />
+            </section>
+          )}
+        </>
+      )}
       {pollsLeft && pollsLeft.count < LAST_POLLS && <PollsLeftHint pollsLeft={pollsLeft} />}
+      {/* What the creator of a poll by invitation does first: invite people, then vote too. */}
+      {poll.isMine && poll.invitationOnly && <Invitations poll={poll} />}
       {poll.closedAt
         ? <p className="panel callout">{t.poll.closedAgo(t.timeAgo(poll.closedAt))}</p>
         : <BallotSection poll={poll} options={options} invitation={invitation} onCast={setPoll} />}
-      {poll.isMine && poll.invitationOnly && <Invitations poll={poll} />}
       <ResultsSection poll={poll} options={options} connection={connection} />
       {!resultsKeptBack(poll) && poll.totalBallots >= FEWEST_PLACED && (
         <Suspense fallback={null}>
@@ -137,7 +159,7 @@ function PollHeader({ poll }: { poll: Poll }) {
           <span>{t.poll.created(t.timeAgo(poll.createdAt))}</span>
           {poll.closedAt && <span className="badge">{t.poll.closed}</span>}
         </p>
-        <ShareButton poll={poll} />
+        {!poll.invitationOnly && <ShareButton poll={poll} />}
       </div>
     </section>
   );

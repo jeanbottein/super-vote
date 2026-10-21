@@ -11,7 +11,7 @@ What runs, what protects it, and how to go from an empty VPS to
  ┌──┴─────────────────────────────────┐
  │ Caddy (deploy/Caddyfile)           │  certificates, security headers, the web app's files
  └──┬─────────────────────────────────┘
-    │ /api/*, /v3/api-docs*, /llms.txt, to 127.0.0.1:8080
+    │ /api/*, /v3/api-docs*, /llms.txt, /actuator/health, to 127.0.0.1:8080
  ┌──┴─────────────────────────────────┐
  │ Java server                        │  reached from this machine only
  └──┬─────────────────────────────────┘
@@ -22,8 +22,9 @@ What runs, what protects it, and how to go from an empty VPS to
 ```
 
 `https://super-vote.org` is the web app, `/api` its API, `/api/mcp` the MCP
-tools, `/v3/api-docs` the OpenAPI document and `/llms.txt` the guide for
-agents: people and agents use the same address, and nothing else has a port.
+tools, `/v3/api-docs` the OpenAPI document, `/llms.txt` the guide for
+agents and `/actuator/health` what a monitor asks (Watching it): people,
+agents and monitors use the same address, and nothing else has a port.
 Caddy gets and renews the certificate itself (Let's Encrypt), answers HTTP
 with a redirect, and sends HSTS so that browsers never try HTTP again;
 `www.super-vote.org` redirects to the bare domain.
@@ -183,6 +184,15 @@ the request from its own messages (its `log` options, in the Caddyfile).
 Without that, each visitor leaving a poll's live results left a line with
 their address and the poll's link. Keep it so: an access log would be a
 record of who opened which poll.
+
+## Watching it
+
+`https://super-vote.org/actuator/health` answers `"status":"UP"` while the
+server and its database both answer, and `"status":"DOWN"` with a 503
+otherwise. Point an uptime monitor at it (UptimeRobot, Better Stack, every
+few minutes), expecting `UP`: it is the one part of Spring's actuator that
+Caddy passes on, and it says nothing but the status. During an update it
+waits for the new server, as every request does, 15 seconds at most.
 
 ## What protects what
 

@@ -63,6 +63,7 @@ export function lunchPoll(changes: Partial<Poll> = {}): Poll {
     moreVoterNames: false,
     myBallot: null,
     handover: null,
+    adminToken: null,
     ...changes,
   };
 }

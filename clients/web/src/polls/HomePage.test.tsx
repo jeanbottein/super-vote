@@ -75,22 +75,39 @@ describe('the home page', () => {
     expect(screen.queryByRole('heading', { name: 'Decide together…' })).not.toBeInTheDocument();
   });
 
-  it('then says what super-vote is, what difference it makes, and what it is not for', () => {
+  it('then says how it works, how it decides and compares, how to support it, and what it is not for', () => {
     openHome();
 
-    for (const heading of ['How it works', 'Or ask an AI agent', 'Grade every option, not just one', 'Why it matters',
-      'Good to know']) {
+    for (const heading of ['How it works', 'Two ways to decide', 'Fairer than most official elections',
+      'Ready for AI', 'Free, open source, no ads', 'Good to know']) {
       expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
     }
-    expect(screen.getByRole('link', { name: 'a tip on Ko-fi' })).toHaveAttribute('href', 'https://ko-fi.com/jean64');
+    expect(screen.getByRole('link', { name: 'Ko-fi' })).toHaveAttribute('href', 'https://ko-fi.com/jean64');
+    expect(screen.getByRole('link', { name: 'GitHub Sponsors' }))
+      .toHaveAttribute('href', 'https://github.com/sponsors/jeanbottein');
     expect(screen.getByRole('link', { name: 'All about privacy and limits' })).toHaveAttribute('href', '/privacy');
+  });
+
+  it('weighs a single choice, approval and majority judgment, in words a screen reader says', () => {
+    openHome();
+
+    const table = within(section('Fairer than most official elections')).getByRole('table');
+    expect(within(table).getAllByRole('columnheader').map((header) => header.textContent))
+      .toEqual(['One choicemost elections', 'Approval', 'Majority judgment']);
+    const row = (criterion: string) => within(table).getByRole('rowheader', { name: criterion }).closest('tr')!;
+    expect(within(row('Hard to game')).getAllByRole('cell').map((cell) => cell.textContent))
+      .toEqual(['No', 'Partly', 'Yes']);
+    expect(within(row('Quick to fill in')).getAllByRole('cell').map((cell) => cell.textContent))
+      .toEqual(['Yes', 'Yes', 'Partly']);
+    expect(within(section('Fairer than most official elections')).getByRole('link', { name: 'The science behind it' }))
+      .toHaveAttribute('href', '/about');
   });
 
   it("gives a prompt to copy into an AI agent, naming this site and its guide for agents", async () => {
     const user = userEvent.setup();
     openHome();
 
-    const agent = section('Or ask an AI agent');
+    const agent = section('Ready for AI');
     const opening = `Use ${window.location.host} to create a poll for my team (instructions for agents: `
       + `${window.location.origin}/llms.txt).`;
     const prompt = within(agent).getByText((text) => text.startsWith(opening)).textContent;
@@ -113,13 +130,12 @@ describe('the home page', () => {
     expect(screen.getByRole('button', { name: 'Copy the prompt' })).toBeInTheDocument();
   });
 
-  it('shows how majority judgment decides, with results the server could have ranked', () => {
+  it('names the two ways to decide, in a few words', () => {
     openHome();
 
-    const example = within(section('Grade every option, not just one')).getByRole('figure');
-    const options = within(example).getAllByRole('img').map((bar) => bar.getAttribute('aria-label')?.split(':')[0]);
-    expect(options).toEqual(['Pizza', 'Sushi', 'Burgers']);
-    expect(within(example).getAllByText('Fair')).not.toHaveLength(0);
+    const systems = section('Two ways to decide');
+    expect(within(systems).getByRole('heading', { name: 'Majority judgment' })).toBeInTheDocument();
+    expect(within(systems).getByRole('heading', { name: 'Approval' })).toBeInTheDocument();
   });
 
   it('says why the polls could not be listed', async () => {
@@ -134,10 +150,49 @@ describe('the home page', () => {
     openHome();
 
     await userEvent.type(screen.getByLabelText('Got a code?'), 'k7m-4qx');
-    await userEvent.click(screen.getByRole('button', { name: 'Join' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Vote!' }));
 
     expect(joinPoll).toHaveBeenCalledWith('K7M4QX');
     expect(await screen.findByText('Poll page lunch')).toBeInTheDocument();
+  });
+
+  it('writes the code as it is typed: capitals, six characters, a dash after three', async () => {
+    openHome();
+    const field = screen.getByLabelText('Got a code?');
+
+    await userEvent.type(field, 'k7m');
+    expect(field).toHaveValue('K7M');
+    await userEvent.type(field, '4qxzz');
+    expect(field).toHaveValue('K7M-4QX');
+    await userEvent.clear(field);
+    await userEvent.paste(' k7m 4qx ');
+    expect(field).toHaveValue('K7M-4QX');
+    for (const pasted of ['K7M-4QX', 'k7m4qx', 'K7M–4QX', 'K7M 4QX\n']) { // a dash, none, a typographic one, a space
+      await userEvent.clear(field);
+      await userEvent.paste(pasted);
+      expect(field).toHaveValue('K7M-4QX');
+    }
+    await userEvent.type(field, '{Backspace}{Backspace}{Backspace}');
+    expect(field).toHaveValue('K7M');
+    await userEvent.clear(field);
+    await userEvent.type(field, 'k7m4qx');
+    await userEvent.type(field, '{Backspace}', { initialSelectionStart: 4, initialSelectionEnd: 4 });
+    expect(field).toHaveValue('K74-QX'); // backspace after the dash takes the M before it, not just the dash
+  });
+
+  /** Cut down to six, a pasted link would be a wrong code, which counts against the room's network. */
+  it('refuses a paste that is no code, rather than cutting it into one', async () => {
+    openHome();
+    const field = screen.getByLabelText('Got a code?');
+
+    await userEvent.click(field);
+    await userEvent.paste('https://super-vote.org/p/abc');
+
+    expect(field).toHaveValue('');
+    expect(screen.getByRole('alert')).toHaveTextContent('A code is six letters and digits, such as K7M-4QX.');
+    await userEvent.type(field, 'K7M');
+    await userEvent.click(screen.getByRole('button', { name: 'Vote!' }));
+    expect(joinPoll).not.toHaveBeenCalled();
   });
 
   it('says when no poll has the code', async () => {

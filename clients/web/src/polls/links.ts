@@ -21,6 +21,14 @@ export function handoverUrl(pollId: string, token: string): string {
   return `${pollUrl(pollId)}#handover=${token}`;
 }
 
+/**
+ * The poll's address, with its admin token in the fragment: opening it makes
+ * that browser the poll's creator, every time. Its creator's to keep.
+ */
+export function adminUrl(pollId: string, token: string): string {
+  return `${pollUrl(pollId)}#admin=${token}`;
+}
+
 /** The invitation in a page address's fragment (location.hash), if there is one. */
 export function invitationIn(hash: string): string | null {
   return tokenIn(hash, 'invitation');
@@ -29,6 +37,11 @@ export function invitationIn(hash: string): string | null {
 /** The handover token in a page address's fragment, if there is one. */
 export function handoverIn(hash: string): string | null {
   return tokenIn(hash, 'handover');
+}
+
+/** The admin token in a page address's fragment, if there is one. */
+export function adminIn(hash: string): string | null {
+  return tokenIn(hash, 'admin');
 }
 
 function tokenIn(hash: string, name: string): string | null {

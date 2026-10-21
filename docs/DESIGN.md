@@ -255,14 +255,18 @@ lines.
   `--section-gap` apart (16 px, 20 px from 640 px).
 - Home is the one exception: from 960 px, `.layout[data-page="home"]` sets
   `--page-width` to 1080 px, so that header, page and footer widen together.
-  What people come to do comes first, side by side: the hero with "Decide
-  together!" on the left, the join form (and the visitor's polls, once they have
-  some) on the right. Below, rows of cards: how it works (three numbered
-  steps), a prompt to have an AI agent create a poll beside what it does, an
-  example of results beside why grading beats a single choice (the text
-  sticks while the example scrolls), why it matters (three reasons), and
-  what super-vote is not for (two columns). On a phone it is all one column,
-  in that order.
+  What people come to do comes first, as on a search page, centred: the name
+  alone in wide capitals (`.wordmark`), one short line under it, then one card
+  divided in two, "Decide together!" on the left and the code to type on the
+  right (stacked on a phone), and the visitor's polls once they have some.
+  Below, few words and more pictures: how it works (three
+  numbered steps, one under the other, beside the card asking for support: Ko-fi and
+  GitHub Sponsors), the two voting systems in a few words each, each over
+  a small drawing (`.systems`, `.schema`: seven-mention bars, and ink bars for
+  approvals), then words beside what they speak of (`.beside`, the words
+  sticking while it scrolls): a table weighing a single choice, approval and
+  majority judgment, and a prompt to have an AI agent create a poll. Then what it is not for (two columns). On a phone it is
+  all one column, in that order.
 - One breakpoint, 640 px. Below it dialogs are sheets from the bottom; from
   it they are centred, panels get 24 px of padding (`--panel-padding`), and a
   ballot row puts its option beside its scale.
@@ -272,9 +276,9 @@ lines.
 - The header is sticky, `--header-height` (56 px) plus the top inset, and
   translucent over a blur: back on the left (not on Home), the brand in the
   middle, Settings on the right. Toasts sit just under it.
-- A poll's page: its title on the page itself (not in a card), any callout,
+- A poll's page: its title on the page itself (not in a card), its Share button (none for a poll by invitation: it has no link to share, each person has their own), any callout (a poll just created shows its link to copy and its join code in plain view, and an amber "Keep your admin link" card with the link to copy; "Manage your poll" shows it again),
   the polls its creator has left for the day when few are (a warning hint), the
-  ballot, the invitations (the creator's), the results, when the poll will
+  invitations (the creator's, above their own ballot), the ballot, the results, when the poll will
   be deleted, the creator's actions, and in development the ballot feeder.
 
 ## Components
@@ -286,7 +290,7 @@ lines.
 | Fields | `input`, `select`, `.field`, `.field-problem`, `.hint`, `.hint[data-tone="warning"]` | `--field`, `--border-strong`, 16 px text |
 | Segmented control | `.segmented`, `.segmented-options`, `.segmented-option` | radios: arrow keys work |
 | Header | `.app-header`, `.app-header-inner`, `.brand`, `.logo` | |
-| Home | `.hero`, `.join-form`, `.join-row`, `.join-code`, `.poll-list`, `.poll-list-item`; `.home-start`, `.home-actions`, `.home-section`, `.home-text`, `.home-cards`, `.steps`, `.agent`, `.agent-prompt`, `.grade`, `.example`, `.good-to-know`; `.copy-labels` | list rows run to the panel's edges; steps number themselves in ink (`--accent-soft`, `--accent-text`); the agent's prompt, naming the site it is on, sits in a well (`--surface-sunken`) to copy, and its button keeps its width when "Copied" replaces its label (`.copy-labels`); the example is the real results graph on sample counts the server would rank the same |
+| Home | `.hero`, `.home-hero`, `.wordmark`, `.start`, `.join-form`, `.join-row`, `.join-code`, `.poll-list`, `.poll-list-item`; `.home-start`, `.home-actions`, `.home-section`, `.how-and-support`, `.steps`, `.systems`, `.schema`, `.beside`, `.agent-prompt`, `.compare`, `.support`, `.good-to-know`; `.copy-labels` | list rows run to the panel's edges; each step's number sits in an ink disc (`--accent-soft`, `--accent-text`), joined to the next by a line; the comparison marks yes, partly and no with a tick, a half-filled circle and a cross, ink for yes and `--muted` otherwise (never green or red, which are the mentions'), each with its word for screen readers, and tints majority judgment's column; the agent's prompt, naming the site it is on, sits in a well (`--surface-sunken`) to copy, and its button keeps its width when "Copied" replaces its label (`.copy-labels`); the two systems' drawings are decorative (`aria-hidden`), the first in the mentions' colours, the second in ink |
 | Privacy and limits | `.about-section`, `.facts` | one fact per bullet |
 | Ballot | `.ballot`, `.ballot-body`, `.ballot-status[data-counted]` | the raised sheet |
 | Majority judgment ballot (`mj-ballot.css`) | `.mj-scale-legend`, `.mj-ballot-row`, `.mj-ballot-chosen[data-mention]`, `.mj-scale`, `.mj-scale-step`, `.mj-scale-mark`, `.mj-scale-name`; `.mj-dropdown-row select[data-mention]` | rows are lines on the sheet |
