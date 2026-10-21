@@ -2,7 +2,7 @@
 # work together. On every pull request and on main, both are built and started
 # with PostgreSQL as the server runs them, then asked what a browser and an
 # agent ask, and backed up. Each commit on main is then published to GitHub's
-# container registry, as main and as its SHA, for the server to pull
+# container registry, as main and as its SHA, and run on the VPS
 # (deploy/README.md).
 name: Images
 
@@ -171,3 +171,32 @@ jobs:
             ${{ env.WEB_IMAGE }}:main
             ${{ env.WEB_IMAGE }}:${{ github.sha }}
           cache-from: type=gha,scope=web
+
+  deploy:
+    name: Run them on super-vote.org
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Its secrets are given to main only (the environment's branch policy).
+    environment:
+      name: production
+      url: https://super-vote.org
+    # Main's runs already wait for each other (concurrency, above); the VPS
+    # also takes a lock and never goes back to an older commit (update.sh).
+    concurrency:
+      group: production
+      cancel-in-progress: false
+    steps:
+      - name: Ask the VPS to run this commit
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          HOST: ${{ vars.DEPLOY_HOST }}
+        run: |
+          install -m 700 -d ~/.ssh
+          (umask 077 && printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy)
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # The key can run nothing but update.sh, which reads the SHA (authorized_keys, deploy/README.md).
+          ssh -i ~/.ssh/deploy -o BatchMode=yes -o StrictHostKeyChecking=yes "deploy@$HOST" "$GITHUB_SHA"
+      - name: Ask the site what a browser asks
+        run: curl --silent --show-error --fail --retry 5 --retry-all-errors --output /dev/null https://super-vote.org/api/server-info
