@@ -85,6 +85,20 @@ describe('the app', () => {
     expect(screen.getByText(/until it is deleted, 30 days after it was created at the latest/)).toBeInTheDocument();
   });
 
+  it('says who publishes and hosts super-vote, and where to report a poll, from every page', async () => {
+    openAt('/new');
+
+    await userEvent.click(screen.getByRole('link', { name: 'Legal notice' }));
+
+    expect(await screen.findByRole('heading', { name: 'Legal notice', level: 1 })).toBeInTheDocument();
+    for (const heading of ['Publisher', 'Host', 'Reporting a poll']) {
+      expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
+    }
+    expect(screen.getByText(/OVH Hosting Inc\./)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'write to us on GitHub' }))
+      .toHaveAttribute('href', 'https://github.com/jeanbottein/super-vote/issues');
+  });
+
   it('says when there is nothing at an address', () => {
     openAt('/nowhere');
 

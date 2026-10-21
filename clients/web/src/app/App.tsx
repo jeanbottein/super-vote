@@ -9,6 +9,7 @@ import { ToastProvider } from '../ui/Toasts';
 import AboutPage from './AboutPage';
 import Footer from './Footer';
 import Header from './Header';
+import LegalPage from './LegalPage';
 import NotFoundPage from './NotFoundPage';
 import PrivacyPage from './PrivacyPage';
 
@@ -20,6 +21,7 @@ const StatisticsPage = lazy(() => import('../statistics/StatisticsPage'));
  * where you vote and watch the results come in. A poll's address, /p/<id>,
  * is its share link. /about says how results are decided, and why;
  * /privacy, what is kept, who sees what, and what super-vote cannot do yet;
+ * /legal, who publishes and hosts it, and where to report a poll;
  * /statistics, how much super-vote is used, and where.
  */
 export default function App() {
@@ -34,6 +36,7 @@ export default function App() {
               <Route path="p/:id" element={<PollPage />} />
               <Route path="about" element={<AboutPage />} />
               <Route path="privacy" element={<PrivacyPage />} />
+              <Route path="legal" element={<LegalPage />} />
               <Route path="statistics" element={<Statistics />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>

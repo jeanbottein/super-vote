@@ -82,6 +82,7 @@ describe('the home page', () => {
       'Good to know']) {
       expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
     }
+    expect(screen.getByRole('link', { name: 'a tip on Ko-fi' })).toHaveAttribute('href', 'https://ko-fi.com/jean64');
     expect(screen.getByRole('link', { name: 'All about privacy and limits' })).toHaveAttribute('href', '/privacy');
   });
 

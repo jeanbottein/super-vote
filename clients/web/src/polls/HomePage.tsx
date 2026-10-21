@@ -14,7 +14,7 @@ import { useServerInfo } from './useServerInfo';
 /**
  * First what people come to do, create a poll or join one; below, how it
  * works, how to have an AI agent create one, what super-vote is, what
- * difference it makes, and what it is not for.
+ * difference it makes, how to support it, and what it is not for.
  */
 export default function HomePage() {
   const { t } = useI18n();
@@ -91,6 +91,7 @@ export default function HomePage() {
           ))}
         </ul>
         <p className="home-text">{t.home.vision}</p>
+        <p className="home-text">{t.home.support}</p>
       </section>
 
       <section className="panel home-section good-to-know">
