@@ -121,7 +121,7 @@ export const fr: Messages = {
   home: {
     title: 'super-vote · décider ensemble',
     lead: 'Les maths disent que c’est plus juste.',
-    createQuestion: 'Envie de créer un vote ?',
+    createQuestion: 'Besoin de créer un vote ?',
     createPoll: 'Décider ensemble !',
     yourPolls: 'Décider ensemble…',
     publicPolls: 'Sondages publics',

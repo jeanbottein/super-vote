@@ -121,7 +121,7 @@ export const en = {
   home: {
     title: 'super-vote · decide together',
     lead: 'Maths says it’s fairer.',
-    createQuestion: 'Want to create a vote?',
+    createQuestion: 'Need to create a vote?',
     createPoll: 'Decide together!',
     yourPolls: 'Decide together…',
     publicPolls: 'Public polls',
