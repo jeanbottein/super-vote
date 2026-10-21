@@ -112,6 +112,7 @@ export default function HomePage() {
           <li>{t.home.limits.private}</li>
           <li>{t.home.limits.browser(limits.pollLifetimeDays)}</li>
           <li>{t.home.limits.deleted(limits.pollLifetimeDays)}</li>
+          <li>{t.home.limits.disclaimer}</li>
         </ul>
         <Link to="/privacy">{t.home.limitsLink}</Link>
       </section>

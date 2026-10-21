@@ -195,6 +195,11 @@ export const en = {
       browser: (days: number) => <><strong>Tied to this browser,</strong> through one cookie, kept {days} days
         after your last ballot or poll. No ads, no tracking.</>,
       deleted: (days: number) => <><strong>Deleted after {days} days,</strong> polls and ballots alike.</>,
+      disclaimer: <><strong>No guarantee.</strong> <AppName /> promotes better ways to vote. It is made by one person,
+        with the best care for security, privacy, performance, architecture and code quality, but it is not
+        accredited, audited or independently reviewed: its results are not guaranteed to be accurate, or a true
+        representation of a group's will. That would take accreditation, expert review of the technical side and
+        ongoing support, which one person cannot offer without sponsors and experts.</>,
     },
     limitsLink: 'All about privacy and limits',
   },

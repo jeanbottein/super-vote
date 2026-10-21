@@ -1037,6 +1037,10 @@ fieldset.field {
   padding-left: 20px;
 }
 
+.good-to-know li:last-child {
+  grid-column: 1 / -1;
+}
+
 .good-to-know li::marker {
   color: var(--muted);
 }

@@ -198,6 +198,12 @@ export const fr: Messages = {
       browser: (days: number) => <><strong>Lié à ce navigateur,</strong> par un seul cookie, gardé {days} jours
         après votre dernier bulletin ou sondage. Ni publicité, ni pistage.</>,
       deleted: (days: number) => <><strong>Supprimés après {days} jours,</strong> sondages et bulletins.</>,
+      disclaimer: <><strong>Sans garantie.</strong> <AppName /> vise à faire connaître de meilleures façons de voter.
+        Il est fait par une seule personne, avec le plus grand soin pour la sécurité, la confidentialité, la
+        performance, l’architecture et la qualité du code, mais il n’est ni accrédité, ni audité, ni revu de façon
+        indépendante : l’exactitude de ses résultats, et leur fidélité à la volonté d’un groupe, ne sont pas
+        garanties. Il faudrait pour cela une accréditation, une revue technique par des spécialistes et un soutien
+        durable, ce qu’une seule personne ne peut offrir sans parrainages ni spécialistes.</>,
     },
     limitsLink: 'Tout sur la confidentialité et les limites',
   },
