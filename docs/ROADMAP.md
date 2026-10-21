@@ -35,9 +35,10 @@ started together and checked on every pull request, and published to GHCR for
 every commit on main; the Compose file, with Caddy on the machine's network
 so that limits see IPv6 visitors' addresses; the nightly `pg_dump`, kept 7
 days; Caddy's log without requests; updates that make requests wait rather
-than fail ([deploy/README.md](../deploy/README.md)). Left: the VPS and its
-DNS, following that README; copying the backups off the VPS; the legal
-notices (below).
+than fail ([deploy/README.md](../deploy/README.md)). Running since
+2026-10-21 on an OVHcloud VPS in Montréal, Canada (which the EU deems
+adequate; the privacy page and the legal notice say so). Left: copying the
+backups off the VPS; the record of processing (below).
 
 - **PostgreSQL**: supported already, and the test suite passes on it, in CI
   too (a service container, phase 5f). Schema changes are migrations added,
@@ -79,7 +80,8 @@ notices (below).
   each row, and with it which name goes with which ballot.
 - **Legal pages** (France and the EU; a checklist, not legal advice). The
   privacy page is written (`/privacy`, phase 5f), with GitHub issues as its
-  contact; left are the publisher's notice and the record of processing. The voter
+  contact, and so is the legal notice (`/legal`: the host, and the publisher
+  as a private person); left is the record of processing. The voter
   cookie and voter names are personal data, so GDPR applies already: a privacy
   page (what is stored, why, for how long, your rights, a contact address;
   and plainly, that ballots are unlinkable at rest but the server operator
