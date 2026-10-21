@@ -32,7 +32,10 @@ export default function HomePage() {
       <title>{t.home.title}</title>
       <div className="home-start">
         <section className="hero home-hero">
-          <h1 className="wordmark">SUPER VOTE</h1>
+          <h1 className="wordmark">
+            {/* The mark is an S: it stands for the first letter, which assistive technology reads. */}
+            <img className="logo wordmark-s" src="/favicon.svg" alt="S" />UPER VOTE
+          </h1>
           <p>{t.home.lead}</p>
         </section>
         <div className="panel start">

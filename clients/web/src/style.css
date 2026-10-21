@@ -674,6 +674,14 @@ fieldset.field {
   white-space: nowrap;
 }
 
+/* The logo is the S: as tall as the capitals, and the gap the letters' tracking would leave. */
+.home-hero .wordmark-s {
+  display: inline-block;
+  width: 0.85em;
+  margin-inline-end: 0.14em;
+  vertical-align: -0.08em;
+}
+
 .home-hero p {
   max-width: 24em;
   margin: 0;
