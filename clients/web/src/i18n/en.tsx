@@ -120,8 +120,7 @@ export const en = {
 
   home: {
     title: 'super-vote · decide together',
-    headline: 'Decide together, fairly.',
-    lead: 'Everyone grades every option, and the one the group rates best wins. Free, live, no account.',
+    lead: 'Modern voting system, for everyday group decisions',
     createPoll: 'Decide together!',
     yourPolls: 'Decide together…',
     publicPolls: 'Public polls',

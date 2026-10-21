@@ -653,21 +653,80 @@ fieldset.field {
   font-size: 17px;
 }
 
-/* Create or join first: one column on a phone, the hero beside the join form on a wide screen. */
+/* Like a search page: the name, one line under it, and what to do, centred. */
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 4px 8px;
+  text-align: center;
+}
+
+.home-hero .wordmark {
+  margin: 0;
+  font-size: clamp(36px, 11vw, 60px);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  /* The tracking trails the last letter: shift back so the word sits in the middle. */
+  margin-inline-end: -0.14em;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+.home-hero p {
+  max-width: 24em;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  text-wrap: balance;
+}
+
 .home-start,
 .home-actions {
   display: flex;
   flex-direction: column;
   gap: var(--section-gap);
+  width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
 }
 
-@media (min-width: 960px) {
-  .home-start {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    align-items: center;
-    gap: 48px;
-    padding-bottom: 16px;
+/* Two halves divided by a hairline: the code to type, then the button to start. */
+.start {
+  display: grid;
+  gap: 0;
+  padding: 0;
+}
+
+.start > * {
+  padding: var(--panel-padding);
+}
+
+.start > .button {
+  align-self: center;
+  justify-self: center;
+  margin: var(--panel-padding);
+  padding: 0 18px;
+}
+
+.start > form + .button {
+  border-top: none;
+}
+
+@media (min-width: 640px) {
+  .start {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .start > form {
+    border-inline-end: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 639.98px) {
+  .start > form {
+    border-bottom: 1px solid var(--border);
   }
 }
 

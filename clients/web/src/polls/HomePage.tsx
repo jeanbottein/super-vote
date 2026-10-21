@@ -5,7 +5,6 @@ import MajorityJudgmentResults from '../features/VotingSystem/MajorityJudgment/M
 import { errorMessage } from '../i18n/errorMessage';
 import { useI18n } from '../i18n/i18n';
 import { CupIcon, HeartIcon, QuestionIcon, ResultsIcon, ShareIcon } from '../ui/icons';
-import Logo from '../ui/Logo';
 import AgentPrompt from './AgentPrompt';
 import JoinForm from './JoinForm';
 import PollList from './PollList';
@@ -33,14 +32,15 @@ export default function HomePage() {
     <>
       <title>{t.home.title}</title>
       <div className="home-start">
-        <section className="hero">
-          <Logo />
-          <h1>{t.home.headline}</h1>
+        <section className="hero home-hero">
+          <h1 className="wordmark">SUPER VOTE</h1>
           <p>{t.home.lead}</p>
-          <Link className="button primary" to="/new">{t.home.createPoll}</Link>
         </section>
-        <div className="home-actions">
+        <div className="panel start">
           <JoinForm />
+          <Link className="button primary" to="/new">{t.home.createPoll}</Link>
+        </div>
+        <div className="home-actions">
           {failure !== null ? (
             <p className="panel error-text" role="alert">{errorMessage(failure, t)}</p>
           ) : (

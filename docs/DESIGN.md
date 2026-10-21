@@ -255,9 +255,11 @@ lines.
   `--section-gap` apart (16 px, 20 px from 640 px).
 - Home is the one exception: from 960 px, `.layout[data-page="home"]` sets
   `--page-width` to 1080 px, so that header, page and footer widen together.
-  What people come to do comes first, side by side: the hero with "Decide
-  together!" on the left, the join form (and the visitor's polls, once they have
-  some) on the right. Below, few words and more pictures: how it works (three
+  What people come to do comes first, as on a search page, centred: the name
+  alone in wide capitals (`.wordmark`), one line under it, then one card
+  divided in two, the code to type on the left and "Decide together!" on the
+  right (stacked on a phone), and the visitor's polls once they have some.
+  Below, few words and more pictures: how it works (three
   steps, an icon each), then words beside what they speak of (`.beside`, the
   words sticking while it scrolls): an example of results, a table weighing a
   single choice, approval and majority judgment, and a prompt to have an AI
@@ -287,7 +289,7 @@ lines.
 | Fields | `input`, `select`, `.field`, `.field-problem`, `.hint`, `.hint[data-tone="warning"]` | `--field`, `--border-strong`, 16 px text |
 | Segmented control | `.segmented`, `.segmented-options`, `.segmented-option` | radios: arrow keys work |
 | Header | `.app-header`, `.app-header-inner`, `.brand`, `.logo` | |
-| Home | `.hero`, `.join-form`, `.join-row`, `.join-code`, `.poll-list`, `.poll-list-item`; `.home-start`, `.home-actions`, `.home-section`, `.steps`, `.step-icon`, `.beside`, `.agent-prompt`, `.example`, `.compare`, `.support`, `.good-to-know`; `.copy-labels` | list rows run to the panel's edges; each step's icon sits in an ink disc (`--accent-soft`, `--accent-text`); the comparison marks yes, partly and no with a tick, a half-filled circle and a cross, ink for yes and `--muted` otherwise (never green or red, which are the mentions'), each with its word for screen readers, and tints majority judgment's column; the agent's prompt, naming the site it is on, sits in a well (`--surface-sunken`) to copy, and its button keeps its width when "Copied" replaces its label (`.copy-labels`); the example is the real results graph on sample counts the server would rank the same |
+| Home | `.hero`, `.home-hero`, `.wordmark`, `.start`, `.join-form`, `.join-row`, `.join-code`, `.poll-list`, `.poll-list-item`; `.home-start`, `.home-actions`, `.home-section`, `.steps`, `.step-icon`, `.beside`, `.agent-prompt`, `.example`, `.compare`, `.support`, `.good-to-know`; `.copy-labels` | list rows run to the panel's edges; each step's icon sits in an ink disc (`--accent-soft`, `--accent-text`); the comparison marks yes, partly and no with a tick, a half-filled circle and a cross, ink for yes and `--muted` otherwise (never green or red, which are the mentions'), each with its word for screen readers, and tints majority judgment's column; the agent's prompt, naming the site it is on, sits in a well (`--surface-sunken`) to copy, and its button keeps its width when "Copied" replaces its label (`.copy-labels`); the example is the real results graph on sample counts the server would rank the same |
 | Privacy and limits | `.about-section`, `.facts` | one fact per bullet |
 | Ballot | `.ballot`, `.ballot-body`, `.ballot-status[data-counted]` | the raised sheet |
 | Majority judgment ballot (`mj-ballot.css`) | `.mj-scale-legend`, `.mj-ballot-row`, `.mj-ballot-chosen[data-mention]`, `.mj-scale`, `.mj-scale-step`, `.mj-scale-mark`, `.mj-scale-name`; `.mj-dropdown-row select[data-mention]` | rows are lines on the sheet |

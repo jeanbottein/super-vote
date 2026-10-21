@@ -34,7 +34,7 @@ export default function JoinForm() {
   }
 
   return (
-    <form className="panel join-form" onSubmit={join} noValidate>
+    <form className="join-form" onSubmit={join} noValidate>
       <label htmlFor={inputId}>{t.join.label}</label>
       <div className="join-row">
         <input

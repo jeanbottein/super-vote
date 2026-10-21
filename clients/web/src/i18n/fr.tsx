@@ -120,9 +120,7 @@ export const fr: Messages = {
 
   home: {
     title: 'super-vote · décider ensemble',
-    headline: 'Décider ensemble, équitablement.',
-    lead: 'Chaque personne évalue chaque option, et la mieux évaluée par le groupe l’emporte. Gratuit, en direct, '
-      + 'sans compte.',
+    lead: 'Un système de vote moderne, pour les décisions de groupe du quotidien',
     createPoll: 'Décider ensemble !',
     yourPolls: 'Décider ensemble…',
     publicPolls: 'Sondages publics',
