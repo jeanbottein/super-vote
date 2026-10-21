@@ -73,19 +73,6 @@ export const MinusIcon = () => (
   </Icon>
 );
 
-export const QuestionIcon = () => (
-  <Icon>
-    <path d="M5 4h14a2 2 0 012 2v9a2 2 0 01-2 2h-8l-5 4v-4H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
-    <path d="M9.75 8.75a2.25 2.25 0 113.4 1.95c-.7.4-1.15.9-1.15 1.55M12 14.5h0" />
-  </Icon>
-);
-
-export const ResultsIcon = () => (
-  <Icon>
-    <path d="M5 20v-8M12 20V5M19 20v-5" />
-  </Icon>
-);
-
 /** Half of it filled: "partly", between a tick and a cross. */
 export const PartlyIcon = () => (
   <Icon>

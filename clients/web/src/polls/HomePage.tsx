@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { errorMessage } from '../i18n/errorMessage';
 import { useI18n } from '../i18n/i18n';
-import { CupIcon, HeartIcon, QuestionIcon, ResultsIcon, ShareIcon } from '../ui/icons';
+import { CupIcon, HeartIcon } from '../ui/icons';
 import AgentPrompt from './AgentPrompt';
 import JoinForm from './JoinForm';
 import PollList from './PollList';
@@ -13,8 +13,6 @@ import VotingSystemsTable from './VotingSystemsTable';
 
 export const KO_FI_URL = 'https://ko-fi.com/jean64';
 export const GITHUB_SPONSORS_URL = 'https://github.com/sponsors/jeanbottein';
-
-const STEP_ICONS = [QuestionIcon, ShareIcon, ResultsIcon];
 
 /**
  * First what people come to do, create a poll or join one; below, in few
@@ -66,21 +64,31 @@ export default function HomePage() {
         </div>
       </div>
 
-      <section className="home-section">
-        <h2>{t.home.howItWorks}</h2>
-        <ol className="steps">
-          {t.home.steps.map((step, index) => {
-            const Icon = STEP_ICONS[index];
-            return (
+      <div className="home-section how-and-support">
+        <section>
+          <h2>{t.home.howItWorks}</h2>
+          <ol className="steps">
+            {t.home.steps.map((step) => (
               <li key={step.title}>
-                <span className="step-icon"><Icon /></span>
                 <h3>{step.title}</h3>
                 <p>{step.text}</p>
               </li>
-            );
-          })}
-        </ol>
-      </section>
+            ))}
+          </ol>
+        </section>
+        <section className="panel support">
+          <h2>{t.home.supportTitle}</h2>
+          <p>{t.home.supportText}</p>
+          <div className="button-row">
+            <a className="button secondary" href={KO_FI_URL} target="_blank" rel="noreferrer">
+              <CupIcon />Ko-fi
+            </a>
+            <a className="button secondary" href={GITHUB_SPONSORS_URL} target="_blank" rel="noreferrer">
+              <HeartIcon />GitHub Sponsors
+            </a>
+          </div>
+        </section>
+      </div>
 
       <TwoSystems />
 
@@ -94,19 +102,6 @@ export default function HomePage() {
       </section>
 
       <AgentPrompt />
-
-      <section className="home-section support">
-        <h2>{t.home.supportTitle}</h2>
-        <p>{t.home.supportText}</p>
-        <div className="button-row">
-          <a className="button secondary" href={KO_FI_URL} target="_blank" rel="noreferrer">
-            <CupIcon />Ko-fi
-          </a>
-          <a className="button secondary" href={GITHUB_SPONSORS_URL} target="_blank" rel="noreferrer">
-            <HeartIcon />GitHub Sponsors
-          </a>
-        </div>
-      </section>
 
       <section className="panel home-section good-to-know">
         <h2>{t.home.limitsTitle}</h2>

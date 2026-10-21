@@ -788,43 +788,81 @@ fieldset.field {
 }
 
 /* Three steps, each an icon in ink and a few words: a list on a phone, a row from 720 px. */
+/* How it works beside who makes it possible, from 720 px; one under the other on a phone. */
+.how-and-support {
+  display: grid;
+  gap: 24px;
+}
+
+.how-and-support > section > h2 {
+  margin-bottom: 16px;
+}
+
+@media (min-width: 720px) {
+  .how-and-support {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 32px;
+  }
+}
+
+/* Three steps, one under the other, numbered in ink and joined by a line. */
 .steps {
   display: grid;
-  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
+  counter-reset: step;
 }
 
 .steps li {
+  position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: 12px;
-  row-gap: 0;
-  align-items: center;
-  align-content: center;
+  gap: 2px;
+  min-height: 44px;
+  padding: 0 0 20px 56px;
+  counter-increment: step;
 }
 
-.steps .step-icon {
-  grid-row: span 2;
+.steps li:last-child {
+  padding-bottom: 0;
+}
+
+.steps li::before {
+  content: counter(step);
+  position: absolute;
+  inset: 0 auto auto 0;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--accent-soft);
   color: var(--accent-text);
+  font-weight: 700;
+}
+
+.steps li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  inset: 44px auto 4px 19px;
+  width: 2px;
+  background: var(--border-strong);
+  opacity: 0.5;
+}
+
+.steps h3 {
+  align-self: end;
 }
 
 .steps p {
   color: var(--muted);
 }
 
-@media (min-width: 720px) {
-  .steps {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 24px;
-  }
+.support {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 /*
