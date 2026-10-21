@@ -184,6 +184,12 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
 - **A problem's `type` is contract, its `detail` is prose.** Every failure the
   server raises has a `ProblemType`; machine clients branch on it, so adding a
   failure means adding one. `detail` stays the sentence a person reads.
+- **`PollView.adminToken` is the creator's alone**, every time they read the
+  poll, never while a handover is open, and never in what watchers receive
+  (`PollUpdate`). Brought to `POST /api/polls/{id}/creator` (`Super-Vote-Admin`),
+  it makes the caller the creator in place of the one before, as often as it
+  is used: a poll is managed from one browser at a time, and the link moves
+  it. Signed (`AdminLinks`), never stored, not revocable.
 - **`PollView.handover` is a write-once secret.** Only the answer that created
   the poll carries it, and only when the request asked for it. A test pins
   that `GET /api/polls/{id}` never does.

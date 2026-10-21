@@ -50,6 +50,7 @@ export const fr: Messages = {
     'unknown-voter': 'super-vote ne reconnaît pas ce navigateur. Rechargez la page pour repartir de zéro.',
     'not-poll-creator': 'Seule la personne qui a créé ce sondage peut faire cela.',
     'not-invited': 'Seules les personnes invitées peuvent voter à ce sondage. Si vous avez reçu une invitation, ouvrez le lien qu’elle contient.',
+    'not-admin-link': 'Ce lien d’administration n’est pas celui de ce sondage. Vérifiez qu’il a été copié en entier.',
     'handover-unavailable': 'Ce lien ne peut pas vous transmettre le sondage : il a déjà servi.',
     'cross-site': 'Cette demande venait d’un autre site, et a été refusée. Ouvrez super-vote directement.',
     'poll-not-found': 'Aucun sondage n’a ce lien ou ce code. Il est peut-être mal recopié, ou le sondage a été supprimé.',
@@ -321,9 +322,9 @@ export const fr: Messages = {
     byInvitation: 'Sur invitation',
     created: (ago: string) => `Créé ${ago}`,
     closed: 'Fermé',
-    keepTitle: 'Gardez ce navigateur',
-    keepText: 'Vous gérez ce sondage depuis ce navigateur seulement. Si vous effacez ses données ou changez '
-      + 'd’appareil, vous ne pourrez plus le fermer ni le supprimer avant l’heure.',
+    keepTitle: 'Gardez votre lien d’administration',
+    keepText: 'Ouvrez-le dans n’importe quel navigateur pour gérer ce sondage depuis celui-ci : le fermer, le '
+      + 'supprimer, inviter. Gardez-le pour vous : qui l’a peut en faire autant.',
     readyToInvite: <><strong>Votre sondage est prêt.</strong> Invitez des personnes ci-dessous : chacune reçoit un lien
       bien à elle.</>,
     readyToShare: <><strong>Votre sondage est prêt.</strong> Partagez son lien pour recueillir des bulletins.</>,
@@ -401,6 +402,9 @@ export const fr: Messages = {
 
   owner: {
     manage: 'Gérer votre sondage',
+    adminLink: 'Lien d’administration du sondage',
+    adminLinkHint: 'Votre lien d’administration : ouvrez-le dans un autre navigateur ou appareil pour gérer le '
+      + 'sondage depuis celui-ci. Gardez-le pour vous.',
     onlyThisBrowser: 'Seul ce navigateur peut fermer ou supprimer ce sondage avant l’heure.',
     close: 'Clore le vote',
     delete: 'Supprimer le sondage',

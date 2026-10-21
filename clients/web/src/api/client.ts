@@ -19,6 +19,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 const INVITATION_HEADER = 'Super-Vote-Invitation';
 const HANDOVER_HEADER = 'Super-Vote-Handover';
+const ADMIN_HEADER = 'Super-Vote-Admin';
 const TIME_ZONE_HEADER = 'Super-Vote-Time-Zone';
 
 /**
@@ -47,8 +48,10 @@ interface RequestOptions {
   body?: unknown;
   /** The token from the invitation link the voter came with. */
   invitation?: string | null;
-  /** The token from a handover link, which makes the caller the poll's creator. */
+  /** The token from a handover link, which makes the caller the poll's creator, once. */
   handover?: string | null;
+  /** The token from an admin link, which makes the caller the poll's creator, every time. */
+  admin?: string | null;
   credentials?: RequestCredentials;
   /** Where the request says it comes from, instead of this device's time zone (the ballot feeder). */
   timeZone?: string;
@@ -84,7 +87,7 @@ async function call(method: string, path: string, options: RequestOptions = {}):
 async function send(
   method: string,
   path: string,
-  { body, invitation, handover, credentials = 'include', timeZone = deviceTimeZone() }: RequestOptions,
+  { body, invitation, handover, admin, credentials = 'include', timeZone = deviceTimeZone() }: RequestOptions,
 ): Promise<Response> {
   const headers: Record<string, string> = { [TIME_ZONE_HEADER]: timeZone };
   if (body !== undefined) {
@@ -95,6 +98,9 @@ async function send(
   }
   if (handover) {
     headers[HANDOVER_HEADER] = handover;
+  }
+  if (admin) {
+    headers[ADMIN_HEADER] = admin;
   }
   let response: Response;
   try {
@@ -197,8 +203,9 @@ export const castBallotAsNewVoter = (id: string, ballot: BallotRequest, timeZone
  * then this voter's to close, to delete, and whose invitations are theirs to
  * read. The token works once.
  */
-export const takePollOver = (id: string, handover: string) =>
-  request<Poll>('POST', `${pollPath(id)}/creator`, { handover });
+/** Makes this browser the poll's creator, with a handover link's token or an admin link's. */
+export const takePollOver = (id: string, token: { handover: string } | { admin: string }) =>
+  request<Poll>('POST', `${pollPath(id)}/creator`, token);
 
 /** The creator's newest invitations to their poll, `limit` of them at most. */
 export const listInvitations = (id: string, limit: number) =>

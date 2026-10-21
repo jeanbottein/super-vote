@@ -62,16 +62,18 @@ public class PollService {
     private final PollOptionRepository options;
     private final VoterNameRepository voterNames;
     private final HandoverLinks handovers;
+    private final AdminLinks admins;
     private final PollQuota quota;
     private final WrongCodes wrongCodes;
     private final SuperVoteProperties settings;
 
     public PollService(PollRepository polls, PollOptionRepository options, VoterNameRepository voterNames,
-                       HandoverLinks handovers, PollQuota quota, WrongCodes wrongCodes, SuperVoteProperties settings) {
+                       HandoverLinks handovers, AdminLinks admins, PollQuota quota, WrongCodes wrongCodes, SuperVoteProperties settings) {
         this.polls = polls;
         this.options = options;
         this.voterNames = voterNames;
         this.handovers = handovers;
+        this.admins = admins;
         this.quota = quota;
         this.wrongCodes = wrongCodes;
         this.settings = settings;
@@ -145,6 +147,32 @@ public class PollService {
                 "This link cannot hand this poll over: it was used already, or it is not this poll's.");
         }
         return polls.save(poll.withCreator(newCreatorId));
+    }
+
+    /**
+     * The token of the poll's admin link, for its creator: whoever brings it
+     * becomes the creator, from any browser, as often as it is used. None
+     * while a handover is open, so a client creating a poll for somebody else
+     * never holds a link that outlives the handover.
+     */
+    public Optional<String> adminTokenOf(Poll poll, String voterId) {
+        return !poll.handoverOpen() && poll.isCreatedBy(voterId)
+            ? Optional.of(admins.tokenOf(poll.id()))
+            : Optional.empty();
+    }
+
+    /**
+     * Makes whoever brings the poll's admin token its creator, in place of the
+     * one before: the poll is managed from one browser at a time, and the link
+     * brings it back to any of them.
+     */
+    @Transactional
+    public Poll administer(String shareToken, String token, String newCreatorId) {
+        var poll = find(shareToken);
+        if (poll.handoverOpen() || !admins.isFor(poll.id(), token)) {
+            throw new NotAdminLinkException("This admin link is not this poll's. Check that it was copied whole.");
+        }
+        return poll.isCreatedBy(newCreatorId) ? poll : polls.save(poll.withCreator(newCreatorId));
     }
 
     /**

@@ -28,7 +28,7 @@ describe('a handover link', () => {
 
     renderAt('/p/abc#handover=secret-token', [{ path: '/p/:id', element: <PollPage /> }]);
 
-    await waitFor(() => expect(takePollOver).toHaveBeenCalledWith('abc', 'secret-token'));
+    await waitFor(() => expect(takePollOver).toHaveBeenCalledWith('abc', { handover: 'secret-token' }));
     expect(await screen.findByText('Where do we eat?')).toBeInTheDocument();
     expect(window.location.hash).toBe('');
   });
@@ -50,5 +50,33 @@ describe('a handover link', () => {
 
     expect(await screen.findByText('Where do we eat?')).toBeInTheDocument();
     expect(takePollOver).not.toHaveBeenCalled();
+  });
+});
+
+/** A poll's admin link: its creator opens it in another browser to manage the poll from there. */
+describe('an admin link', () => {
+  beforeEach(() => {
+    vi.mocked(watchPoll).mockReturnValue(() => {});
+    window.history.replaceState(null, '', '/p/abc');
+  });
+
+  it('makes the poll yours, then takes the token out of the address', async () => {
+    vi.mocked(takePollOver).mockResolvedValue(lunchPoll({ isMine: true }));
+    vi.mocked(getPoll).mockResolvedValue(lunchPoll({ isMine: true, adminToken: 'admin-token' }));
+
+    renderAt('/p/abc#admin=admin-token', [{ path: '/p/:id', element: <PollPage /> }]);
+
+    await waitFor(() => expect(takePollOver).toHaveBeenCalledWith('abc', { admin: 'admin-token' }));
+    expect(await screen.findByRole('heading', { name: 'Manage your poll' })).toBeInTheDocument();
+    expect(window.location.hash).toBe('');
+  });
+
+  it('is shown to the creator, to open elsewhere', async () => {
+    vi.mocked(getPoll).mockResolvedValue(lunchPoll({ isMine: true, adminToken: 'admin-token' }));
+
+    renderAt('/p/abc', [{ path: '/p/:id', element: <PollPage /> }]);
+
+    expect(await screen.findByRole('textbox', { name: 'Admin link of the poll' }))
+      .toHaveValue(`${window.location.origin}/p/abc#admin=admin-token`);
   });
 });

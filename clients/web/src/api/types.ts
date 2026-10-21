@@ -122,6 +122,11 @@ export interface Poll {
    * ever carries it, and only if it was asked for: null everywhere else.
    */
   handover: string | null;
+  /**
+   * The token of the poll's admin link, for its creator only: whoever brings it
+   * becomes the creator, from any browser, every time. Null for anyone else.
+   */
+  adminToken: string | null;
 }
 
 /** What a poll's watchers receive live: what changes, the same for every watcher. */

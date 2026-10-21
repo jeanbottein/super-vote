@@ -55,6 +55,10 @@ class OpenApiConfiguration {
 
                 %s
 
+                ## The admin link
+
+                %s
+
                 ## Repeating a request
 
                 %s
@@ -67,6 +71,6 @@ class OpenApiConfiguration {
 
                 %s
                 """.formatted(ApiRules.IDENTITY, ApiRules.OPTIONS, ApiRules.BALLOTS, ApiRules.INVITATIONS, ApiRules.RESULTS,
-                ApiRules.CLOSING, ApiRules.HANDOVER, ApiRules.IDEMPOTENCY, ApiRules.FAIR_USE, ApiRules.ERRORS)));
+                ApiRules.CLOSING, ApiRules.HANDOVER, ApiRules.ADMIN, ApiRules.IDEMPOTENCY, ApiRules.FAIR_USE, ApiRules.ERRORS)));
     }
 }

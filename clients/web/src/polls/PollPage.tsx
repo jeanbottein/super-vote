@@ -10,7 +10,7 @@ import CopyableLink from './CopyableLink';
 import DevBallotFeeder from './DevBallotFeeder';
 import Invitations from './Invitations';
 import { formatJoinCode } from './format';
-import { handoverIn, invitationIn, pollUrl } from './links';
+import { adminIn, adminUrl, handoverIn, invitationIn, pollUrl } from './links';
 import OwnerActions from './OwnerActions';
 import ResultsSection, { resultsKeptBack } from './ResultsSection';
 import ShareButton from './ShareButton';
@@ -30,20 +30,20 @@ const LAST_POLLS = 5;
 /**
  * A poll: your ballot, and the results as they come in. Its address is its
  * share link; an invitation's link adds the invitation in the fragment, and a
- * handover link the token that makes you the poll's creator.
+ * handover or admin link the token that makes you the poll's creator.
  */
 export default function PollPage() {
   const { t } = useI18n();
   const { id = '' } = useParams();
   const hash = useLocation().hash;
   const invitation = invitationIn(hash);
-  const handover = useHandover(id, handoverIn(hash));
+  const handover = useHandover(id, handoverIn(hash), adminIn(hash));
 
-  if (handover === 'taking') {
+  if (handover.taking) {
     return <p className="panel">{t.poll.takingOver}</p>;
   }
-  // Keyed, so that moving to another poll, or another invitation, starts from a clean slate.
-  return <PollScreen key={`${id}#${invitation}`} id={id} invitation={invitation} />;
+  // Keyed, so that moving to another poll, another invitation, or taking it over, starts from a clean slate.
+  return <PollScreen key={`${id}#${invitation}#${handover.settled}`} id={id} invitation={invitation} />;
 }
 
 function PollScreen({ id, invitation }: { id: string; invitation: string | null }) {
@@ -102,10 +102,13 @@ function PollScreen({ id, invitation }: { id: string; invitation: string | null 
               </p>
               <ShareButton poll={poll} />
             </section>}
-          <section className="panel keep">
-            <h2>{t.poll.keepTitle}</h2>
-            <p>{t.poll.keepText}</p>
-          </section>
+          {poll.adminToken && (
+            <section className="panel keep">
+              <h2>{t.poll.keepTitle}</h2>
+              <p>{t.poll.keepText}</p>
+              <CopyableLink url={adminUrl(poll.id, poll.adminToken)} label={t.owner.adminLink} />
+            </section>
+          )}
         </>
       )}
       {pollsLeft && pollsLeft.count < LAST_POLLS && <PollsLeftHint pollsLeft={pollsLeft} />}

@@ -276,7 +276,7 @@ lines.
 - The header is sticky, `--header-height` (56 px) plus the top inset, and
   translucent over a blur: back on the left (not on Home), the brand in the
   middle, Settings on the right. Toasts sit just under it.
-- A poll's page: its title on the page itself (not in a card), its Share button (none for a poll by invitation: it has no link to share, each person has their own), any callout (a poll just created shows its link to copy and its join code in plain view, and an amber "Keep this browser" card),
+- A poll's page: its title on the page itself (not in a card), its Share button (none for a poll by invitation: it has no link to share, each person has their own), any callout (a poll just created shows its link to copy and its join code in plain view, and an amber "Keep your admin link" card with the link to copy; "Manage your poll" shows it again),
   the polls its creator has left for the day when few are (a warning hint), the
   ballot, the invitations (the creator's), the results, when the poll will
   be deleted, the creator's actions, and in development the ballot feeder.

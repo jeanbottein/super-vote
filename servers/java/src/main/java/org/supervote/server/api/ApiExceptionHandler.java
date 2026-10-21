@@ -20,6 +20,7 @@ import org.supervote.server.common.InvalidRequestException;
 import org.supervote.server.identity.CrossSiteRequestException;
 import org.supervote.server.identity.UnknownVoterException;
 import org.supervote.server.polls.HandoverUnavailableException;
+import org.supervote.server.polls.NotAdminLinkException;
 import org.supervote.server.polls.InvitationUsedException;
 import org.supervote.server.polls.NotInvitedException;
 import org.supervote.server.polls.NotPollCreatorException;
@@ -60,6 +61,11 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler
     ProblemDetail handoverUnavailable(HandoverUnavailableException e) {
         return problem(HttpStatus.FORBIDDEN, e.getMessage(), ProblemType.HANDOVER_UNAVAILABLE);
+    }
+
+    @ExceptionHandler
+    ProblemDetail notAdminLink(NotAdminLinkException e) {
+        return problem(HttpStatus.FORBIDDEN, e.getMessage(), ProblemType.NOT_ADMIN_LINK);
     }
 
     @ExceptionHandler

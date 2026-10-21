@@ -44,6 +44,7 @@ public class PollController {
 
     /** Where the token that hands a poll over travels, never in a URL a log would keep. */
     static final String HANDOVER = "Super-Vote-Handover";
+    static final String ADMIN = "Super-Vote-Admin";
 
     private final PollService polls;
     private final PollCreationService creations;
@@ -114,16 +115,21 @@ public class PollController {
     }
 
     /**
-     * Makes the caller the poll's creator, with the token its creation
-     * answered: the client that made the poll for somebody sends them this
-     * link, and from then on the poll is theirs to close, to delete, and whose
-     * invitations are theirs to read. The token works once.
+     * Makes the caller the poll's creator: the poll is then theirs to close,
+     * to delete, and whose invitations are theirs to read. With a handover
+     * token, the one its creation answered, once; with its admin token, the
+     * one in its creator's view, as often as it is brought.
      */
     @PostMapping("/{id}/creator")
-    public PollView handOver(@PathVariable String id,
-                             @RequestHeader(name = HANDOVER) String handover,
+    public PollView takeOver(@PathVariable String id,
+                             @RequestHeader(name = HANDOVER, required = false) String handover,
+                             @RequestHeader(name = ADMIN, required = false) String admin,
                              @RequestAttribute(VoterIdentity.ATTRIBUTE) Voter voter) {
-        return views.view(polls.handOver(id, handover, voter.id()), voter, null);
+        if ((handover == null) == (admin == null)) {
+            throw new InvalidRequestException("Send one of the " + HANDOVER + " and " + ADMIN + " headers, and only one.");
+        }
+        var poll = admin != null ? polls.administer(id, admin, voter.id()) : polls.handOver(id, handover, voter.id());
+        return views.view(poll, voter, null);
     }
 
     @DeleteMapping("/{id}")

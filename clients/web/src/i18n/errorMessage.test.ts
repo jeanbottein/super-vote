@@ -33,7 +33,7 @@ describe('errorMessage', () => {
 
   it('has words for every problem the server documents but invalid-request', () => {
     const documented = [
-      'unknown-voter', 'not-poll-creator', 'not-invited', 'handover-unavailable', 'cross-site', 'poll-not-found',
+      'unknown-voter', 'not-poll-creator', 'not-invited', 'handover-unavailable', 'not-admin-link', 'cross-site', 'poll-not-found',
       'poll-closed', 'invitation-used', 'collision', 'too-many-polls', 'too-many-wrong-codes', 'server-error',
     ];
     expect(Object.keys(en.problems).sort()).toEqual([...documented].sort());

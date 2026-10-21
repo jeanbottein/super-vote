@@ -34,6 +34,9 @@ enum ProblemType {
     /** That handover token is spent, or not this poll's. */
     HANDOVER_UNAVAILABLE("handover-unavailable"),
 
+    /** That admin token is not this poll's. */
+    NOT_ADMIN_LINK("not-admin-link"),
+
     /** No poll has that id or join code, or it was deleted. */
     POLL_NOT_FOUND("poll-not-found"),
 

@@ -64,6 +64,9 @@ class LlmsTxtController {
             - %1$s/p/{id}#handover={token}: a poll made for somebody. Sending its token
               to POST /api/polls/{id}/creator, in the Super-Vote-Handover header, makes
               the caller the poll's creator, once.
+            - %1$s/p/{id}#admin={token}: a poll's admin link, its creator's to keep. Sending
+              its token to POST /api/polls/{id}/creator, in the Super-Vote-Admin header,
+              makes the caller the poll's creator, every time.
 
             %3$s
 
@@ -88,6 +91,7 @@ class LlmsTxtController {
             "**Results.** " + ApiRules.RESULTS,
             "**Closing.** " + ApiRules.CLOSING,
             "**Creating a poll for somebody else.** " + ApiRules.HANDOVER,
+            "**The admin link.** " + ApiRules.ADMIN,
             "**Repeating a request.** " + ApiRules.IDEMPOTENCY,
             "**Fair use.** " + ApiRules.FAIR_USE + " " + """
                 Here, a network can create %d polls a day, and is refused codes

@@ -1270,10 +1270,11 @@ fieldset.field {
 }
 
 /* A poll just created: its link to copy, and its code, in plain view. */
-.ready {
+.callout.ready {
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
+  text-align: start;
 }
 
 .ready p {
@@ -1301,8 +1302,11 @@ fieldset.field {
   align-self: flex-start;
 }
 
-/* What a creator must not lose, in amber like a warning: the poll is managed from this browser alone. */
+/* What a creator must not lose, in amber like a warning: the admin link, which brings the poll to any browser. */
 .keep {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   border-color: var(--warning-text);
 }
 
@@ -1310,7 +1314,7 @@ fieldset.field {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 4px;
+  margin: 0;
   color: var(--warning-text);
 }
 
@@ -1509,6 +1513,11 @@ fieldset.field {
 
 .owner-actions .confirm {
   margin-top: 16px;
+}
+
+/* The admin link, then what it lets you do. */
+.owner-actions .share-link {
+  margin-bottom: 16px;
 }
 
 .invitations {

@@ -51,6 +51,7 @@ export const en = {
     'unknown-voter': 'This browser is not one super-vote knows. Reload the page to start afresh.',
     'not-poll-creator': "Only the poll's creator can do that.",
     'not-invited': 'Only invited people can vote on this poll. If you were invited, open the link from your invitation.',
+    'not-admin-link': 'This admin link is not this poll’s. Check that it was copied whole.',
     'handover-unavailable': 'This link cannot hand the poll over: it was used already.',
     'cross-site': 'This request came from another website, and was refused. Open super-vote itself.',
     'poll-not-found': 'No poll has this link or code. It may be mistyped, or the poll was deleted.',
@@ -314,9 +315,9 @@ export const en = {
     byInvitation: 'By invitation',
     created: (ago: string) => `Created ${ago}`,
     closed: 'Closed',
-    keepTitle: 'Keep this browser',
-    keepText: 'You manage this poll from this browser alone. Clear its data or switch device, and you can no longer '
-      + 'close or delete the poll early.',
+    keepTitle: 'Keep your admin link',
+    keepText: 'Open it in any browser to manage this poll from there: close it, delete it, invite people. Keep it to '
+      + 'yourself: whoever has it can do the same.',
     readyToInvite: <><strong>Your poll is ready.</strong> Invite people below: each gets a link of their own.</>,
     readyToShare: <><strong>Your poll is ready.</strong> Share its link to collect ballots.</>,
     closedAgo: (ago: string) => `Voting closed ${ago}. These are the final results.`,
@@ -391,6 +392,9 @@ export const en = {
 
   owner: {
     manage: 'Manage your poll',
+    adminLink: 'Admin link of the poll',
+    adminLinkHint: 'Your admin link: open it in another browser or device to manage the poll from there. Keep it to '
+      + 'yourself.',
     onlyThisBrowser: 'Only this browser can close or delete this poll early.',
     close: 'Close voting',
     delete: 'Delete poll',

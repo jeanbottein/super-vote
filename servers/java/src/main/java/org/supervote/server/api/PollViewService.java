@@ -104,7 +104,8 @@ public class PollViewService {
             results.voterNames(),
             results.moreVoterNames(),
             myBallot(poll, options, voter),
-            handover);
+            handover,
+            polls.adminTokenOf(poll, voter.id()).orElse(null));
     }
 
     /** What the poll's watchers receive, read afresh: updates are computed after the fact. */

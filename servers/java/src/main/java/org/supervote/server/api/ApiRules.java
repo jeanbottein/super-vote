@@ -79,6 +79,14 @@ public final class ApiRules {
         theirs to close, to delete, and whose invitations are theirs to read -
         and the token is spent.""";
 
+    public static final String ADMIN = """
+        A poll's creator is told its admin token ("adminToken"; null for anyone
+        else, and while a handover is open). Whoever sends it to POST
+        /api/polls/{id}/creator, in the Super-Vote-Admin header, becomes the
+        creator in place of the one before, as often as it is sent: it is how a
+        person manages their poll from another browser. It cannot be revoked:
+        keep it, never share it.""";
+
     public static final String FAIR_USE = """
         super-vote is free, and its resources are shared fairly: each network
         (an IPv4 address, or an IPv6 /64) can create a limited number of polls
@@ -94,7 +102,7 @@ public final class ApiRules {
         wrong and is what to branch on (/problems/poll-closed,
         /problems/not-invited, /problems/invitation-used,
         /problems/poll-not-found, /problems/not-poll-creator,
-        /problems/unknown-voter, /problems/handover-unavailable,
+        /problems/unknown-voter, /problems/handover-unavailable, /problems/not-admin-link,
         /problems/cross-site, /problems/invalid-request, /problems/collision,
         /problems/too-many-polls, /problems/too-many-wrong-codes,
         /problems/server-error); its "detail" is a sentence written for a

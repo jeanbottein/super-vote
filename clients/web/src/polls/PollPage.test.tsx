@@ -76,16 +76,20 @@ describe('a poll page', () => {
 
   it('gives its creator the link to share it, right after creating it', async () => {
     const user = userEvent.setup();
-    vi.mocked(getPoll).mockResolvedValue({ ...lunch, isMine: true });
+    vi.mocked(getPoll).mockResolvedValue({ ...lunch, isMine: true, adminToken: 'admin-token' });
     openPoll({ pathname: '/p/abc', state: { created: true } });
 
     expect(await screen.findByText('Your poll is ready.')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Keep this browser' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Keep your admin link' })).toBeInTheDocument();
+    expect(screen.getAllByRole('textbox', { name: 'Admin link of the poll' })[0])
+      .toHaveValue(`${window.location.origin}/p/abc#admin=admin-token`);
     const link = `${window.location.origin}/p/abc`;
-    expect(screen.getByRole('textbox', { name: 'Link to the poll' })).toHaveValue(link); // in plain view
-    await user.click(screen.getByRole('button', { name: 'Copy' }));
+    const field = screen.getByRole('textbox', { name: 'Link to the poll' });
+    expect(field).toHaveValue(link); // in plain view
+    const row = field.closest<HTMLElement>('.share-link')!;
+    await user.click(within(row).getByRole('button', { name: 'Copy' }));
     expect(await navigator.clipboard.readText()).toBe(link);
-    expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument();
+    expect(within(row).getByRole('button', { name: 'Copied' })).toBeInTheDocument();
 
     await user.click(screen.getAllByRole('button', { name: 'Share' })[0]); // more ways: a QR code, an email
     expect(screen.getByRole('dialog', { name: 'Share this poll' })).toBeInTheDocument();
