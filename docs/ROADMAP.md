@@ -37,7 +37,7 @@ so that limits see IPv6 visitors' addresses; the nightly `pg_dump`, kept 7
 days; Caddy's log without requests; updates that make requests wait rather
 than fail ([deploy/README.md](../deploy/README.md)). Running since
 2026-10-21 on an OVHcloud VPS in Montréal, Canada (which the EU deems
-adequate; the privacy page and the legal notice say so). Left: copying the
+adequate; the privacy page says so). Left: copying the
 backups off the VPS; the record of processing (below).
 
 - **PostgreSQL**: supported already, and the test suite passes on it, in CI
@@ -87,9 +87,9 @@ backups off the VPS; the record of processing (below).
   privacy page says what is stored, why, for how long, your rights and a
   contact; plainly, that ballots are unlinkable at rest but the server
   operator is trusted, and that the device's time zone is read for
-  statistics, and kept only as totals. It is the same for everyone, so that
-  it also meets the GDPR for visitors in the EU (Canada is adequate in its
-  eyes): answering access and deletion requests, a one-page record of
+  statistics, and kept only as totals. It is the same for everyone, and
+  aims to meet the GDPR too, for visitors in the EU (Canada is adequate in
+  its eyes): answering access and deletion requests, a one-page record of
   processing, telling of a breach within 72 hours. No cookie banner as long
   as the only cookie is the one the service needs (strictly necessary):
   analytics would change that. The publisher names themselves to the host

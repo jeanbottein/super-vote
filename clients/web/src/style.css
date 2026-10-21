@@ -1406,7 +1406,6 @@ fieldset.field {
   box-shadow: none;
 }
 
-/* The ballot is the one sheet the voter holds: raised above the rest. */
 /* The sheet the voter holds, kraft paper like a paper ballot. Inside it, the paper is the raised surface (the
    gap in a chosen mention's ring), and lines and secondary text take its tones. Its grain is a mask of noise
    in a colour per scheme, under everything else. */
