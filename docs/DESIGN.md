@@ -278,7 +278,7 @@ lines.
   middle, Settings on the right. Toasts sit just under it.
 - A poll's page: its title on the page itself (not in a card), its Share button (none for a poll by invitation: it has no link to share, each person has their own), any callout (a poll just created shows its link to copy and its join code in plain view, and an amber "Keep your admin link" card with the link to copy; "Manage your poll" shows it again),
   the polls its creator has left for the day when few are (a warning hint), the
-  ballot, the invitations (the creator's), the results, when the poll will
+  invitations (the creator's, above their own ballot), the ballot, the results, when the poll will
   be deleted, the creator's actions, and in development the ballot feeder.
 
 ## Components

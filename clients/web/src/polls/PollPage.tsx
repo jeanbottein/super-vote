@@ -112,10 +112,11 @@ function PollScreen({ id, invitation }: { id: string; invitation: string | null 
         </>
       )}
       {pollsLeft && pollsLeft.count < LAST_POLLS && <PollsLeftHint pollsLeft={pollsLeft} />}
+      {/* What the creator of a poll by invitation does first: invite people, then vote too. */}
+      {poll.isMine && poll.invitationOnly && <Invitations poll={poll} />}
       {poll.closedAt
         ? <p className="panel callout">{t.poll.closedAgo(t.timeAgo(poll.closedAt))}</p>
         : <BallotSection poll={poll} options={options} invitation={invitation} onCast={setPoll} />}
-      {poll.isMine && poll.invitationOnly && <Invitations poll={poll} />}
       <ResultsSection poll={poll} options={options} connection={connection} />
       {!resultsKeptBack(poll) && poll.totalBallots >= FEWEST_PLACED && (
         <Suspense fallback={null}>
