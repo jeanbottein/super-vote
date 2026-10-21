@@ -202,7 +202,7 @@ export const fr: Messages = {
     label: 'Vous avez un code ?',
     typeTheCode: 'Tapez le code qu’on vous a donné.',
     joining: 'Ouverture…',
-    join: 'Rejoindre',
+    join: 'Vote !',
   },
 
   newPoll: {

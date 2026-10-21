@@ -151,7 +151,7 @@ describe('the home page', () => {
     openHome();
 
     await userEvent.type(screen.getByLabelText('Got a code?'), 'k7m-4qx');
-    await userEvent.click(screen.getByRole('button', { name: 'Join' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Vote!' }));
 
     expect(joinPoll).toHaveBeenCalledWith('K7M4QX');
     expect(await screen.findByText('Poll page lunch')).toBeInTheDocument();

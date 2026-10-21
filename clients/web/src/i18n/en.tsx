@@ -198,7 +198,7 @@ export const en = {
     label: 'Got a code?',
     typeTheCode: 'Type the code you were given.',
     joining: 'Joining…',
-    join: 'Join',
+    join: 'Vote!',
   },
 
   newPoll: {
