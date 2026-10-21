@@ -48,13 +48,14 @@ describe('sharing a poll', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Share through an app' }));
 
-    expect(share).toHaveBeenCalledWith({ title: 'Where do we eat?', url: link });
+    expect(share).toHaveBeenCalledWith({ title: 'Where do we eat?', text: 'Vote on “Where do we eat?”', url: link });
   });
 
-  it('sends it by email', async () => {
+  it('sends it by email, with the question and the join code beside the link', async () => {
     await openShare();
 
+    const body = `Vote on “Where do we eat?”\n\n${link}\n\nOr enter the code K7M-4QX at ${window.location.host}.`;
     expect(screen.getByRole('link', { name: 'Send by email' }))
-      .toHaveAttribute('href', `mailto:?subject=Where%20do%20we%20eat%3F&body=${encodeURIComponent(link)}`);
+      .toHaveAttribute('href', `mailto:?subject=Where%20do%20we%20eat%3F&body=${encodeURIComponent(body)}`);
   });
 });

@@ -1,7 +1,7 @@
 import { useId, useRef, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { castBallot } from '../api/client';
-import type { Admission, Mention, OptionOrder, Poll, PollOption } from '../api/types';
+import type { Admission, Mention, Poll, PollOption } from '../api/types';
 import ApprovalBallot from '../features/VotingSystem/Approval/ApprovalBallot';
 import MajorityJudgmentBallot from '../features/VotingSystem/MajorityJudgment/MajorityJudgmentBallot';
 import MajorityJudgmentDropdownBallot from '../features/VotingSystem/MajorityJudgment/MajorityJudgmentDropdownBallot';
@@ -43,20 +43,12 @@ function whyNotAdmitted(admission: Exclude<Admission, 'ADMITTED'>, withInvitatio
   return withInvitation ? t.ballot.invitationNotValid : t.ballot.notInvited;
 }
 
-/** What tells a voter the options' order owes nothing to the creator, when it does not. */
-function orderOf(order: OptionOrder, t: Messages): string | null {
-  switch (order) {
-    case 'SHUFFLED':
-      return t.ballot.shuffled;
-    case 'ALPHABETICAL':
-      return t.ballot.alphabetical;
-    default:
-      return null;
-  }
-}
-
 const NO_JUDGMENTS: Record<string, Mention> = {};
 const NO_APPROVALS: string[] = [];
+
+function pick(judgments: Record<string, Mention>, optionIds: Set<string>): Record<string, Mention> {
+  return Object.fromEntries(Object.entries(judgments).filter(([optionId]) => optionIds.has(optionId)));
+}
 
 function MajorityJudgmentBallotSection({ poll, options, invitation, onCast }: BallotSectionProps) {
   const { t } = useI18n();
@@ -71,7 +63,11 @@ function MajorityJudgmentBallotSection({ poll, options, invitation, onCast }: Ba
     castChanged: voter.changedSinceCast,
     onError: (error) => showToast(errorMessage(error, t), 'error'),
   });
-  const complete = options.every((option) => ballot.ballot[option.id]);
+  // The server counts an option left unrated as Bad, and answers with it: shown, every row the voter has not
+  // touched yet would turn Bad and step back. Until the page reloads, rows show only what the voter chose here.
+  const [rated, setRated] = useState<Set<string> | null>(() => (poll.myBallot ? null : new Set()));
+  const shown = rated ? pick(ballot.ballot, rated) : ballot.ballot;
+  const complete = options.every((option) => shown[option.id]);
   const Ballot = mjBallot === 'dropdown' ? MajorityJudgmentDropdownBallot : MajorityJudgmentBallot;
 
   return (
@@ -83,13 +79,22 @@ function MajorityJudgmentBallotSection({ poll, options, invitation, onCast }: Ba
       canSubmit={ballot.hasChanges && complete}
       submitLabel={complete ? t.ballot.submit : t.ballot.rateEveryOption}
       onSubmit={ballot.submit}
-      onWithdraw={() => ballot.withdraw(NO_JUDGMENTS)}
+      onWithdraw={() => {
+        setRated(new Set());
+        ballot.withdraw(NO_JUDGMENTS);
+      }}
       instructions={submission === 'live' ? t.ballot.majorityJudgmentLive : t.ballot.majorityJudgmentEnvelope}
-      order={orderOf(poll.optionOrder, t)}
       invited={poll.invitationOnly && !poll.isMine}
       nameField={poll.showVoterNames && <VoterNameField poll={poll} voter={voter} onCommit={ballot.recast} />}
     >
-      <Ballot options={options} ballot={ballot.ballot} onChange={ballot.change} />
+      <Ballot
+        options={options}
+        ballot={shown}
+        onChange={(judgments) => {
+          setRated((before) => before && new Set(Object.keys(judgments)));
+          ballot.change(judgments);
+        }}
+      />
     </BallotFrame>
   );
 }
@@ -120,7 +125,6 @@ function ApprovalBallotSection({ poll, options, invitation, onCast }: BallotSect
       onSubmit={ballot.submit}
       onWithdraw={() => ballot.withdraw(NO_APPROVALS)}
       instructions={t.ballot.approval}
-      order={orderOf(poll.optionOrder, t)}
       invited={poll.invitationOnly && !poll.isMine}
       nameField={poll.showVoterNames && <VoterNameField poll={poll} voter={voter} onCommit={ballot.recast} />}
     >
@@ -141,8 +145,6 @@ interface BallotFrameProps {
   onSubmit(): void;
   onWithdraw(): void;
   instructions: string;
-  /** Why the options come in the order they do, when the creator did not choose it. */
-  order: string | null;
   /** The voter came with an invitation, which this ballot uses. */
   invited: boolean;
   /** Polls that show names: the voter's name, above the ballot. */
@@ -158,7 +160,7 @@ interface BallotFrameProps {
  */
 function BallotFrame(props: BallotFrameProps) {
   const {
-    mode, counted, unsent, busy, canSubmit, submitLabel, onSubmit, onWithdraw, instructions, order, invited, nameField,
+    mode, counted, unsent, busy, canSubmit, submitLabel, onSubmit, onWithdraw, instructions, invited, nameField,
     children,
   } = props;
   const { t } = useI18n();
@@ -183,7 +185,7 @@ function BallotFrame(props: BallotFrameProps) {
       <div className="section-header">
         <h2 id={titleId}>{t.ballot.yourBallot}</h2>
         {counted && (
-          <button type="button" className="button link" disabled={busy} onClick={onWithdraw}>
+          <button type="button" className="button danger" disabled={busy} onClick={onWithdraw}>
             {t.ballot.withdraw}
           </button>
         )}
@@ -192,7 +194,6 @@ function BallotFrame(props: BallotFrameProps) {
         ? <div className="ballot-body" ref={body} onChange={() => setRevealed(true)}>
           {nameField}
           <p className="hint">{instructions}</p>
-          {order && <p className="hint">{order}</p>}
           {invited && !counted && <p className="hint">{t.ballot.invited}</p>}
           {children}
           {mode === 'envelope' && (
@@ -204,14 +205,14 @@ function BallotFrame(props: BallotFrameProps) {
             {counted ? t.ballot.counted : t.ballot.notVoted}
           </p>
           {counted && !unsent && (
-            <button type="button" className="button link" onClick={hide}>
+            <button type="button" className="button paper" onClick={hide}>
               {t.ballot.hide}
             </button>
           )}
         </div>
         : <>
           <p className="ballot-status" data-counted={true}>{t.ballot.hidden}</p>
-          <button type="button" className="button secondary wide" ref={changeButton} onClick={reveal}>
+          <button type="button" className="button paper wide" ref={changeButton} onClick={reveal}>
             {t.ballot.change}
           </button>
         </>}

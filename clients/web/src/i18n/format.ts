@@ -71,6 +71,13 @@ export function formatMoment(language: Language, isoDate: string): string {
   return moments(language).format(new Date(isoDate));
 }
 
+/** "2026-10-19 14:00", the same in every language: a moment in the device's time zone, to the minute. */
+export function formatStamp(isoDate: string): string {
+  const at = new Date(isoDate);
+  const two = (value: number) => String(value).padStart(2, '0');
+  return `${at.getFullYear()}-${two(at.getMonth() + 1)}-${two(at.getDate())} ${two(at.getHours())}:${two(at.getMinutes())}`;
+}
+
 /** "Oct 19", "19 oct.": a UTC day, as the statistics count them. */
 export function formatUtcDay(language: Language, day: string): string {
   return utcDays(language).format(new Date(`${day}T00:00:00Z`));

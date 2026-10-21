@@ -56,6 +56,16 @@
 		}
 	}
 
+	# A poll's link shared in a messaging app: its robot reads the page without running it, so it gets the
+	# server's preview (the question, the options, a small icon) rather than the web app, which is JavaScript.
+	@preview {
+		path /p/*
+		header_regexp User-Agent (?i)facebookexternalhit|facebot|twitterbot|whatsapp|telegrambot|slackbot|discordbot|linkedinbot|skypeuripreview|mastodon|bluesky|iframely|embedly
+	}
+	handle @preview {
+		reverse_proxy {$SUPER_VOTE_SERVER:127.0.0.1:8080}
+	}
+
 	handle {
 		root * {$SUPER_VOTE_WEB:/srv/web}
 		@assets path /assets/*

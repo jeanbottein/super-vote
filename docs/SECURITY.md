@@ -68,7 +68,12 @@ Known, stated where they matter, and the way out of each:
 6. **Inflated statistics.** A voter token is one request away
    (`POST /api/voters`), so the "visitors" count can be inflated. It grants
    nothing.
-7. **Content.** Polls are private by link and are not moderated. Illegal
+7. **Link previews.** A poll's link shared in a messaging app shows its
+   question and options: the app's robot reads them from the server
+   (`LinkPreviewController`), and its company may keep them. Only what the
+   link opens to anyone holding it, never a count; the people the link is
+   sent to see the same.
+8. **Content.** Polls are private by link and are not moderated. Illegal
    content can be reported through the GitHub issues linked from the privacy
    page; the operator must act on such reports promptly (EU Digital Services
    Act).
@@ -111,8 +116,9 @@ and the Caddyfile set up (deploy/README.md has the rest):
   page.
 - `unattended-upgrades`, SSH keys only, the firewall closed but for 22, 80 and
   443.
-- The legal notices: the privacy page is written; the publisher's notice
-  (mentions légales) and a way to report content are the operator's.
+- The legal notices: the privacy page and the legal notice (publisher, law,
+  host, and a way to report content) are written; acting on reports is the
+  operator's.
 
 Follow-ups worth doing when they become cheap: the `__Host-` cookie prefix in
 production (it needs HTTPS everywhere, which development on a phone lacks),

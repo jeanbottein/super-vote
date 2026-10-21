@@ -16,7 +16,7 @@ act, a result is a fact.
    interface itself is neutral paper and one blue ink. Danger red is kept for
    what cannot be undone, and always comes with words.
 2. **Paper and ink.** Surfaces are quiet; what can be acted on is ink
-   (`--accent`). The ballot is the one sheet raised above the rest: the thing
+   (`--accent`). The ballot is the one sheet raised above the rest, on kraft paper: the thing
    the voter holds.
 3. **Obvious, then calm.** One primary action per region, labels before icons,
    plain sentences. A majority judgment row shows its seven colours until it
@@ -127,6 +127,21 @@ page); `--shadow-color`, from which `--shadow-1` to `--shadow-3` are made;
 `--glow-red`, `--glow-yellow`, `--glow-green`, the logo's inner red and
 green bands and its median yellow, as a faint light over the top of each page (a quarter to a third opaque in light, under a tenth
 in dark: the red is the lighter so that `--muted` stays AA under it), gone by 480 px so that ballots and results sit on plain surfaces.
+
+**Kraft paper**, the ballot (at the owner's request, 2026-10-21): the sheet the
+voter holds is the brown paper of a paper ballot. Sand, browner and greyer
+than Fair's pale yellow, so that it never reads as a mention. Inside the
+ballot, `--surface-raised`, `--border` and `--muted` take the paper's tones
+(`--paper`, `--paper-edge`, `--paper-muted`), so that a chosen mention's
+ring, the rows' lines and the hints sit on it as they did on white.
+
+| Token | Light | Dark | Role |
+|---|---|---|---|
+| `--paper` | `#e8dbc2` | `#2a241c` | The sheet. |
+| `--paper-edge` | `#d3c19f` | `#3d3426` | Its edge, and the lines between its rows. |
+| `--paper-muted` | `#5f5545` | `#b5a98f` | Hints and the scale's legend on it: 5.2:1 and 6.6:1. |
+| `--paper-grain` | brown 20 % | cream 10 % | The grain: a noise mask (SVG `feTurbulence`) painted in this colour under the text. |
+| `--paper-button`, `-hover`, `-edge` | `#d8c4a0`, `#cdb68e`, `#9c845c` | `#463b2b`, `#524533`, `#7a6a50` | A button on the sheet (`.button.paper`): "Hide my ballot". |
 
 **The statistics** (`src/statistics`): `--map-land`, the land, on the
 panel's surface as the sea; `--map-ink`, the dots and bars, a little lighter
@@ -268,15 +283,23 @@ lines.
   majority judgment, and a prompt to have an AI agent create a poll. Then what it is not for (two columns). On a phone it is
   all one column, in that order.
 - One breakpoint, 640 px. Below it dialogs are sheets from the bottom; from
-  it they are centred, panels get 24 px of padding (`--panel-padding`), and a
-  ballot row puts its option beside its scale.
+  it they are centred, and panels get 24 px of padding (`--panel-padding`). A
+  majority judgment row keeps its option, and the mention chosen for it, above
+  its scale at every width, a line between rows (the owner's design, restored
+  2026-10-21): beside the scale, a long option was squeezed, and the scale's
+  legend no longer stood over the scale.
 - What depends on its own width uses container queries: the majority
   judgment scale names its steps from 480 px of scale; the results cards
   adapt below 400 and 360 px.
 - The header is sticky, `--header-height` (56 px) plus the top inset, and
   translucent over a blur: back on the left (not on Home), the brand in the
   middle, Settings on the right. Toasts sit just under it.
-- A poll's page: its title on the page itself (not in a card), its Share button (none for a poll by invitation: it has no link to share, each person has their own), any callout (a poll just created shows its link to copy and its join code in plain view, and an amber "Keep your admin link" card with the link to copy; "Manage your poll" shows it again),
+- A poll's page: its title on a panel (`.poll-header`), its Share button on the right, and pills at the
+  bottom (`.poll-tags`): Closed, its voting system, its visibility, "By invitation", how its options are
+  ordered ("Options shuffled", "Options sorted" A to Z, or "Options ordered" as written) and when it was
+  created (`yyyy-mm-dd hh:mm`, the device's time, `formatStamp`). From 640 px Share centres on the whole
+  panel; on phones the pills take its full width and Share centres on the title. A poll by invitation has
+  no Share: it has no link to share, each person has their own. Then any callout (a poll just created shows its link to copy and its join code in plain view, and an amber "Keep your admin link" card with the link to copy; "Manage your poll" shows it again),
   the polls its creator has left for the day when few are (a warning hint), the
   invitations (the creator's, above their own ballot), the ballot, the results, when the poll will
   be deleted, the creator's actions, and in development the ballot feeder.
@@ -286,21 +309,23 @@ lines.
 | Component | Classes | Notes |
 |---|---|---|
 | Panel | `.panel`; `.callout` (ink-tinted, flat), `.notice` (a page-sized message), `.panel.error-text`, `.dev-tool` (dashed) | `--surface`, hairline, `--shadow-1` |
-| Buttons | `.button` with `.primary`, `.secondary`, `.danger`, `.link`, `.wide`; `.button-row`; `.icon-button` (`.icon-button-placeholder` keeps a slot) | at least `--tap` (44 px) high or wide |
+| Buttons | `.button` with `.primary`, `.secondary`, `.danger`, `.paper` (kraft, on the ballot), `.link`, `.wide`; `.button-row`; `.icon-button` (`.icon-button-placeholder` keeps a slot) | at least `--tap` (44 px) high or wide |
 | Fields | `input`, `select`, `.field`, `.field-problem`, `.hint`, `.hint[data-tone="warning"]` | `--field`, `--border-strong`, 16 px text |
 | Segmented control | `.segmented`, `.segmented-options`, `.segmented-option` | radios: arrow keys work |
 | Header | `.app-header`, `.app-header-inner`, `.brand`, `.logo` | |
 | Home | `.hero`, `.home-hero`, `.wordmark`, `.start`, `.join-form`, `.join-row`, `.join-code`, `.poll-list`, `.poll-list-item`; `.home-start`, `.home-actions`, `.home-section`, `.how-and-support`, `.steps`, `.systems`, `.schema`, `.beside`, `.agent-prompt`, `.compare`, `.support`, `.good-to-know`; `.copy-labels` | list rows run to the panel's edges; each step's number sits in an ink disc (`--accent-soft`, `--accent-text`), joined to the next by a line; the comparison marks yes, partly and no with a tick, a half-filled circle and a cross, ink for yes and `--muted` otherwise (never green or red, which are the mentions'), each with its word for screen readers, and tints majority judgment's column; the agent's prompt, naming the site it is on, sits in a well (`--surface-sunken`) to copy, and its button keeps its width when "Copied" replaces its label (`.copy-labels`); the two systems' drawings are decorative (`aria-hidden`), the first in the mentions' colours, the second in ink |
 | Privacy and limits | `.about-section`, `.facts` | one fact per bullet |
-| Ballot | `.ballot`, `.ballot-body`, `.ballot-status[data-counted]` | the raised sheet |
-| Majority judgment ballot (`mj-ballot.css`) | `.mj-scale-legend`, `.mj-ballot-row`, `.mj-ballot-chosen[data-mention]`, `.mj-scale`, `.mj-scale-step`, `.mj-scale-mark`, `.mj-scale-name`; `.mj-dropdown-row select[data-mention]` | rows are lines on the sheet |
+| Poll header | `.poll-header`, `.poll-share`, `.poll-tags` | a panel laid out as a grid; the tags are neutral pills (`--surface-sunken`, a hairline, 13 px 600) |
+| Ballot | `.ballot`, `.ballot-body`, `.ballot-status[data-counted]` | the raised sheet, kraft paper (`--paper-*`), its grain on `::before`; Withdraw is a danger button, though a ballot withdrawn can be cast again (the owner's choice, 2026-10-21), and "Hide my ballot" and "Change my ballot" kraft ones |
+| Majority judgment ballot (`mj-ballot.css`) | `.mj-scale-legend`, `.mj-ballot-row`, `.mj-ballot-row-head`, `.mj-ballot-chosen[data-mention]`, `.mj-scale`, `.mj-scale-step`, `.mj-scale-mark`, `.mj-scale-name`; `.mj-dropdown-row select[data-mention]` | rows are lines on the sheet; each shows its option, then the chosen mention as a pill in its colour right after it (an outline while not rated yet), and the scale under both |
 | Approval (`approval.css`) | `.approval-choice`, `.approval-result[data-winner]`, `.approval-rank`, `.approval-bar` | ink, not green |
 | Results | `.results`, `.results-count`, `.live-status[data-state]`, `.voter-names`, `.name-cloud` | the graph itself is protected |
+| Manage your poll | `.owner-actions`, `.owner-admin`, `.owner-controls` | two groups 16 px apart: the admin link (its hint, then the button that shows it, or the link to copy), then under a hairline closing and deleting, and the confirmation either asks; on phones every button takes the panel's width, one under the other, and from 640 px its own, side by side |
 | Confirmation | `.confirm`, tinted red when it deletes (`:has(.button.danger)`) | |
 | Invitations | `.invitation[data-used]`, `.invitation-status`, `.invite-form` | |
 | Dialog | `.dialog`, `.dialog-body`, `.dialog-header`; `.share-code`, `.share-link`, `.share-qr` (white in every theme: QR codes need it) | |
 | Toasts | `.toasts`, `.toast`, `.toast[data-kind="error"]` | under the header |
-| Footer | `.app-footer`; its other languages are buttons that read like its links | each language named in its own words, with its `lang` |
+| Footer | `.app-footer`, `.app-version`; its other languages are buttons that read like its links | each language named in its own words, with its `lang`; the version (`v` and the build's time in UTC, `v202610212110`) after the first sentence, 12 px mono |
 | Badge | `.badge` | neutral pill |
 | Statistics (`statistics.css`) | `.statistics-totals`, `.statistics-panel`, `.world-map`, `.world-map-view`, `.world-map-land`, `.world-map-dot`, `.world-map-chosen`, `.world-map-legend`, `.world-map-zoom`, `.statistics-chosen`, `.activity-chart`, `.places-table` | the map runs to the panel's edges; a dot's area is its count, and dots keep their size on screen when zoomed; the chosen dot gets a 2 px `--fg` ring drawn on top, so nothing moves; the zoom buttons sit under the map, never over it |
 

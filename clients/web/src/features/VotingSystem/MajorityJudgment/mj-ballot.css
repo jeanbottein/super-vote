@@ -21,8 +21,8 @@
 
 /* ------------------------------------------------------------------ */
 /* The colour scale: one row per option, seven steps from Excellent   */
-/* to Bad. On phones the steps are colour only and the chosen mention */
-/* is spelled out next to the option; wider screens name every step.  */
+/* to Bad, under its option and the mention chosen for it, at every   */
+/* width. Narrow scales are colour only; wide ones name every step.   */
 /* ------------------------------------------------------------------ */
 
 .mj-ballot {
@@ -59,11 +59,14 @@
   padding-top: 6px;
 }
 
+/* The option, then the mention chosen for it as a pill in its colour, right after it: a long option takes
+   the line, and the pill goes under it, at the start (a gap, unlike a margin, is not left at the start of a
+   line). Not rated yet, the pill is an outline. */
 .mj-ballot-row-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 4px 8px;
 }
 
 .mj-ballot-option {
@@ -72,27 +75,20 @@
 }
 
 .mj-ballot-chosen {
-  flex: none;
+  padding: 0 10px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--border-strong);
   color: var(--muted);
-  font-size: 14px;
-}
-
-/* The chosen mention, named, with its colour beside it. */
-.mj-ballot-chosen[data-mention] {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--fg);
+  font-size: 13px;
   font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
 }
 
-.mj-ballot-chosen[data-mention]::before {
-  content: "";
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+.mj-ballot-chosen[data-mention] {
   background: var(--mention);
   box-shadow: inset 0 0 0 1px var(--mention-edge);
+  color: var(--mention-fg);
 }
 
 .mj-scale {
@@ -175,20 +171,6 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
-}
-
-@media (min-width: 640px) {
-  .mj-ballot-row {
-    display: grid;
-    grid-template-columns: minmax(7rem, 1fr) 4fr;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .mj-ballot-row-head {
-    flex-direction: column;
-    gap: 2px;
-  }
 }
 
 /* Room for every name (about 65px a step): write them on the scale, in the

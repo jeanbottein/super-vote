@@ -11,7 +11,10 @@ export default function Footer() {
 
   return (
     <footer className="app-footer">
-      <p>{t.app.footer}</p>
+      <p>
+        {t.app.footer}
+        {' '}<span className="app-version">{__SUPER_VOTE_VERSION__}</span>
+      </p>
       <nav aria-label={t.app.footerLinks}>
         <Link to="/about">{t.app.about}</Link>
         <Link to="/privacy">{t.app.privacy}</Link>

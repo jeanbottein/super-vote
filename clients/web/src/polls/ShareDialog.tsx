@@ -17,7 +17,7 @@ interface ShareDialogProps {
   linkLabel: string;
   /** The poll's title: the subject of a message carrying the link. */
   subject: string;
-  /** What a message says before the link. */
+  /** What a message says before the link: in a text message or an email, the only words the person reads. */
   message?: string;
   /** A poll's own link has a join code, to read out or show. */
   joinCode?: string;
@@ -31,7 +31,8 @@ interface ShareDialogProps {
 export default function ShareDialog(props: ShareDialogProps) {
   const { open, onClose, title, hint, url, linkLabel, subject, message, joinCode } = props;
   const { t } = useI18n();
-  const body = message ? `${message}\n\n${url}` : url;
+  const body = [message, url, joinCode && t.share.orCode(formatJoinCode(joinCode), window.location.host)]
+    .filter(Boolean).join('\n\n');
 
   return (
     <Dialog open={open} onClose={onClose} title={title}>

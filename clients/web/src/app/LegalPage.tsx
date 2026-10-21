@@ -2,10 +2,9 @@ import { useI18n } from '../i18n/i18n';
 import { Section } from './AboutPage';
 
 /**
- * The legal notice French law asks of a website (mentions légales): who
- * publishes it, who hosts it, and where to report unlawful content. A private
- * person may name the host only, having given the host their identity
- * (docs/ROADMAP.md, "Legal pages").
+ * The legal notice: who publishes super-vote, under which law, who hosts it,
+ * and where to report unlawful content. The publisher is a private person in
+ * Québec, named to the host only (docs/ROADMAP.md, "Legal pages").
  */
 export default function LegalPage() {
   const { t } = useI18n();
@@ -20,8 +19,15 @@ export default function LegalPage() {
         <p>{t.legal.publisherText}</p>
       </Section>
 
+      <Section title={t.legal.law}>
+        <p>{t.legal.lawText}</p>
+      </Section>
+
       <Section title={t.legal.host}>
-        <p>{t.legal.hostText}</p>
+        <address className="postal">
+          {t.legal.hostAddress.map((line) => <span key={line}>{line}</span>)}
+          <span>{t.legal.hostPhone(<a href="tel:+18556845463">+1 855 684 5463</a>)}</span>
+        </address>
       </Section>
 
       <Section title={t.legal.report}>

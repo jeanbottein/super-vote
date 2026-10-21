@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/client';
 import type { Poll, PollsLeft } from '../api/types';
 import { errorMessage } from '../i18n/errorMessage';
+import { formatStamp } from '../i18n/format';
 import { useI18n } from '../i18n/i18n';
 import Notice from '../ui/Notice';
 import BallotSection from './BallotSection';
@@ -151,16 +152,15 @@ function PollHeader({ poll }: { poll: Poll }) {
   return (
     <section className="poll-header">
       <h1>{poll.title}</h1>
-      <div className="poll-header-row">
-        <p className="poll-meta">
-          <span>{t.votingSystems[poll.votingSystem]}</span>
-          <span>{t.visibilities[poll.visibility]}</span>
-          {poll.invitationOnly && <span>{t.poll.byInvitation}</span>}
-          <span>{t.poll.created(t.timeAgo(poll.createdAt))}</span>
-          {poll.closedAt && <span className="badge">{t.poll.closed}</span>}
-        </p>
-        {!poll.invitationOnly && <ShareButton poll={poll} />}
-      </div>
+      {!poll.invitationOnly && <ShareButton poll={poll} className="button secondary poll-share" />}
+      <ul className="poll-tags">
+        {poll.closedAt && <li>{t.poll.closed}</li>}
+        <li>{t.votingSystems[poll.votingSystem]}</li>
+        <li>{t.visibilities[poll.visibility]}</li>
+        {poll.invitationOnly && <li>{t.poll.byInvitation}</li>}
+        <li>{t.poll.optionOrder[poll.optionOrder]}</li>
+        <li><time dateTime={poll.createdAt}>{formatStamp(poll.createdAt)}</time></li>
+      </ul>
     </section>
   );
 }

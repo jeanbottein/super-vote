@@ -67,6 +67,15 @@
   --glow-yellow: light-dark(rgb(236 203 98 / 0.3), rgb(236 203 98 / 0.06));
   --glow-green: light-dark(rgb(147 191 143 / 0.3), rgb(147 191 143 / 0.07));
 
+  /* The ballot, on kraft paper as a paper ballot is: sand, browner than Fair's pale yellow, with a grain. */
+  --paper: light-dark(#e8dbc2, #2a241c);
+  --paper-edge: light-dark(#d3c19f, #3d3426);
+  --paper-muted: light-dark(#5f5545, #b5a98f);
+  --paper-grain: light-dark(rgb(92 64 28 / 0.2), rgb(255 236 200 / 0.1));
+  --paper-button: light-dark(#d8c4a0, #463b2b); /* a deeper kraft, for a button on the sheet */
+  --paper-button-hover: light-dark(#cdb68e, #524533);
+  --paper-button-edge: light-dark(#9c845c, #7a6a50);
+
   /* The statistics (src/statistics): land on the panel's sea, and the ink for
      what is counted, its dots and bars a little lighter in dark. */
   --map-land: light-dark(#e3e6eb, #2a2f38);
@@ -413,6 +422,16 @@ a:hover {
   background: var(--danger-hover);
 }
 
+.button.paper {
+  border-color: var(--paper-button-edge);
+  background: var(--paper-button);
+  color: var(--fg);
+}
+
+.button.paper:hover:not(:disabled) {
+  background: var(--paper-button-hover);
+}
+
 .button.link {
   padding: 0 8px;
   background: none;
@@ -636,11 +655,6 @@ fieldset.field {
   padding: 20px 4px 12px;
 }
 
-.hero .logo {
-  width: 64px;
-  margin-bottom: 4px;
-}
-
 .hero h1 {
   margin: 0;
   font-size: clamp(32px, 9vw, 44px);
@@ -677,7 +691,7 @@ fieldset.field {
 /* The logo is the S: as tall as the capitals, and the gap the letters' tracking would leave. */
 .home-hero .wordmark-s {
   display: inline-block;
-  width: 0.85em;
+  width: 0.9em;
   margin-inline-end: 0.14em;
   vertical-align: -0.08em;
 }
@@ -1202,8 +1216,7 @@ fieldset.field {
   overflow-wrap: anywhere;
 }
 
-.poll-list-meta,
-.poll-meta {
+.poll-list-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1251,22 +1264,64 @@ fieldset.field {
 /* A poll                                                             */
 /* ------------------------------------------------------------------ */
 
-/* The poll's title is the page's: on the page itself, not in a card. */
+/* The poll's question, on a panel of its own: the title, the pills saying what kind of poll it is at the
+   bottom, and Share on the right, centred. On phones the pills take the panel's width, under Share as well,
+   which centres on the title; wider, they stay under the title, and Share centres on the whole panel. */
 .poll-header {
-  padding: 8px 4px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 16px;
+  padding: var(--panel-padding);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
 }
 
 .poll-header h1 {
-  margin-bottom: 8px;
+  grid-column: 1;
+  margin-bottom: 12px;
   overflow-wrap: anywhere;
 }
 
-.poll-header-row {
+.poll-share {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  margin-bottom: 12px; /* the title's, so that it centres on the title alone */
+}
+
+@media (min-width: 640px) {
+  .poll-share {
+    grid-row: 1 / span 2;
+    margin-bottom: 0;
+  }
+
+  .poll-header .poll-tags {
+    grid-column: 1;
+  }
+}
+
+/* What kind of poll it is, a pill each: closed, its voting system, who may open and vote on it, how its
+   options are ordered (shuffled, sorted A to Z, or as written), and when it was created. */
+.poll-tags {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.poll-tags li {
+  padding: 2px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 /* A poll just created: its link to copy, and its code, in plain view. */
@@ -1351,16 +1406,35 @@ fieldset.field {
   box-shadow: none;
 }
 
-/* The ballot is the one sheet the voter holds: raised above the rest. */
+/* The sheet the voter holds, kraft paper like a paper ballot. Inside it, the paper is the raised surface (the
+   gap in a chosen mention's ring), and lines and secondary text take its tones. Its grain is a mask of noise
+   in a colour per scheme, under everything else. */
 .ballot {
+  --surface-raised: var(--paper);
+  --border: var(--paper-edge);
+  --muted: var(--paper-muted);
+
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: var(--panel-padding);
-  border: 1px solid var(--border);
+  border: 1px solid var(--paper-edge);
   border-radius: var(--radius-large);
-  background: var(--surface-raised);
+  background: var(--paper);
   box-shadow: var(--shadow-2);
+}
+
+.ballot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--paper-grain);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.8 0 0 0 -0.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  pointer-events: none;
 }
 
 .ballot .section-header {
@@ -1373,9 +1447,8 @@ fieldset.field {
   gap: 16px;
 }
 
-.ballot-body > .button.link {
+.ballot-body > .button.paper {
   align-self: flex-start;
-  margin-left: -8px; /* its text lines up with the text above */
 }
 
 .ballot-status {
@@ -1520,14 +1593,52 @@ fieldset.field {
   background: var(--danger-soft);
 }
 
-.owner-actions .confirm {
-  margin-top: 16px;
+/* Two groups, evenly apart: the admin link, with what it is for above it; then, under a hairline, closing and
+   deleting, and the confirmation either asks. */
+.owner-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-/* The admin link, then what it lets you do. */
-.owner-actions .share-link,
-.owner-actions .admin-reveal {
-  margin-bottom: 16px;
+.owner-actions h2 {
+  margin: 0;
+}
+
+.owner-admin {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.owner-admin .share-link {
+  align-self: stretch;
+}
+
+.owner-controls {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* On phones every button takes the panel's width, one under the other, whatever its words' length; wider,
+   they take their own, side by side. */
+.owner-admin .admin-reveal {
+  align-self: stretch;
+}
+
+.owner-controls .button-row {
+  flex-direction: column;
+}
+
+@media (min-width: 640px) {
+  .owner-admin .admin-reveal {
+    align-self: flex-start;
+  }
+
+  .owner-controls .button-row {
+    flex-direction: row;
+  }
 }
 
 .invitations {
@@ -1795,6 +1906,13 @@ fieldset.field {
   margin: 0;
 }
 
+/* Which version this is, beside the sentence, as quiet as can be read. */
+.app-version {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
 .app-footer nav {
   display: flex;
   flex-wrap: wrap;
@@ -1838,6 +1956,18 @@ fieldset.field {
 
 .about-section p + p {
   margin-top: 12px;
+}
+
+/* An address as on an envelope: a line each, upright. */
+.postal {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-style: normal;
+}
+
+.postal span:last-child {
+  margin-top: 10px;
 }
 
 .references {

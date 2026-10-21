@@ -6,6 +6,9 @@ interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
 }
 
+/** "v202610212030", the time of the build (vite.config.ts). */
+declare const __SUPER_VOTE_VERSION__: string;
+
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }

@@ -37,7 +37,7 @@ so that limits see IPv6 visitors' addresses; the nightly `pg_dump`, kept 7
 days; Caddy's log without requests; updates that make requests wait rather
 than fail ([deploy/README.md](../deploy/README.md)). Running since
 2026-10-21 on an OVHcloud VPS in Montréal, Canada (which the EU deems
-adequate; the privacy page and the legal notice say so). Left: copying the
+adequate; the privacy page says so). Left: copying the
 backups off the VPS; the record of processing (below).
 
 - **PostgreSQL**: supported already, and the test suite passes on it, in CI
@@ -78,23 +78,23 @@ backups off the VPS; the record of processing (below).
   Access logs keep no request bodies, and only for a short time. Backups
   stay logical (`pg_dump`): a physical copy keeps which transaction wrote
   each row, and with it which name goes with which ballot.
-- **Legal pages** (France and the EU; a checklist, not legal advice). The
-  privacy page is written (`/privacy`, phase 5f), with GitHub issues as its
-  contact, and so is the legal notice (`/legal`: the host, and the publisher
-  as a private person); left is the record of processing. The voter
-  cookie and voter names are personal data, so GDPR applies already: a privacy
-  page (what is stored, why, for how long, your rights, a contact address;
-  and plainly, that ballots are unlinkable at rest but the server operator
-  is trusted, and that the device's time zone is read for statistics, and
-  kept only as totals),
-  answering access and deletion requests, a one-page record of processing,
-  and telling the CNIL of a breach within 72 hours. No cookie banner as long
-  as the only cookie is the one the service needs (CNIL exemption for strictly
-  necessary cookies): analytics would change that. Mentions légales (LCEN):
-  the publisher and the host; a private person may publish the host's details
-  only, having given their identity to the host. A contact to report illegal
-  content (titles, options, names), acted on promptly. Hosting in France keeps
-  the data in the EU.
+- **Legal pages** (Québec and Canada, where the publisher lives, for people
+  everywhere; a checklist, not legal advice). The privacy page is written
+  (`/privacy`, phase 5f), with GitHub issues as its contact, and so is the
+  legal notice (`/legal`: the publisher as a private person in Québec, the
+  law that applies, the host, and where to report a poll); left is the record
+  of processing. The voter cookie and voter names are personal data: the
+  privacy page says what is stored, why, for how long, your rights and a
+  contact; plainly, that ballots are unlinkable at rest but the server
+  operator is trusted, and that the device's time zone is read for
+  statistics, and kept only as totals. It is the same for everyone, and
+  aims to meet the GDPR too, for visitors in the EU (Canada is adequate in
+  its eyes): answering access and deletion requests, a one-page record of
+  processing, telling of a breach within 72 hours. No cookie banner as long
+  as the only cookie is the one the service needs (strictly necessary):
+  analytics would change that. The publisher names themselves to the host
+  only. A contact to report illegal content (titles, options, names), acted
+  on promptly.
 - **Several nodes.** Relay live updates through PostgreSQL `LISTEN/NOTIFY` or
   Redis.
 - **End-to-end tests in CI** with Playwright, on a phone viewport and a
