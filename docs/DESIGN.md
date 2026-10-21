@@ -257,7 +257,7 @@ lines.
   `--page-width` to 1080 px, so that header, page and footer widen together.
   What people come to do comes first, as on a search page, centred: the name
   alone in wide capitals (`.wordmark`), one short line under it, then one card
-  divided in two, the code to type on the left and "Decide together!" on the
+  divided in two, "Decide together!" on the left and the code to type on the
   right (stacked on a phone), and the visitor's polls once they have some.
   Below, few words and more pictures: how it works (three
   steps, an icon each), the two voting systems in a few words each, each over

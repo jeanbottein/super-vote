@@ -693,7 +693,7 @@ fieldset.field {
   margin-inline: auto;
 }
 
-/* Two halves divided by a hairline: the code to type, then the button to start. */
+/* Two halves divided by a hairline: the button to start, then the code to type. */
 .start {
   display: grid;
   gap: 0;
@@ -738,13 +738,13 @@ fieldset.field {
     padding-inline: 10px;
   }
 
-  .start > form {
+  .start > .start-new {
     border-inline-end: 1px solid var(--border);
   }
 }
 
 @media (max-width: 639.98px) {
-  .start > form {
+  .start > .start-new {
     border-bottom: 1px solid var(--border);
   }
 }
