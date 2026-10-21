@@ -8,6 +8,7 @@
  * whatever the language: what people read of them is worded here, from the
  * problem's type (problems, below).
  */
+import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import AppName from '../ui/AppName';
 import {
@@ -314,7 +315,7 @@ export const en = {
     notLoaded: 'The poll could not be loaded',
     loadingPoll: 'Loading the poll…',
     byInvitation: 'By invitation',
-    created: (ago: string) => `Created ${ago}`,
+    optionOrder: { SHUFFLED: 'Options shuffled', ALPHABETICAL: 'Options sorted', AS_WRITTEN: 'Options ordered' },
     closed: 'Closed',
     keepTitle: 'Keep your admin link',
     keepText: 'Open it in another browser or device to manage this poll from there instead of here: close it, '
@@ -337,8 +338,6 @@ export const en = {
     majorityJudgmentLive: 'Give every option a mention. Options you have not rated count as Bad.',
     majorityJudgmentEnvelope: 'Give every option a mention, then submit your ballot.',
     approval: 'Tick every option you would be happy with.',
-    shuffled: 'The options are shuffled for each voter, so that none gains from its place.',
-    alphabetical: 'The options are listed from A to Z.',
     invited: 'Your invitation holds one ballot, which only this browser can change. Whoever invited you sees it was '
       + 'used, never what you chose.',
     counted: 'Your ballot is counted. You can change it from this browser until the poll closes.',
@@ -451,6 +450,8 @@ export const en = {
     qrCode: (url: string) => `QR code for ${url}`,
     throughAnApp: 'Share through an app',
     byEmail: 'Send by email',
+    message: (title: string) => `Vote on “${title}”`,
+    orCode: (code: string, host: string) => `Or enter the code ${code} at ${host}.`,
   },
 
   statistics: {
@@ -654,11 +655,25 @@ export const en = {
     title: 'Legal notice · super-vote',
     heading: 'Legal notice',
     publisher: 'Publisher',
-    publisherText: 'super-vote is published by a private person, with no commercial purpose. As French law allows '
-      + 'such a publisher, their name and address are not given here: the host has them.',
+    publisherText: <>
+      <AppName /> is published by a private person in Québec, Canada, with no commercial purpose. Their name and
+      address are not given here: the host has them.
+    </>,
+    law: 'Applicable law',
+    lawText: <>
+      <AppName /> is published from Québec, under the laws of Québec and of Canada. It is open to people everywhere,
+      and whoever creates a poll or votes on one also answers to the laws of the place they are in.
+      What <AppName /> keeps about you, and why, is the same for everyone, wherever they are:{' '}
+      <Link to="/privacy">Privacy and limits</Link>.
+    </>,
     host: 'Host',
-    hostText: 'OVH Hosting Inc., 800-1801 McGill College Avenue, Montréal (Québec) H3A 2N4, Canada. '
-      + 'Telephone: +1 855 684 5463.',
+    hostAddress: [
+      'OVH Hosting Inc.',
+      '1801 McGill College Avenue, Suite 800',
+      'Montréal QC H3A 2N4',
+      'Canada',
+    ],
+    hostPhone: (phone: ReactNode) => <>Telephone: {phone}</>,
     report: 'Reporting a poll',
     reportText: <>
       Polls are written by the people who create them. To report one that breaks the law, by its title, its options

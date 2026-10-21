@@ -4,6 +4,7 @@
  * a colon and inside « », a narrow one before ; ! and ?, and the apostrophe ’.
  * Voters are spoken to as « vous », in words that fit everyone.
  */
+import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import AppName from '../ui/AppName';
 import type { Messages } from './en';
@@ -321,7 +322,7 @@ export const fr: Messages = {
     notLoaded: 'Le sondage n’a pas pu être chargé',
     loadingPoll: 'Chargement du sondage…',
     byInvitation: 'Sur invitation',
-    created: (ago: string) => `Créé ${ago}`,
+    optionOrder: { SHUFFLED: 'Options mélangées', ALPHABETICAL: 'Options triées', AS_WRITTEN: 'Options ordonnées' },
     closed: 'Fermé',
     keepTitle: 'Gardez votre lien d’administration',
     keepText: 'Ouvrez-le dans un autre navigateur ou appareil pour gérer ce sondage depuis celui-là plutôt '
@@ -345,8 +346,6 @@ export const fr: Messages = {
     majorityJudgmentLive: 'Donnez une mention à chaque option. Les options que vous n’avez pas évaluées comptent comme « À rejeter ».',
     majorityJudgmentEnvelope: 'Donnez une mention à chaque option, puis envoyez votre bulletin.',
     approval: 'Cochez chaque option qui vous conviendrait.',
-    shuffled: 'Les options sont mélangées pour chaque votant, pour qu’aucune ne profite de sa place.',
-    alphabetical: 'Les options sont rangées de A à Z.',
     invited: 'Votre invitation vaut un bulletin, que seul ce navigateur peut modifier. La personne qui vous l’a '
       + 'envoyée voit qu’elle a servi, jamais ce que vous avez choisi.',
     counted: 'Votre bulletin est compté. Vous pouvez le modifier depuis ce navigateur jusqu’à la clôture du sondage.',
@@ -462,6 +461,8 @@ export const fr: Messages = {
     qrCode: (url: string) => `Code QR de ${url}`,
     throughAnApp: 'Partager avec une app',
     byEmail: 'Envoyer par courriel',
+    message: (title: string) => `Votez : « ${title} »`,
+    orCode: (code: string, host: string) => `Ou tapez le code ${code} sur ${host}.`,
   },
 
   statistics: {
@@ -678,11 +679,25 @@ export const fr: Messages = {
     title: 'Mentions légales · super-vote',
     heading: 'Mentions légales',
     publisher: 'Édition',
-    publisherText: 'super-vote est édité par une personne physique, à titre non professionnel. Comme la loi le permet '
-      + 'dans ce cas, son nom et son adresse ne figurent pas ici : l’hébergeur les détient.',
+    publisherText: <>
+      <AppName /> est édité par une personne physique au Québec, au Canada, à titre non professionnel. Son nom et
+      son adresse ne figurent pas ici : l’hébergeur les détient.
+    </>,
+    law: 'Droit applicable',
+    lawText: <>
+      <AppName /> est édité depuis le Québec, sous les lois du Québec et du Canada. Il est ouvert à tout le monde,
+      partout, et chaque personne qui crée un sondage ou y vote répond aussi aux lois du lieu où elle se trouve. Ce
+      que <AppName /> garde à votre sujet, et pourquoi, est le même pour tout le monde, où que l’on soit :{' '}
+      <Link to="/privacy">Confidentialité et limites</Link>.
+    </>,
     host: 'Hébergement',
-    hostText: 'OVH Hosting Inc., 800-1801 avenue McGill College, Montréal (Québec) H3A 2N4, Canada. '
-      + 'Téléphone : +1 855 684 5463.',
+    hostAddress: [
+      'OVH Hosting Inc.',
+      '1801, avenue McGill College, bureau 800',
+      'Montréal (Québec) H3A 2N4',
+      'Canada',
+    ],
+    hostPhone: (phone: ReactNode) => <>Téléphone : {phone}</>,
     report: 'Signaler un sondage',
     reportText: <>
       Les sondages sont écrits par les personnes qui les créent. Pour en signaler un qui enfreint la loi, par son

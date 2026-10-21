@@ -11,7 +11,8 @@ What runs, what protects it, and how to go from an empty VPS to
  ┌──┴─────────────────────────────────┐
  │ Caddy (deploy/Caddyfile)           │  certificates, security headers, the web app's files
  └──┬─────────────────────────────────┘
-    │ /api/*, /v3/api-docs*, /llms.txt, /actuator/health, to 127.0.0.1:8080
+    │ /api/*, /v3/api-docs*, /llms.txt, /actuator/health, and /p/* for
+    │ link-preview robots, to 127.0.0.1:8080
  ┌──┴─────────────────────────────────┐
  │ Java server                        │  reached from this machine only
  └──┬─────────────────────────────────┘

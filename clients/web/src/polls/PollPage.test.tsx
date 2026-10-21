@@ -189,6 +189,43 @@ describe('voting', () => {
     expect(await screen.findByText(/Your ballot is counted/)).toBeInTheDocument();
   });
 
+  it('leaves the options not rated yet as they were, though the server counts them as Bad', async () => {
+    vi.mocked(castBallot).mockResolvedValueOnce({
+      ...lunch,
+      totalBallots: 1,
+      myBallot: { approvedOptionIds: null, judgments: { 1: 'Excellent', 2: 'Bad' }, voterName: null },
+    });
+    openPoll();
+
+    await screen.findByRole('radiogroup', { name: 'Ramen' });
+    await userEvent.click(within(scaleOf('Ramen')).getByRole('radio', { name: 'Excellent' }));
+    await screen.findByText(/Your ballot is counted/);
+
+    expect(within(scaleOf('Tacos')).queryByRole('radio', { checked: true })).not.toBeInTheDocument();
+
+    vi.mocked(castBallot).mockResolvedValueOnce({
+      ...lunch,
+      totalBallots: 1,
+      myBallot: { approvedOptionIds: null, judgments: { 1: 'Excellent', 2: 'Good' }, voterName: null },
+    });
+    await userEvent.click(within(scaleOf('Tacos')).getByRole('radio', { name: 'Good' }));
+
+    expect(castBallot).toHaveBeenLastCalledWith('abc', { judgments: { 1: 'Excellent', 2: 'Good' } }, null);
+  });
+
+  it('shows a ballot counted before the page opened in full, Bad included', async () => {
+    vi.mocked(getPoll).mockResolvedValue({
+      ...lunch,
+      totalBallots: 1,
+      myBallot: { approvedOptionIds: null, judgments: { 1: 'Excellent', 2: 'Bad' }, voterName: null },
+    });
+    openPoll();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Change my ballot' }));
+
+    expect(within(scaleOf('Tacos')).getByRole('radio', { name: 'Bad' })).toBeChecked();
+  });
+
   it('tells the voter when their ballot is refused', async () => {
     vi.mocked(castBallot).mockRejectedValue(new ApiError(409, 'This poll is closed and no longer accepts ballots.'));
     openPoll();
@@ -669,8 +706,7 @@ describe('the order of the options', () => {
     expect(order).not.toEqual(['Bao', 'Curry', 'Pho', 'Ramen', 'Tacos']);
     expect(ballotOrder()).toEqual(order);
     expect(resultsOrder()).toEqual(order);
-    expect(screen.getByText('The options are shuffled for each voter, so that none gains from its place.'))
-      .toBeInTheDocument();
+    expect(screen.getByText('Options shuffled')).toBeInTheDocument();
 
     act(() => watcher.onUpdate({
       closedAt: null, totalBallots: 1, voterNames: null, moreVoterNames: false, options: poll.options,
@@ -691,6 +727,12 @@ describe('the order of the options', () => {
 
     await screen.findByRole('heading', { name: 'Where do we eat?' });
     expect(ballotOrder()).toEqual(['Bao', 'Curry', 'Pho', 'Ramen', 'Tacos']);
-    expect(screen.getByText('The options are listed from A to Z.')).toBeInTheDocument();
+    expect(screen.getByText('Options sorted')).toBeInTheDocument();
+  });
+
+  it('says when the options are as their creator wrote them', async () => {
+    openPoll();
+
+    expect(await screen.findByText('Options ordered')).toBeInTheDocument();
   });
 });

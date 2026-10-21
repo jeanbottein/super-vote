@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { en } from './en';
-import { deviceLanguage, plural, timeAgo, waitUntil } from './format';
+import { deviceLanguage, formatStamp, plural, timeAgo, waitUntil } from './format';
 import { fr } from './fr';
+
+describe('formatStamp', () => {
+  it('writes a moment as yyyy-mm-dd hh:mm, in the device\'s time zone', () => {
+    expect(formatStamp(new Date(2026, 0, 5, 9, 7).toISOString())).toBe('2026-01-05 09:07');
+  });
+});
 
 describe('timeAgo', () => {
   const now = Date.parse('2026-09-24T12:00:00Z');

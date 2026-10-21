@@ -111,7 +111,8 @@ stylesheet.
 
 **Edge**: `deploy/Caddyfile` is the one public address, HTTPS only: it serves
 the built web app and passes `/api`, `/v3/api-docs`, `/llms.txt` and
-`/actuator/health` (for uptime monitors) to the server, which only the machine reaches (`127.0.0.1:8080`). It runs as
+`/actuator/health` (for uptime monitors), and `/p/{id}` when a messaging app's robot asks for a link's preview
+(`LinkPreviewController`), to the server, which only the machine reaches (`127.0.0.1:8080`). It runs as
 `deploy/compose.yaml` says, from two images (`servers/java/Dockerfile`, and
 `clients/web/Dockerfile`: Caddy with the Caddyfile and the built app) that
 `.github/workflows/images.yml` starts together and checks on every pull

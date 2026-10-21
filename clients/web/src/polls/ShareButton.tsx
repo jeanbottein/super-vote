@@ -31,6 +31,7 @@ export default function ShareButton({ poll, className = 'button secondary' }: Sh
         url={pollUrl(poll.id)}
         linkLabel={t.share.linkLabel}
         subject={poll.title}
+        message={t.share.message(poll.title)}
         joinCode={poll.joinCode}
       />
     </>

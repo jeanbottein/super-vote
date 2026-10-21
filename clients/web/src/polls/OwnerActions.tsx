@@ -66,7 +66,7 @@ export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
     <section className="panel owner-actions" aria-labelledby={titleId}>
       <h2 id={titleId}>{t.owner.manage}</h2>
       {poll.adminToken ? (
-        <>
+        <div className="owner-admin">
           <p className="hint">{t.owner.adminLinkHint}</p>
           {showingAdminLink
             ? <CopyableLink url={adminUrl(poll.id, poll.adminToken)} label={t.owner.adminLink} />
@@ -75,50 +75,52 @@ export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
                 {t.owner.showAdminLink}
               </button>
             )}
-        </>
-      ) : <p className="hint">{t.owner.onlyThisBrowser}</p>}
-      {confirming === null && (
-        <div className="button-row">
-          {poll.closedAt === null && (
-            <button
-              type="button" className="button secondary" ref={closeButton} disabled={busy}
-              onClick={() => setConfirming('close')}
-            >
-              {t.owner.close}
-            </button>
-          )}
-          <button
-            type="button" className="button danger" ref={deleteButton} disabled={busy}
-            onClick={() => setConfirming('delete')}
-          >
-            {t.owner.delete}
-          </button>
         </div>
-      )}
-      {confirming === 'close' && (
-        <Confirmation
-          id={`${titleId}-confirm`}
-          question={t.owner.closeQuestion}
-          busy={busy}
-          keep={t.owner.keepOpen}
-          confirm={t.owner.closeForGood}
-          tone="primary"
-          onKeep={keep}
-          onConfirm={close}
-        />
-      )}
-      {confirming === 'delete' && (
-        <Confirmation
-          id={`${titleId}-confirm`}
-          question={t.owner.deleteQuestion}
-          busy={busy}
-          keep={t.owner.keep}
-          confirm={t.owner.deleteForGood}
-          tone="danger"
-          onKeep={keep}
-          onConfirm={remove}
-        />
-      )}
+      ) : <p className="hint">{t.owner.onlyThisBrowser}</p>}
+      <div className="owner-controls">
+        {confirming === null && (
+          <div className="button-row">
+            {poll.closedAt === null && (
+              <button
+                type="button" className="button secondary" ref={closeButton} disabled={busy}
+                onClick={() => setConfirming('close')}
+              >
+                {t.owner.close}
+              </button>
+            )}
+            <button
+              type="button" className="button danger" ref={deleteButton} disabled={busy}
+              onClick={() => setConfirming('delete')}
+            >
+              {t.owner.delete}
+            </button>
+          </div>
+        )}
+        {confirming === 'close' && (
+          <Confirmation
+            id={`${titleId}-confirm`}
+            question={t.owner.closeQuestion}
+            busy={busy}
+            keep={t.owner.keepOpen}
+            confirm={t.owner.closeForGood}
+            tone="primary"
+            onKeep={keep}
+            onConfirm={close}
+          />
+        )}
+        {confirming === 'delete' && (
+          <Confirmation
+            id={`${titleId}-confirm`}
+            question={t.owner.deleteQuestion}
+            busy={busy}
+            keep={t.owner.keep}
+            confirm={t.owner.deleteForGood}
+            tone="danger"
+            onKeep={keep}
+            onConfirm={remove}
+          />
+        )}
+      </div>
     </section>
   );
 }
