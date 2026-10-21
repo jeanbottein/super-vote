@@ -704,9 +704,12 @@ fieldset.field {
   padding: var(--panel-padding);
 }
 
+/* Each half's content centred under its question. */
 .start-new {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 8px;
 }
 
@@ -726,7 +729,7 @@ fieldset.field {
   }
 
   .start > * {
-    padding: 20px;
+    padding: 20px 36px;
   }
 
   .start .join-row input {
@@ -1081,6 +1084,15 @@ fieldset.field {
 
 .join-form > label {
   font-weight: 600;
+}
+
+.start .join-form {
+  align-items: center;
+  text-align: center;
+}
+
+.start .join-row {
+  justify-content: center;
 }
 
 .join-row {
