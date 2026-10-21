@@ -1447,8 +1447,24 @@ fieldset.field {
   gap: 16px;
 }
 
-.ballot-body > .button.paper {
-  align-self: flex-start;
+/* The voter's name, set apart from the choices by a line above and below: label and a short field on one row,
+   what the name shows to whom under them, across the whole row. */
+.field.voter-name {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 12rem) 1fr;
+  align-items: center;
+  gap: 8px;
+  padding-block: 16px;
+  border-block: 1px solid var(--border);
+}
+
+/* Across the row, without widening its columns to the sentence's length. */
+.voter-name .hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-style: italic;
+  text-wrap: pretty;
+  contain: inline-size;
 }
 
 .ballot-status {

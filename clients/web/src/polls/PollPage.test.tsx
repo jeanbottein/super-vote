@@ -595,7 +595,15 @@ describe('names', () => {
     vi.mocked(getPoll).mockResolvedValue(trip);
     openPoll();
 
-    expect(await screen.findByText(/people watching may tell who chose what/)).toBeInTheDocument();
+    expect(await screen.findByText(/Live results may hint at who chose what/)).toBeInTheDocument();
+  });
+
+  it('give no such warning when the results wait for the close', async () => {
+    vi.mocked(getPoll).mockResolvedValue({ ...trip, resultsShown: 'AFTER_CLOSING' });
+    openPoll();
+
+    expect(await screen.findByText(/Everyone sees the given names/)).toBeInTheDocument();
+    expect(screen.queryByText(/Live results/)).not.toBeInTheDocument();
   });
 
   it('are offered again on the next poll once the voter is done typing', async () => {

@@ -359,10 +359,9 @@ export const fr: Messages = {
     notInvited: 'Seules les personnes invitées peuvent voter à ce sondage. Si vous avez reçu une invitation, ouvrez '
       + 'le lien qu’elle contient.',
     yourName: 'Votre nom',
-    namePlaceholder: 'Laissez vide pour rester anonyme',
-    namesAtClose: 'Tout le monde sur ce sondage voit les noms donnés, jamais qui a choisi quoi.',
-    namesLive: 'Tout le monde ici voit les noms donnés. Les résultats bougent en direct : qui regarde peut deviner qui '
-      + 'a choisi quoi.',
+    namePlaceholder: 'Anonyme',
+    namesGiven: 'Facultatif. Tout le monde voit les noms donnés, mais pas les choix.',
+    namesLive: 'Les résultats en direct peuvent trahir qui a choisi quoi.',
     notRatedYet: 'Pas encore évaluée',
     chooseAMention: 'Choisissez une mention…',
     optionsYouApprove: 'Les options que vous approuvez',
