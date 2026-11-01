@@ -42,8 +42,9 @@ in, on a phone or a desktop, with nothing to install and no account needed.
   million ballots as at ten, on PostgreSQL ([measured](docs/PERFORMANCE.md#ballots-at-scale)).
 - **Mobile first**: light and dark themes, and a colour-blind-friendly
   palette.
-- **In English and French**, the web app's every word, and ready for more
-  languages.
+- **In fourteen languages**, the web app's every word: English, French,
+  Spanish, Portuguese, German, Italian, Russian, Turkish, Chinese, Japanese,
+  Korean, Indonesian, Hindi and Arabic (right to left).
 - **Honest about its limits**: a privacy and limits page says what is kept,
   who sees what, and that super-vote is for everyday decisions, not for
   official votes.

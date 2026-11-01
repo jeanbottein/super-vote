@@ -4,9 +4,38 @@
  * messages (en.tsx, fr.tsx) say things with these.
  */
 
-export const LANGUAGES = ['en', 'fr'] as const;
+export const LANGUAGES = ['en', 'fr', 'es', 'pt', 'de', 'it', 'ru', 'tr', 'zh', 'ja', 'ko', 'id', 'hi', 'ar'] as const;
 
 export type Language = (typeof LANGUAGES)[number];
+
+/**
+ * Each language in its own words, as its speakers write it: what the language pickers show, so that whoever
+ * cannot read the page finds theirs. Kept here, not in the messages, so that a picker needs none of them.
+ * Chinese is Simplified (zh-Hans) and Portuguese is neutral between Brazil's and Portugal's.
+ */
+export const LANGUAGE_NAMES: Record<Language, string> = {
+  en: 'English',
+  fr: 'Français',
+  es: 'Español',
+  pt: 'Português',
+  de: 'Deutsch',
+  it: 'Italiano',
+  ru: 'Русский',
+  tr: 'Türkçe',
+  zh: '中文',
+  ja: '日本語',
+  ko: '한국어',
+  id: 'Bahasa Indonesia',
+  hi: 'हिन्दी',
+  ar: 'العربية',
+};
+
+/** The languages written from right to left, which the page is laid out in (dir="rtl"). */
+const RIGHT_TO_LEFT: readonly Language[] = ['ar'];
+
+export function direction(language: Language): 'ltr' | 'rtl' {
+  return RIGHT_TO_LEFT.includes(language) ? 'rtl' : 'ltr';
+}
 
 export function isLanguage(value: unknown): value is Language {
   return LANGUAGES.includes(value as Language);
@@ -59,6 +88,14 @@ export function formatPercent(language: Language, share: number): string {
 /** The singular or the plural, as the language decides: French says "0 bulletin", English "0 ballots". */
 export function plural(language: Language, count: number, one: string, other: string): string {
   return plurals(language).select(count) === 'one' ? one : other;
+}
+
+/**
+ * The form a language needs for a count, among those it has: Russian's "one", "few" and "many", Arabic's six.
+ * A language with fewer forms lists fewer, and "other" is always there.
+ */
+export function pluralForm(language: Language, count: number, forms: Partial<Record<Intl.LDMLPluralRule, string>> & { other: string }): string {
+  return forms[plurals(language).select(count)] ?? forms.other;
 }
 
 /** "October 30, 2026", "30 octobre 2026". */

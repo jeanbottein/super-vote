@@ -19,9 +19,6 @@ const number = (count: number) => formatNumber('en', count);
 const counted = (count: number, one: string, other: string) => `${number(count)} ${plural('en', count, one, other)}`;
 
 export const en = {
-  /** The language's own name, as its speakers write it: what the language pickers show. */
-  name: 'English',
-
   number,
   percent: (share: number) => formatPercent('en', share),
   decimal: (value: number, digits: number) => formatDecimal('en', value, digits),

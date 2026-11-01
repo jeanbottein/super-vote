@@ -69,12 +69,14 @@ describe('plural', () => {
 describe('deviceLanguage', () => {
   it('takes the first of the device languages super-vote speaks', () => {
     expect(deviceLanguage(['fr-CA', 'en-US'])).toBe('fr');
-    expect(deviceLanguage(['de-DE', 'fr-FR', 'en'])).toBe('fr');
+    expect(deviceLanguage(['sv-SE', 'fr-FR', 'en'])).toBe('fr');
+    expect(deviceLanguage(['pt-BR', 'fr'])).toBe('pt');
+    expect(deviceLanguage(['zh-Hans-CN'])).toBe('zh');
     expect(deviceLanguage(['EN-gb'])).toBe('en');
   });
 
   it('falls back to English', () => {
-    expect(deviceLanguage(['de-DE', 'ja'])).toBe('en');
+    expect(deviceLanguage(['sv-SE', 'nl'])).toBe('en');
     expect(deviceLanguage([])).toBe('en');
   });
 });

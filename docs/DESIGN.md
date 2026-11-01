@@ -325,7 +325,7 @@ lines.
 | Invitations | `.invitation[data-used]`, `.invitation-status`, `.invite-form` | |
 | Dialog | `.dialog`, `.dialog-body`, `.dialog-header`; `.share-code`, `.share-link`, `.share-qr` (white in every theme: QR codes need it) | |
 | Toasts | `.toasts`, `.toast`, `.toast[data-kind="error"]` | under the header |
-| Footer | `.app-footer`, `.app-version`; its other languages are buttons that read like its links | each language named in its own words, with its `lang`; the version (`v` and the build's time in UTC, `v202610212110`) after the first sentence, 12 px mono |
+| Footer | `.app-footer`, `.app-version`; its language is a select, with a globe, that reads like its links | each language named in its own words, with its `lang`; the version (`v` and the build's time in UTC, `v202610212110`) after the first sentence, 12 px mono |
 | Badge | `.badge` | neutral pill |
 | Statistics (`statistics.css`) | `.statistics-totals`, `.statistics-panel`, `.world-map`, `.world-map-view`, `.world-map-land`, `.world-map-dot`, `.world-map-chosen`, `.world-map-legend`, `.world-map-zoom`, `.statistics-chosen`, `.activity-chart`, `.places-table` | the map runs to the panel's edges; a dot's area is its count, and dots keep their size on screen when zoomed; the chosen dot gets a 2 px `--fg` ring drawn on top, so nothing moves; the zoom buttons sit under the map, never over it |
 
@@ -415,7 +415,13 @@ composited:
   they fit everyone (*la personne qui a créé le sondage*, not *le créateur*).
   Mentions quoted in running text keep their words together (`À\u00a0rejeter`).
 - Languages are named in their own words wherever one is chosen (Settings,
-  the footer), so that someone who cannot read the page finds theirs.
+  the footer: one select, each option with its `lang`), so that someone who
+  cannot read the page finds theirs.
+- Arabic is right to left: the stylesheets use logical properties (`inline-start`,
+  `text-align: start`, `:dir(rtl)` for what has no logical form: the select's arrow,
+  the list chevron). Latin brand names (`super-vote`) stay `dir="ltr"`. The results
+  graph is the owner's and keeps its physical `left`/`margin-left`: its hint beside
+  a badge sits a few pixels off in Arabic until he asks for it to change.
 - Buttons say what happens, and a confirmation names both ways out: "Delete
   for good" or "Keep it".
 - A warning says the consequence: "Careful: everyone sees the results move as
