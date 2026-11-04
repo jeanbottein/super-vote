@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
+        <version>4.1.2</version>
         <relativePath/>
     </parent>
 
@@ -20,11 +20,11 @@
 
     <properties>
         <java.version>25</java.version>
-        <spring-modulith.version>2.1.1</spring-modulith.version>
-        <springdoc.version>3.1.1</springdoc.version>
-        <spring-ai.version>2.0.1</spring-ai.version>
+        <spring-modulith.version>2.1.2</spring-modulith.version>
+        <springdoc.version>3.2.0</springdoc.version>
+        <spring-ai.version>2.0.2</spring-ai.version>
         <archunit.version>1.5.1</archunit.version>
-        <jacoco.version>0.8.15</jacoco.version>
+        <jacoco.version>0.8.16</jacoco.version>
         <!-- Ahead of the parent, which still manages versions with known
              vulnerabilities (Tomcat 11.0.24, Jackson 3.1.5 and 2.21.5): drop each
              line once Spring Boot manages that version or a newer one. -->
