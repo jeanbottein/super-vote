@@ -40,10 +40,12 @@
         const language = (preferences.language ? [preferences.language] : navigator.languages)
           .map((tag) => tag.split('-')[0].toLowerCase())
           .find((each) => each === 'en' || each in chunks);
-        if (chunks[language]) {
+        // Only one of the app's own files, whatever the page holds.
+        const chunk = /^\/assets\/[\w-]+\.js$/.exec(chunks[language] ?? '')?.[0];
+        if (chunk) {
           const link = document.head.appendChild(document.createElement('link'));
           link.rel = 'modulepreload';
-          link.href = chunks[language];
+          link.href = chunk;
         }
       } catch {
         // Storage disabled: the device's appearance, and the language once the app asks for it.
