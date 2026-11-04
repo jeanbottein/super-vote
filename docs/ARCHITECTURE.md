@@ -590,10 +590,9 @@ through the browser's `Intl` for the language (`format.ts`; `pluralForm` for the
 and Arabic). English ships with the app and every other language is a chunk
 fetched by `loadMessages` before the page is drawn (`index.tsx`) or the
 language is chosen (`LanguageSelect`, where the last choice wins), so a visit
-pays for one language, and nothing renders half in two. The build lists each
-chunk in the page (`languageChunks` in `vite.config.ts`), and `index.html`'s
-script starts fetching the voter's beside the app's own script rather than
-after it. A language wanted any other way (another tab) is fetched by
+pays for one language, and nothing renders half in two. A small entry of its
+own, `i18n/early.ts` (`earlyLanguage` in `vite.config.ts`), runs before the
+app's and starts fetching the voter's language while the app still downloads. A language wanted any other way (another tab) is fetched by
 `useDocumentLanguage`, and the page redraws when it arrives; until then the
 page, and `<html lang dir>`, stay English. Chinese is Simplified, Portuguese is neutral
 between Brazil and Portugal, Arabic is Modern Standard and laid out right to

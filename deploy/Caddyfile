@@ -29,7 +29,7 @@
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		# The hash is index.html's inline script, which sets the appearance before the first paint
 		# (clients/web/src/app/contentSecurityPolicy.test.ts keeps them in step).
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-P1FY28qVvlGhvIGsTQ0oe3tQvOCwD1VyIOlB7koSfRs='; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-NiP4PN1Ip4U9p3WU2wr9c1bguCRqLCQkzqfDuaqELi4='; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
 		X-Content-Type-Options nosniff
 		# Other sites' pages can neither reach into a super-vote window they opened nor read its files.
 		Cross-Origin-Opener-Policy same-origin
