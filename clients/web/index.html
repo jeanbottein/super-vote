@@ -28,13 +28,25 @@
     <script>
       // Before the first paint, the appearance chosen in Settings (src/preferences/preferences.tsx), so that
       // it never flashes the device's: the app's own script may arrive after the page is first drawn.
+      // And the voter's language starts downloading beside that script rather than after it: the build lists
+      // each language's chunk (vite.config.ts). src/i18n decides the language; a wrong guess here only costs
+      // a download.
       try {
-        const appearance = JSON.parse(localStorage.getItem('super-vote.preferences') ?? '{}').appearance;
-        if (appearance === 'light' || appearance === 'dark') {
-          document.documentElement.dataset.appearance = appearance;
+        const preferences = JSON.parse(localStorage.getItem('super-vote.preferences') ?? '{}');
+        if (preferences.appearance === 'light' || preferences.appearance === 'dark') {
+          document.documentElement.dataset.appearance = preferences.appearance;
+        }
+        const chunks = JSON.parse(document.getElementById('language-chunks')?.textContent ?? '{}');
+        const language = (preferences.language ? [preferences.language] : navigator.languages)
+          .map((tag) => tag.split('-')[0].toLowerCase())
+          .find((each) => each === 'en' || each in chunks);
+        if (chunks[language]) {
+          const link = document.head.appendChild(document.createElement('link'));
+          link.rel = 'modulepreload';
+          link.href = chunks[language];
         }
       } catch {
-        // Storage disabled: the device's appearance.
+        // Storage disabled: the device's appearance, and the language once the app asks for it.
       }
     </script>
   </head>

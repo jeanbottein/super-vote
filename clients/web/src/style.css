@@ -1207,6 +1207,11 @@ fieldset.field {
   transform: translate(-25%, -50%) rotate(45deg);
 }
 
+/* An icon that points along the text (back) points the other way right to left. */
+.icon[data-directional]:dir(rtl) {
+  transform: scaleX(-1);
+}
+
 /* The chevron points the way reading goes. */
 .poll-list-item:dir(rtl)::after {
   right: auto;

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getServerInfo, getStatistics, listMyPolls, listPublicPolls } from '../api/client';
@@ -179,6 +179,33 @@ describe('the language', () => {
     expect(await screen.findByText('الرياضيات تقول إن هذا أعدل.')).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('ar');
     expect(document.documentElement.dir).toBe('rtl');
+  });
+
+  it('says the page is in English while the language wanted is on its way, then switches to it', async () => {
+    localStorage.setItem('super-vote.preferences', JSON.stringify({ language: 'it' })); // as another tab would
+    openAt('/');
+    expect(screen.getByText('Maths says it’s fairer.')).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('en');
+
+    expect(await screen.findByText('La matematica dice che è più giusto.')).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('it');
+  });
+
+  it('takes the last language chosen, whichever arrives first, and shows it while it comes', async () => {
+    openAt('/');
+    const arrivals = new Map<string, () => void>();
+    vi.spyOn(i18n, 'loadMessages').mockImplementation(
+      (language) => new Promise((resolve) => arrivals.set(language, () => resolve())),
+    );
+    const picker = () => screen.getByRole('combobox', { name: 'Language' });
+
+    await userEvent.selectOptions(picker(), 'de');
+    await userEvent.selectOptions(picker(), 'es');
+    expect(picker()).toHaveDisplayValue('Español');
+
+    await act(async () => arrivals.get('es')!());
+    await act(async () => arrivals.get('de')!());
+    expect(loadPreferences().language).toBe('es');
   });
 
   it('stays as it is when the language cannot be fetched', async () => {

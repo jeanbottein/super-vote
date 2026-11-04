@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useI18n } from '../i18n/i18n';
 import { usePreferences } from '../preferences/preferences';
 import Dialog from '../ui/Dialog';
@@ -9,6 +9,7 @@ import LanguageSelect from './LanguageSelect';
 export default function SettingsMenu() {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const languageId = useId();
   const [preferences, update] = usePreferences();
 
   return (
@@ -19,9 +20,9 @@ export default function SettingsMenu() {
       <Dialog open={open} onClose={() => setOpen(false)} title={t.app.settings}>
         <div className="settings">
           <div className="field">
-            <label htmlFor="language">{t.settings.language}</label>
+            <label htmlFor={languageId}>{t.settings.language}</label>
             {/* Each language in its own words, so that whoever cannot read this one finds theirs. */}
-            <LanguageSelect id="language" />
+            <LanguageSelect id={languageId} />
           </div>
           <SegmentedControl
             legend={t.settings.appearance}

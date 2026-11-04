@@ -1,38 +1,46 @@
+import { useEffect, useSyncExternalStore } from 'react';
 import { useChosenLanguage } from '../preferences/preferences';
 import { en, type Messages } from './en';
-import { deviceLanguage, type Language } from './format';
+import { deviceLanguage, direction, type Language } from './format';
 
 /**
  * Every language but English is a chunk of its own, fetched when someone speaks it: fourteen languages of
  * messages would otherwise weigh on every visit. English is always there, as what a chunk that has not
- * arrived falls back to.
+ * arrived falls back to. Each file is named after its language, and exports its messages under that name.
  */
-const LOADERS: Record<Exclude<Language, 'en'>, () => Promise<Messages>> = {
-  fr: () => import('./fr').then((module) => module.fr),
-  es: () => import('./es').then((module) => module.es),
-  pt: () => import('./pt').then((module) => module.pt),
-  de: () => import('./de').then((module) => module.de),
-  it: () => import('./it').then((module) => module.it),
-  ru: () => import('./ru').then((module) => module.ru),
-  tr: () => import('./tr').then((module) => module.tr),
-  zh: () => import('./zh').then((module) => module.zh),
-  ja: () => import('./ja').then((module) => module.ja),
-  ko: () => import('./ko').then((module) => module.ko),
-  id: () => import('./id').then((module) => module.id),
-  hi: () => import('./hi').then((module) => module.hi),
-  ar: () => import('./ar').then((module) => module.ar),
-};
+const CHUNKS = import.meta.glob<Record<string, Messages>>(['./*.tsx', '!./en.tsx']);
 
 const loaded = new Map<Language, Messages>([['en', en]]);
+const loading = new Map<Language, Promise<void>>();
+const listeners = new Set<() => void>();
+
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
 
 /**
- * Fetches a language's messages, so that choosing it, or opening the page in it, is only ever done once they
- * are there: nothing renders half in one language and half in another. Rejects when the network fails.
+ * Fetches a language's messages, once however often it is asked, and redraws whatever speaks it when they
+ * arrive. Rejects when the network fails, and a later call tries again.
  */
-export async function loadMessages(language: Language): Promise<void> {
-  if (!loaded.has(language)) {
-    loaded.set(language, await LOADERS[language as Exclude<Language, 'en'>]());
+export function loadMessages(language: Language): Promise<void> {
+  if (loaded.has(language)) return Promise.resolve();
+  let pending = loading.get(language);
+  if (!pending) {
+    pending = CHUNKS[`./${language}.tsx`]()
+      .then((module) => {
+        loaded.set(language, module[language]);
+        listeners.forEach((listener) => listener());
+      })
+      .finally(() => loading.delete(language));
+    loading.set(language, pending);
   }
+  return pending;
+}
+
+/** The language the page is in: the one wanted once its messages are there, English until then. */
+export function shownLanguage(wanted: Language): Language {
+  return loaded.has(wanted) ? wanted : 'en';
 }
 
 /**
@@ -42,6 +50,25 @@ export async function loadMessages(language: Language): Promise<void> {
  */
 export function useI18n(): { language: Language; t: Messages } {
   const wanted = useChosenLanguage() ?? deviceLanguage();
-  const t = loaded.get(wanted);
-  return t ? { language: wanted, t } : { language: 'en', t: en };
+  const language = useSyncExternalStore(subscribe, () => shownLanguage(wanted));
+  return { language, t: loaded.get(language)! };
+}
+
+/** Says which language the page is in, where screen readers and the stylesheets (`dir`) look. */
+export function showDocumentIn(language: Language): void {
+  document.documentElement.lang = language;
+  document.documentElement.dir = direction(language);
+}
+
+/**
+ * Once, at the root: fetches the language wanted, however it came to be wanted (Settings, another tab, the
+ * device), and keeps the document in the language the page is actually in, English while it is on its way.
+ */
+export function useDocumentLanguage(): void {
+  const wanted = useChosenLanguage() ?? deviceLanguage();
+  const { language } = useI18n();
+  useEffect(() => {
+    loadMessages(wanted).catch(() => {}); // Offline: the page stays as it is.
+  }, [wanted]);
+  useEffect(() => showDocumentIn(language), [language]);
 }

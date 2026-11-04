@@ -149,13 +149,29 @@ export function waitUntil(at: number, now = Date.now()): { count: number; unit: 
   return minutes < 60 ? { count: minutes, unit: 'minute' } : { count: Math.ceil(minutes / 60), unit: 'hour' };
 }
 
-/** The first of the device's languages that the web app speaks, or English. */
+/**
+ * The first of the device's languages that the web app speaks, or English. Intl knows each tag's script and
+ * old codes: Taiwan's or Hong Kong's Chinese is Traditional, which the Simplified messages are not, and
+ * Indonesian is still "in" on older Android web views.
+ */
 export function deviceLanguage(preferred: readonly string[] = navigator.languages): Language {
-  for (const tag of preferred) {
-    const language = tag.split('-')[0].toLowerCase();
-    if (isLanguage(language)) {
-      return language;
-    }
+  const spoken = preferred.map(spokenLanguage).find((language) => language !== null);
+  return spoken ?? 'en';
+}
+
+/** Read once per tag: every component that speaks asks, on every render. */
+const spokenLanguages = new Map<string, Language | null>();
+
+function spokenLanguage(tag: string): Language | null {
+  if (!spokenLanguages.has(tag)) spokenLanguages.set(tag, readLanguage(tag));
+  return spokenLanguages.get(tag)!;
+}
+
+function readLanguage(tag: string): Language | null {
+  try {
+    const { language, script } = new Intl.Locale(tag).maximize();
+    return isLanguage(language) && !(language === 'zh' && script === 'Hant') ? language : null;
+  } catch {
+    return null; // Not a language tag.
   }
-  return 'en';
 }

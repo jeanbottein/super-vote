@@ -420,8 +420,8 @@ composited:
 - Arabic is right to left: the stylesheets use logical properties (`inline-start`,
   `text-align: start`, `:dir(rtl)` for what has no logical form: the select's arrow,
   the list chevron). Latin brand names (`super-vote`) stay `dir="ltr"`. The results
-  graph is the owner's and keeps its physical `left`/`margin-left`: its hint beside
-  a badge sits a few pixels off in Arabic until he asks for it to change.
+  graph is mirrored too (the owner's decision, 2026-11-04): best mention and 0% on
+  the right, as an Arabic reader reads a share; the back arrow points right.
 - Buttons say what happens, and a confirmation names both ways out: "Delete
   for good" or "Keep it".
 - A warning says the consequence: "Careful: everyone sees the results move as

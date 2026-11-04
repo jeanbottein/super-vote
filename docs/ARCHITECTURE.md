@@ -589,20 +589,26 @@ or a function of plain values; numbers, dates, relative times and plurals go
 through the browser's `Intl` for the language (`format.ts`; `pluralForm` for the languages with more than one/other, Russian
 and Arabic). English ships with the app and every other language is a chunk
 fetched by `loadMessages` before the page is drawn (`index.tsx`) or the
-language is chosen (`LanguageSelect`), so a visit pays for one language, and
-nothing renders half in two. Chinese is Simplified, Portuguese is neutral
+language is chosen (`LanguageSelect`, where the last choice wins), so a visit
+pays for one language, and nothing renders half in two. The build lists each
+chunk in the page (`languageChunks` in `vite.config.ts`), and `index.html`'s
+script starts fetching the voter's beside the app's own script rather than
+after it. A language wanted any other way (another tab) is fetched by
+`useDocumentLanguage`, and the page redraws when it arrives; until then the
+page, and `<html lang dir>`, stay English. Chinese is Simplified, Portuguese is neutral
 between Brazil and Portugal, Arabic is Modern Standard and laid out right to
 left (`<html dir>`, logical CSS properties). `useI18n()`
 answers the language chosen in Settings, or the first of the device's that
-the app speaks, and `<html lang>` follows it.
+the app speaks (`deviceLanguage`: Traditional Chinese is passed over), once
+its messages are there.
 
 The server does not translate: its sentences are English, for agents and
 machine clients as much as for people, and stable. The web app words a
 refused request itself, from the problem's `type`, which is the contract
 (`errorMessage`), and shows the server's sentence only for `invalid-request`,
 whose rule the forms check before sending. Adding a language is a file
-(`<language>.tsx`, typed `Messages`), an entry in `LANGUAGES`,
-`LANGUAGE_NAMES` and the loaders in `i18n.ts`, and the typography test's rules
+(`<language>.tsx`, typed `Messages`), an entry in `LANGUAGES` and
+`LANGUAGE_NAMES`, and the typography test's rules
 if it has its own; `languages.test.ts` checks it against English.
 
 ### Data flow on a poll page

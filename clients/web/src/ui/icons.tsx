@@ -1,10 +1,12 @@
 /** Stroke icons that follow the text colour. Decorative: controls carry their own labels. */
 import type { ReactNode } from 'react';
 
-function Icon({ children }: { children: ReactNode }) {
+/** `directional`: an icon that points along the text, mirrored right to left (style.css). */
+function Icon({ children, directional = false }: { children: ReactNode; directional?: boolean }) {
   return (
     <svg
       className="icon"
+      data-directional={directional || undefined}
       viewBox="0 0 24 24"
       width="24"
       height="24"
@@ -21,7 +23,7 @@ function Icon({ children }: { children: ReactNode }) {
 }
 
 export const BackIcon = () => (
-  <Icon>
+  <Icon directional>
     <path d="M15 18l-6-6 6-6" />
   </Icon>
 );

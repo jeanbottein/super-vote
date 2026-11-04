@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './app/App';
 import { deviceLanguage } from './i18n/format';
-import { loadMessages } from './i18n/i18n';
+import { loadMessages, shownLanguage, showDocumentIn } from './i18n/i18n';
 import { applyPreferences, loadPreferences } from './preferences/preferences';
 import './style.css';
 
@@ -13,9 +13,11 @@ applyPreferences(preferences);
 
 // The page opens in the voter's language, not in English first: its messages arrive before anything is drawn.
 // Offline, the page opens in English rather than not at all.
-loadMessages(preferences.language ?? deviceLanguage())
+const wanted = preferences.language ?? deviceLanguage();
+loadMessages(wanted)
   .catch(() => {})
   .then(() => {
+    showDocumentIn(shownLanguage(wanted));
     createRoot(document.getElementById('root')!).render(
       <StrictMode>
         <App />

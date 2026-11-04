@@ -139,7 +139,7 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
   `features/VotingSystem/MajorityJudgment/MajorityJudgmentResultsGraph.tsx`
   with `majority-judgment.css`, and `api/Ranking.java` with `RankingTest`.
   Change them only when the owner asks (the graph was revised at his request
-  on 2026-09-24; the ranking moved to the server at his request on
+  on 2026-09-24, and mirrored right to left for Arabic on 2026-11-04; the ranking moved to the server at his request on
   2026-10-09). How results are ranked is his call: see "Questions for the
   owner" in the roadmap. Decided so far: with an even number of ballots the
   majority mention is the lower of the two middle mentions (more than half the

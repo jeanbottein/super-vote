@@ -75,6 +75,16 @@ describe('deviceLanguage', () => {
     expect(deviceLanguage(['EN-gb'])).toBe('en');
   });
 
+  it('reads Indonesian under its old code, as older Android web views report it', () => {
+    expect(deviceLanguage(['in-ID'])).toBe('id');
+  });
+
+  it('passes over Traditional Chinese, which the Simplified messages are not', () => {
+    expect(deviceLanguage(['zh-TW', 'ja'])).toBe('ja');
+    expect(deviceLanguage(['zh-Hant-HK', 'zh-HK', 'zh-MO'])).toBe('en');
+    expect(deviceLanguage(['zh-Hans-HK'])).toBe('zh');
+  });
+
   it('falls back to English', () => {
     expect(deviceLanguage(['sv-SE', 'nl'])).toBe('en');
     expect(deviceLanguage([])).toBe('en');

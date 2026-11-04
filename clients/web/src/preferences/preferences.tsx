@@ -2,7 +2,7 @@
  * The voter's display and ballot preferences, remembered in this browser.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { deviceLanguage, direction, isLanguage, type Language } from '../i18n/format';
+import { isLanguage, type Language } from '../i18n/format';
 
 export interface Preferences {
   /** The language the web app speaks, or null for the device's own (src/i18n). */
@@ -37,14 +37,12 @@ export function loadPreferences(): Preferences {
   }
 }
 
-/** Reflects the preferences on the document, where the stylesheets, and screen readers for its language, look. */
-export function applyPreferences(
-  { language, appearance, colorblind }: Pick<Preferences, 'language' | 'appearance' | 'colorblind'>,
-) {
+/**
+ * Reflects the preferences on the document, where the stylesheets look. Not the language: the document says
+ * the one the page is in, which is the one chosen only once its messages have arrived (`useDocumentLanguage`).
+ */
+export function applyPreferences({ appearance, colorblind }: Pick<Preferences, 'appearance' | 'colorblind'>) {
   const root = document.documentElement;
-  const spoken = language ?? deviceLanguage();
-  root.lang = spoken;
-  root.dir = direction(spoken); // right to left for Arabic: the stylesheets use logical properties
   if (appearance === 'system') {
     delete root.dataset.appearance;
   } else {
