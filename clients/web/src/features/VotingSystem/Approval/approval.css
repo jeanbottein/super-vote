@@ -60,7 +60,7 @@
   content: "";
   position: absolute;
   top: 50%;
-  left: 14px;
+  inset-inline-start: 14px;
   width: 22px;
   height: 22px;
   background: var(--accent-fg);

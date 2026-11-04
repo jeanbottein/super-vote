@@ -1,5 +1,6 @@
 /* Majority judgment results: one card per option, with its rank, its merit
- * profile (how its ballots spread over the seven mentions, best on the left),
+ * profile (how its ballots spread over the seven mentions, best at the start:
+ * on the left, on the right in Arabic),
  * a graduated axis under it whose bold 50% mark points at the majority
  * mention, and its majority mention and GMJ score.
  *
@@ -153,12 +154,13 @@
 }
 
 /* What the pointed mention means. It moves by as much of its own width as its
-   anchor lies along the bar - left-aligned at 0%, centred at 50%, right-aligned
-   at 100% - so it never leaves the bar's width, whatever it says. */
+   anchor lies along the bar - start-aligned at 0%, centred at 50%, end-aligned
+   at 100% - so it never leaves the bar's width, whatever it says. Right to
+   left, the whole graph is mirrored: best mention on the right, 0% too. */
 .mj-results-tooltip {
   position: absolute;
   bottom: calc(100% + 10px);
-  left: var(--at);
+  inset-inline-start: var(--at);
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -175,6 +177,10 @@
   pointer-events: none;
 }
 
+.mj-results-tooltip:dir(rtl) {
+  transform: translateX(var(--at));
+}
+
 /* ------------------------------------------------------------------ Axis */
 
 /* Attached to the bar: the ticks hang from its bottom edge. */
@@ -186,14 +192,14 @@
 .mj-tick {
   position: absolute;
   top: 0;
-  left: var(--left);
+  inset-inline-start: var(--at);
 }
 
 .mj-tick::before {
   content: "";
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   width: 1px;
   height: 4px;
   background: var(--muted);
@@ -204,7 +210,7 @@
 .mj-tick-label {
   position: absolute;
   top: 8px;
-  left: 0;
+  inset-inline-start: 0;
   color: var(--muted);
   font-size: 9px;
   line-height: 1;
@@ -222,6 +228,22 @@
 .mj-tick:last-child::before,
 .mj-tick:last-child .mj-tick-label {
   transform: translateX(-100%);
+}
+
+/* Right to left, each tick hangs from its right edge: the same moves, the other way. */
+.mj-tick:dir(rtl)::before,
+.mj-tick:dir(rtl) .mj-tick-label {
+  transform: translateX(50%);
+}
+
+.mj-tick:dir(rtl):first-child::before,
+.mj-tick:dir(rtl):first-child .mj-tick-label {
+  transform: none;
+}
+
+.mj-tick:dir(rtl):last-child::before,
+.mj-tick:dir(rtl):last-child .mj-tick-label {
+  transform: translateX(100%);
 }
 
 /* 50% stands out: the mention above it is the majority mention. */
@@ -267,7 +289,7 @@
 }
 
 .mj-results-badge + .mj-results-hint {
-  margin-left: 10px;
+  margin-inline-start: 10px;
 }
 
 .mj-results-badge,
@@ -300,7 +322,7 @@
 
   .mj-results-badges > .mj-results-hint {
     justify-self: end;
-    margin-left: 0;
+    margin-inline-start: 0;
   }
 
   .mj-results-badges > .mj-results-badge,

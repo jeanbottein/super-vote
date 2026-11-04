@@ -125,7 +125,7 @@
 .world-map-legend-dot[data-size="large"] {
   width: 18px;
   height: 18px;
-  margin-left: 8px;
+  margin-inline-start: 8px;
 }
 
 .world-map-zoom {
@@ -241,8 +241,9 @@ p.statistics-chosen {
 
 .places-table th,
 .places-table td {
-  padding: 0 0 0 12px;
-  text-align: right;
+  padding: 0;
+  padding-inline-start: 12px;
+  text-align: end;
   white-space: nowrap;
 }
 
@@ -260,8 +261,8 @@ p.statistics-chosen {
 
 .places-table th:first-child {
   width: 100%;
-  padding-left: 0;
-  text-align: left;
+  padding-inline-start: 0;
+  text-align: start;
   white-space: normal;
 }
 
@@ -278,7 +279,8 @@ p.statistics-chosen {
 /* A city is a button that shows it on the map, under its region. */
 .places-table tbody th .button.link {
   min-height: 40px;
-  padding: 0 0 0 16px;
+  padding: 0;
+  padding-inline-start: 16px;
   font-weight: 400;
-  text-align: left;
+  text-align: start;
 }

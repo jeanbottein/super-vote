@@ -3,7 +3,7 @@ import { BrowserRouter, Outlet, Route, Routes, useLocation } from 'react-router'
 import CreatePollPage from '../polls/CreatePollPage';
 import HomePage from '../polls/HomePage';
 import PollPage from '../polls/PollPage';
-import { useI18n } from '../i18n/i18n';
+import { useDocumentLanguage, useI18n } from '../i18n/i18n';
 import { PreferencesProvider } from '../preferences/preferences';
 import { ToastProvider } from '../ui/Toasts';
 import AboutPage from './AboutPage';
@@ -58,6 +58,7 @@ function Statistics() {
 
 /** Home is the one page that spreads out on a wide screen (docs/DESIGN.md, "Layout"). */
 function Layout() {
+  useDocumentLanguage();
   const atHome = useLocation().pathname === '/';
   return (
     <div className="layout" data-page={atHome ? 'home' : undefined}>

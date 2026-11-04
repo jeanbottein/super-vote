@@ -4,9 +4,38 @@
  * messages (en.tsx, fr.tsx) say things with these.
  */
 
-export const LANGUAGES = ['en', 'fr'] as const;
+export const LANGUAGES = ['en', 'fr', 'es', 'pt', 'de', 'it', 'ru', 'tr', 'zh', 'ja', 'ko', 'id', 'hi', 'ar'] as const;
 
 export type Language = (typeof LANGUAGES)[number];
+
+/**
+ * Each language in its own words, as its speakers write it: what the language pickers show, so that whoever
+ * cannot read the page finds theirs. Kept here, not in the messages, so that a picker needs none of them.
+ * Chinese is Simplified (zh-Hans) and Portuguese is neutral between Brazil's and Portugal's.
+ */
+export const LANGUAGE_NAMES: Record<Language, string> = {
+  en: 'English',
+  fr: 'Français',
+  es: 'Español',
+  pt: 'Português',
+  de: 'Deutsch',
+  it: 'Italiano',
+  ru: 'Русский',
+  tr: 'Türkçe',
+  zh: '中文',
+  ja: '日本語',
+  ko: '한국어',
+  id: 'Bahasa Indonesia',
+  hi: 'हिन्दी',
+  ar: 'العربية',
+};
+
+/** The languages written from right to left, which the page is laid out in (dir="rtl"). */
+const RIGHT_TO_LEFT: readonly Language[] = ['ar'];
+
+export function direction(language: Language): 'ltr' | 'rtl' {
+  return RIGHT_TO_LEFT.includes(language) ? 'rtl' : 'ltr';
+}
 
 export function isLanguage(value: unknown): value is Language {
   return LANGUAGES.includes(value as Language);
@@ -61,6 +90,14 @@ export function plural(language: Language, count: number, one: string, other: st
   return plurals(language).select(count) === 'one' ? one : other;
 }
 
+/**
+ * The form a language needs for a count, among those it has: Russian's "one", "few" and "many", Arabic's six.
+ * A language with fewer forms lists fewer, and "other" is always there.
+ */
+export function pluralForm(language: Language, count: number, forms: Partial<Record<Intl.LDMLPluralRule, string>> & { other: string }): string {
+  return forms[plurals(language).select(count)] ?? forms.other;
+}
+
 /** "October 30, 2026", "30 octobre 2026". */
 export function formatDate(language: Language, isoDate: string): string {
   return longDates(language).format(new Date(isoDate));
@@ -112,13 +149,29 @@ export function waitUntil(at: number, now = Date.now()): { count: number; unit: 
   return minutes < 60 ? { count: minutes, unit: 'minute' } : { count: Math.ceil(minutes / 60), unit: 'hour' };
 }
 
-/** The first of the device's languages that the web app speaks, or English. */
+/**
+ * The first of the device's languages that the web app speaks, or English. Intl knows each tag's script and
+ * old codes: Taiwan's or Hong Kong's Chinese is Traditional, which the Simplified messages are not, and
+ * Indonesian is still "in" on older Android web views.
+ */
 export function deviceLanguage(preferred: readonly string[] = navigator.languages): Language {
-  for (const tag of preferred) {
-    const language = tag.split('-')[0].toLowerCase();
-    if (isLanguage(language)) {
-      return language;
-    }
+  const spoken = preferred.map(spokenLanguage).find((language) => language !== null);
+  return spoken ?? 'en';
+}
+
+/** Read once per tag: every component that speaks asks, on every render. */
+const spokenLanguages = new Map<string, Language | null>();
+
+function spokenLanguage(tag: string): Language | null {
+  if (!spokenLanguages.has(tag)) spokenLanguages.set(tag, readLanguage(tag));
+  return spokenLanguages.get(tag)!;
+}
+
+function readLanguage(tag: string): Language | null {
+  try {
+    const { language, script } = new Intl.Locale(tag).maximize();
+    return isLanguage(language) && !(language === 'zh' && script === 'Hant') ? language : null;
+  } catch {
+    return null; // Not a language tag.
   }
-  return 'en';
 }

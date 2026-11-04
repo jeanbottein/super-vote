@@ -24,8 +24,6 @@ function inWords(at: number): string {
 }
 
 export const fr: Messages = {
-  name: 'Français',
-
   number,
   percent: (share: number) => formatPercent('fr', share),
   decimal: (value: number, digits: number) => formatDecimal('fr', value, digits),

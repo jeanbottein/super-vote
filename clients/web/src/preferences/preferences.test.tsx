@@ -41,25 +41,15 @@ describe('loading the preferences', () => {
 
 describe('applying the preferences', () => {
   it('puts the appearance on <html> and the grey palette on <body>, where the stylesheets look', () => {
-    applyPreferences({ language: null, appearance: 'dark', colorblind: true });
+    applyPreferences({ appearance: 'dark', colorblind: true });
 
     expect(document.documentElement.dataset.appearance).toBe('dark');
     expect(document.body.dataset.colorblind).toBe('true');
 
-    applyPreferences({ language: null, appearance: 'system', colorblind: false });
+    applyPreferences({ appearance: 'system', colorblind: false });
 
     expect(document.documentElement).not.toHaveAttribute('data-appearance');
     expect(document.body).not.toHaveAttribute('data-colorblind');
-  });
-});
-
-describe('the language', () => {
-  it("is the page's, for screen readers: the one chosen, or else the device's", () => {
-    applyPreferences({ language: 'fr', appearance: 'system', colorblind: false });
-    expect(document.documentElement.lang).toBe('fr');
-
-    applyPreferences({ language: null, appearance: 'system', colorblind: false });
-    expect(document.documentElement.lang).toBe('en'); // jsdom's navigator says en-US
   });
 });
 
@@ -72,13 +62,13 @@ describe("the browser's own bars", () => {
     const media = () => [...document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')]
       .map((meta) => meta.media);
 
-    applyPreferences({ language: null, appearance: 'dark', colorblind: false });
+    applyPreferences({ appearance: 'dark', colorblind: false });
     expect(media()).toEqual(['not all', 'all']);
 
-    applyPreferences({ language: null, appearance: 'light', colorblind: false });
+    applyPreferences({ appearance: 'light', colorblind: false });
     expect(media()).toEqual(['all', 'not all']);
 
-    applyPreferences({ language: null, appearance: 'system', colorblind: false });
+    applyPreferences({ appearance: 'system', colorblind: false });
     expect(media()).toEqual(['(prefers-color-scheme: light)', '(prefers-color-scheme: dark)']);
 
     document.head.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.remove());

@@ -69,12 +69,24 @@ describe('plural', () => {
 describe('deviceLanguage', () => {
   it('takes the first of the device languages super-vote speaks', () => {
     expect(deviceLanguage(['fr-CA', 'en-US'])).toBe('fr');
-    expect(deviceLanguage(['de-DE', 'fr-FR', 'en'])).toBe('fr');
+    expect(deviceLanguage(['sv-SE', 'fr-FR', 'en'])).toBe('fr');
+    expect(deviceLanguage(['pt-BR', 'fr'])).toBe('pt');
+    expect(deviceLanguage(['zh-Hans-CN'])).toBe('zh');
     expect(deviceLanguage(['EN-gb'])).toBe('en');
   });
 
+  it('reads Indonesian under its old code, as older Android web views report it', () => {
+    expect(deviceLanguage(['in-ID'])).toBe('id');
+  });
+
+  it('passes over Traditional Chinese, which the Simplified messages are not', () => {
+    expect(deviceLanguage(['zh-TW', 'ja'])).toBe('ja');
+    expect(deviceLanguage(['zh-Hant-HK', 'zh-HK', 'zh-MO'])).toBe('en');
+    expect(deviceLanguage(['zh-Hans-HK'])).toBe('zh');
+  });
+
   it('falls back to English', () => {
-    expect(deviceLanguage(['de-DE', 'ja'])).toBe('en');
+    expect(deviceLanguage(['sv-SE', 'nl'])).toBe('en');
     expect(deviceLanguage([])).toBe('en');
   });
 });

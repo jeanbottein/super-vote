@@ -1,7 +1,9 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getServerInfo, getStatistics, listMyPolls, listPublicPolls } from '../api/client';
+import * as i18n from '../i18n/i18n';
+import { loadMessages } from '../i18n/i18n';
 import { applyPreferences, loadPreferences } from '../preferences/preferences';
 import App from './App';
 
@@ -144,11 +146,14 @@ describe('the language', () => {
   it("is the device's until one is chosen, in Settings, where each is named in its own words", async () => {
     openAt('/');
     expect(document.documentElement.lang).toBe('en');
+    expect(document.documentElement.dir).toBe('ltr');
 
     await userEvent.click(screen.getByRole('button', { name: 'Settings' }));
-    await userEvent.click(within(screen.getByRole('dialog', { name: 'Settings' })).getByRole('radio', { name: 'Français' }));
+    const picker = within(screen.getByRole('dialog', { name: 'Settings' })).getByRole('combobox', { name: 'Language' });
+    expect(within(picker).getByRole('option', { name: 'Français' })).toHaveAttribute('lang', 'fr');
+    await userEvent.selectOptions(picker, 'fr');
 
-    expect(screen.getByRole('dialog', { name: 'Réglages' })).toBeInTheDocument();
+    expect(await screen.findByRole('dialog', { name: 'Réglages' })).toBeInTheDocument();
     expect(screen.getByText('Les maths disent que c’est plus juste.')).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('fr');
     expect(loadPreferences().language).toBe('fr');
@@ -156,12 +161,61 @@ describe('the language', () => {
 
   it('can be switched back from the foot of every page', async () => {
     localStorage.setItem('super-vote.preferences', JSON.stringify({ language: 'fr' }));
+    await loadMessages('fr');
     openAt('/new');
     expect(screen.getByRole('heading', { name: 'Décider ensemble' })).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: 'English' }));
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Langue' }), 'en');
 
-    expect(screen.getByRole('heading', { name: 'Decide together' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Français' })).toHaveAttribute('lang', 'fr');
+    expect(await screen.findByRole('heading', { name: 'Decide together' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Language' })).toHaveDisplayValue('English');
+  });
+
+  it('lays the page out right to left in Arabic', async () => {
+    openAt('/');
+
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Language' }), 'ar');
+
+    expect(await screen.findByText('الرياضيات تقول إن هذا أعدل.')).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('ar');
+    expect(document.documentElement.dir).toBe('rtl');
+  });
+
+  it('says the page is in English while the language wanted is on its way, then switches to it', async () => {
+    localStorage.setItem('super-vote.preferences', JSON.stringify({ language: 'it' })); // as another tab would
+    openAt('/');
+    expect(screen.getByText('Maths says it’s fairer.')).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('en');
+
+    expect(await screen.findByText('La matematica dice che è più giusto.')).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('it');
+  });
+
+  it('takes the last language chosen, whichever arrives first, and shows it while it comes', async () => {
+    openAt('/');
+    const arrivals = new Map<string, () => void>();
+    vi.spyOn(i18n, 'loadMessages').mockImplementation(
+      (language) => new Promise((resolve) => arrivals.set(language, () => resolve())),
+    );
+    const picker = () => screen.getByRole('combobox', { name: 'Language' });
+
+    await userEvent.selectOptions(picker(), 'de');
+    await userEvent.selectOptions(picker(), 'es');
+    expect(picker()).toHaveDisplayValue('Español');
+
+    await act(async () => arrivals.get('es')!());
+    await act(async () => arrivals.get('de')!());
+    expect(loadPreferences().language).toBe('es');
+  });
+
+  it('stays as it is when the language cannot be fetched', async () => {
+    openAt('/');
+    const fetching = vi.spyOn(i18n, 'loadMessages').mockRejectedValueOnce(new Error('offline'));
+
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Language' }), 'de');
+
+    expect(fetching).toHaveBeenCalled();
+    expect(screen.getByRole('combobox', { name: 'Language' })).toHaveDisplayValue('English');
+    expect(loadPreferences().language).toBeNull();
   });
 });

@@ -18,7 +18,7 @@ export default function Header() {
             <BackIcon />
           </Link>
         )}
-        <Link to="/" className="brand"><Logo />super-vote</Link>
+        <Link to="/" className="brand" dir="ltr"><Logo />super-vote</Link>
         <SettingsMenu />
       </div>
     </header>

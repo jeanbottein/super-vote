@@ -40,7 +40,7 @@ function slicesOf(counts: JudgmentCounts, total: number) {
 
 /**
  * One option's merit profile: how its ballots spread over the seven mentions,
- * best on the left, as one bar over a graduated axis. The mention above the
+ * best at the start (on the left, mirrored right to left), as one bar over a graduated axis. The mention above the
  * axis's bold 50% mark is the option's majority mention.
  *
  * Pointing at a mention (or tapping it) dims the worse ones and says how many
@@ -136,7 +136,7 @@ export default function MajorityJudgmentResultsGraph({
             key={tick}
             className="mj-tick"
             data-major={tick === 50}
-            style={{ '--left': `${tick}%` } as CSSProperties}
+            style={{ '--at': `${tick}%` } as CSSProperties}
           >
             <span className="mj-tick-label">{t.results.tick(tick)}</span>
           </div>

@@ -1,4 +1,6 @@
 import react from '@vitejs/plugin-react';
+import { fileURLToPath } from 'node:url';
+import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 
 // The client always calls the API on its own origin. In development Vite
@@ -13,8 +15,35 @@ const api = { '/api': server, '/llms.txt': server, '/v3/api-docs': server };
 /** The version the footer shows: "v" and the time of the build, to the minute, in UTC (v202610212030). */
 const version = 'v' + new Date().toISOString().slice(0, 16).replace(/\D/g, '');
 
+/**
+ * src/i18n/early.ts, an entry of its own, runs before the app's: its few kilobytes start fetching the
+ * voter's language while the app's own script still downloads. An external script, which the content security
+ * policy allows as 'self' (an inline one would need its hash in deploy/Caddyfile).
+ */
+function earlyLanguage(): Plugin {
+  return {
+    name: 'early-language',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, { bundle }) {
+        const early = Object.values(bundle ?? {}).find((output) => output.type === 'chunk' && output.isEntry && output.name === 'early');
+        return early ? [{ tag: 'script', attrs: { type: 'module', crossorigin: true, src: `/${early.fileName}` }, injectTo: 'head-prepend' }] : [];
+      },
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), earlyLanguage()],
+  build: {
+    rollupOptions: {
+      input: {
+        index: fileURLToPath(new URL('index.html', import.meta.url)),
+        early: fileURLToPath(new URL('src/i18n/early.ts', import.meta.url)),
+      },
+    },
+  },
   define: { __SUPER_VOTE_VERSION__: JSON.stringify(version) },
   server: {
     port: 5173,

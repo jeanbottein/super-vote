@@ -4,8 +4,7 @@ interface SegmentedControlProps<T extends string> {
   legend: string;
   name: string;
   value: T;
-  /** lang: an option in another language than the page's, such as a language's own name. */
-  options: { value: T; label: string; lang?: string }[];
+  options: { value: T; label: string }[];
   onChange(value: T): void;
   hint?: ReactNode;
   /** A hint that warns of a consequence, rather than explains. */
@@ -23,7 +22,7 @@ export default function SegmentedControl<T extends string>(
       <legend>{legend}</legend>
       <div className="segmented-options">
         {options.map((option) => (
-          <label key={option.value} className="segmented-option" lang={option.lang}>
+          <label key={option.value} className="segmented-option">
             <input
               type="radio"
               name={name}

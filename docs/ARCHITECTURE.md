@@ -544,7 +544,7 @@ tokens do the job.
 src/
   index.tsx            entry: applies saved preferences, renders <App>
   app/                 the shell: routes, header, footer, settings, about, privacy, not-found pages
-  i18n/                what people read: en.tsx (the source), fr.tsx, useI18n, Intl formatting, errorMessage
+  i18n/                what people read: en.tsx (the source), one file per language, useI18n, Intl formatting, errorMessage
   api/                 the only code that talks to the server (fetch + EventSource)
   polls/               the screens (home, new poll, poll) and their hooks
   statistics/          the statistics page, its chart and world map, a poll's places; loaded when opened
@@ -579,22 +579,36 @@ server in a header.
 
 ### Languages
 
-The web app speaks English and French, and its people read nothing else:
-every sentence is a message in `src/i18n`, English in `en.tsx` and French in
-`fr.tsx`, typed by the English so that a translation missing a message, or
+The web app speaks fourteen languages (`LANGUAGES` in `format.ts`: English,
+French, Spanish, Portuguese, German, Italian, Russian, Turkish, Chinese,
+Japanese, Korean, Indonesian, Hindi, Arabic), and its people read nothing else:
+every sentence is a message in `src/i18n`, English in `en.tsx` and each other
+language in a file named for it (`fr.tsx`, `es.tsx`...), typed by the English so that a translation missing a message, or
 holding one too many, does not compile. A message is a string, an element,
 or a function of plain values; numbers, dates, relative times and plurals go
-through the browser's `Intl` for the language (`format.ts`). `useI18n()`
+through the browser's `Intl` for the language (`format.ts`; `pluralForm` for the languages with more than one/other, Russian
+and Arabic). English ships with the app and every other language is a chunk
+fetched by `loadMessages` before the page is drawn (`index.tsx`) or the
+language is chosen (`LanguageSelect`, where the last choice wins), so a visit
+pays for one language, and nothing renders half in two. A small entry of its
+own, `i18n/early.ts` (`earlyLanguage` in `vite.config.ts`), runs before the
+app's and starts fetching the voter's language while the app still downloads. A language wanted any other way (another tab) is fetched by
+`useDocumentLanguage`, and the page redraws when it arrives; until then the
+page, and `<html lang dir>`, stay English. Chinese is Simplified, Portuguese is neutral
+between Brazil and Portugal, Arabic is Modern Standard and laid out right to
+left (`<html dir>`, logical CSS properties). `useI18n()`
 answers the language chosen in Settings, or the first of the device's that
-the app speaks, and `<html lang>` follows it.
+the app speaks (`deviceLanguage`: Traditional Chinese is passed over), once
+its messages are there.
 
 The server does not translate: its sentences are English, for agents and
 machine clients as much as for people, and stable. The web app words a
 refused request itself, from the problem's `type`, which is the contract
 (`errorMessage`), and shows the server's sentence only for `invalid-request`,
 whose rule the forms check before sending. Adding a language is a file
-(`<language>.tsx`, typed `Messages`), an entry in `LANGUAGES`, and the
-typography test's rules if it has its own.
+(`<language>.tsx`, typed `Messages`), an entry in `LANGUAGES` and
+`LANGUAGE_NAMES`, and the typography test's rules
+if it has its own; `languages.test.ts` checks it against English.
 
 ### Data flow on a poll page
 
@@ -671,8 +685,8 @@ Vitest runs in jsdom: the API client (with fake `fetch` and `EventSource`),
 the ballot state machine, the form rules, the ballots and results, the
 preferences, the toasts, every screen with the API mocked (a lost stream and
 its recovery, a shuffled poll's order through updates, the language switch),
-the formatting in both languages, the wording of every problem type, and
-French typography over every message (`fr.test.ts`). `npm run coverage` measures them. The
+the formatting in every language, the wording of every problem type, and
+French typography over every message (`fr.test.ts`), and every other language against English (`languages.test.ts`). `npm run coverage` measures them. The
 end-to-end behaviour (two voters, live updates, a server restart, phone and
 desktop layouts) was checked in a real browser; automating that in CI with
 Playwright is on the roadmap.

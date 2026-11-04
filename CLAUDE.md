@@ -17,7 +17,8 @@ code, or by invitation (one link per voter, sent by the creator), optional
 voter names shown as a cloud, results live, delayed or at close (the
 creator's choice), options as written, A to Z or shuffled per voter (the
 creator's choice too), ballots unlinkable at rest, polls deleted after 30
-days, public polls off until accounts. The web app speaks English and French;
+days, public polls off until accounts. The web app speaks fourteen languages (English, French,
+Spanish, Portuguese, German, Italian, Russian, Turkish, Chinese, Japanese, Korean, Indonesian, Hindi, Arabic);
 the server, its errors and everything agents read stay English. Under it, one poll must scale to billions of
 ballots (docs/ROADMAP.md, "Scale"): never let a request's cost grow with a
 poll's size. Next phases (in order): deployment on
@@ -102,7 +103,7 @@ not a record, or anything imports Reactor (ArchUnit).
 for this visit). `src/features/VotingSystem/*` holds
 presentational ballots and results per voting system. `src/ui` holds shared
 pieces, `src/preferences` the voter's settings, `src/i18n` everything people
-read (`en.tsx`, `fr.tsx`, `useI18n`, `errorMessage`), `src/app` the shell
+read (`en.tsx`, one file per language, `useI18n`, `errorMessage`), `src/app` the shell
 and routes (`/`, `/new`, `/p/:id`, `/about`, `/privacy`, `/statistics`). `src/statistics` holds the
 statistics page, its chart and world map, and a poll's places, loaded only
 when opened. How it looks (tokens, light/dark and
@@ -138,7 +139,7 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
   `features/VotingSystem/MajorityJudgment/MajorityJudgmentResultsGraph.tsx`
   with `majority-judgment.css`, and `api/Ranking.java` with `RankingTest`.
   Change them only when the owner asks (the graph was revised at his request
-  on 2026-09-24; the ranking moved to the server at his request on
+  on 2026-09-24, and mirrored right to left for Arabic on 2026-11-04; the ranking moved to the server at his request on
   2026-10-09). How results are ranked is his call: see "Questions for the
   owner" in the roadmap. Decided so far: with an even number of ballots the
   majority mention is the lower of the two middle mentions (more than half the
@@ -161,11 +162,18 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
   the results alike, and never reshuffled by a live update. Only the display
   moves: ballots name options by id, and exports keep the poll's order.
 - **Everything people read is in `src/i18n`**: `en.tsx` is the source, each
-  translation (`fr.tsx`) is typed by it, so a missing or extra message does
-  not compile. No sentence in a component: add it to both files (the one
+  translation (`fr.tsx`, `es.tsx`...) is typed by it, so a missing or extra message does
+  not compile. No sentence in a component: add it to every language (the one
   exception is the dev ballot feeder, a developer's English that never ships). Messages are
   strings, elements, or functions of plain values; numbers, dates and plurals
-  go through `format.ts` (Intl). French follows its typography, which
+  go through `format.ts` (Intl; a language with more than one/other plural,
+  Russian or Arabic, uses `pluralForm`). Every language but English is a
+  chunk of its own, fetched by `loadMessages` before the page is drawn or the
+  language chosen (`LanguageSelect`); `languages.test.ts` checks every file
+  against English (same messages, same values used, typographic quotes). Arabic
+  is laid out right to left (`direction`, `<html dir>`): new CSS uses logical
+  properties (`padding-inline-start`, `text-align: start`), not left and right,
+  and Latin brand names stay `dir="ltr"`. French follows its typography, which
   `fr.test.ts` enforces: no-break spaces before `:` and inside « », narrow
   ones before `; ! ?`, the apostrophe ’, and gender-neutral wording. The
   server never translates (the owner's decision, 2026-10-19): its sentences
