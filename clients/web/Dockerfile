@@ -10,7 +10,7 @@ RUN npm ci --no-audit --no-fund
 COPY clients/web/ ./
 RUN npm run build
 
-FROM caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
+FROM caddy:2.11.7-alpine@sha256:e70b164da81ef698b3ad19af799ea6086ce6d9e48ed4079eb9fe26f6fbf14ee5
 LABEL org.opencontainers.image.source="https://github.com/jeanbottein/super-vote" \
       org.opencontainers.image.description="super-vote web app, served by Caddy with its HTTPS edge" \
       org.opencontainers.image.licenses="MIT"
