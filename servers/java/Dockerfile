@@ -2,7 +2,7 @@
 # Built from source, so that `docker build servers/java` needs nothing but Docker.
 # Base images are pinned by digest, which Dependabot keeps current.
 
-FROM eclipse-temurin:25-jdk-noble@sha256:ba0f0e1a33864105e1d454e88105c617ab40f71062db1f306bf58be32a3f8e5e AS build
+FROM eclipse-temurin:25-jdk-noble@sha256:95e350ad1eb738f943e141640f7e3d797e483359a3b33c3864255bfd1ad71f8a AS build
 WORKDIR /build
 # The dependencies first, in a layer of their own: kept from one build to the next while pom.xml stays the same.
 COPY .mvn/ .mvn/
@@ -15,7 +15,7 @@ RUN ./mvnw -B -ntp -q package -DskipTests \
     && java -Djarmode=tools -jar target/super-vote-server-*.jar extract --layers \
         --application-filename super-vote-server.jar --destination extracted
 
-FROM eclipse-temurin:25-jre-noble@sha256:3f2223fe04b750aa5a8179e29b5c9a1ddf7665fc9bb08bfe11ad01d143bc13a5
+FROM eclipse-temurin:25-jre-noble@sha256:a98128a57de944a72bd31fbc79b898edd5a5864d3652071d5bbd2160ab7d7dce
 LABEL org.opencontainers.image.source="https://github.com/jeanbottein/super-vote" \
       org.opencontainers.image.description="super-vote server: REST, server-sent events and MCP tools" \
       org.opencontainers.image.licenses="MIT"
