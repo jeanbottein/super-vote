@@ -20,3 +20,21 @@ export async function shareLink(link: SharedLink): Promise<void> {
   const { Share } = await import('@capacitor/share');
   await Share.share(link);
 }
+
+export interface SharedFile {
+  name: string;
+  text: string;
+  /** What the share sheet is titled. */
+  title: string;
+}
+
+/**
+ * Hands a file to another app through the share sheet: the app's way to download, since its WebView saves
+ * nothing. Written to the app's cache, the one folder its FileProvider shares (res/xml/file_paths.xml).
+ */
+export async function shareFile({ name, text, title }: SharedFile): Promise<void> {
+  const { Directory, Encoding, Filesystem } = await import('@capacitor/filesystem');
+  const { uri } = await Filesystem.writeFile({ path: name, data: text, directory: Directory.Cache, encoding: Encoding.UTF8 });
+  const { Share } = await import('@capacitor/share');
+  await Share.share({ title, files: [uri] });
+}

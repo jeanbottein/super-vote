@@ -45,7 +45,7 @@ export default function ResultsSection({ poll, options, connection }: ResultsSec
       )}
       {!hidden && poll.totalBallots > 0 && (
         <div className="results-footer">
-          <button type="button" className="button link" onClick={() => downloadResults(poll)}>
+          <button type="button" className="button link" onClick={() => void downloadResults(poll).catch(() => {})}>
             {t.results.download}
           </button>
         </div>

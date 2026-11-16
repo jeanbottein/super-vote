@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Poll } from '../api/types';
 import { useI18n } from '../i18n/i18n';
 import { ShareIcon } from '../ui/icons';
-import { pollUrl } from './links';
+import { pollUrl, useSiteOrigin } from './links';
 import ShareDialog from './ShareDialog';
 
 interface ShareButtonProps {
@@ -13,6 +13,7 @@ interface ShareButtonProps {
 /** The link and join code of a poll anyone may vote on, to share: a poll by invitation has none. */
 export default function ShareButton({ poll, className = 'button secondary' }: ShareButtonProps) {
   const { t } = useI18n();
+  const site = useSiteOrigin();
   const [open, setOpen] = useState(false);
 
   return (
@@ -28,7 +29,7 @@ export default function ShareButton({ poll, className = 'button secondary' }: Sh
           {t.share.anyone}
           {poll.visibility === 'UNLISTED' && ` ${t.share.unlisted}`}
         </>}
-        url={pollUrl(poll.id)}
+        url={pollUrl(site, poll.id)}
         linkLabel={t.share.linkLabel}
         subject={poll.title}
         message={t.share.message(poll.title)}

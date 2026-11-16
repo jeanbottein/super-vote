@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useI18n } from '../i18n/i18n';
-import { siteHost, siteOrigin } from './links';
+import { hostOf, useSiteOrigin } from './links';
 
 /**
  * Creating a poll through an AI agent: a prompt to copy into one, naming this
@@ -12,7 +12,8 @@ export default function AgentPrompt() {
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const quote = useRef<HTMLQuoteElement>(null);
-  const prompt = t.home.agent.prompt(siteHost(), `${siteOrigin()}/llms.txt`);
+  const site = useSiteOrigin();
+  const prompt = t.home.agent.prompt(hostOf(site), `${site}/llms.txt`);
 
   async function copy() {
     try {

@@ -1,6 +1,6 @@
 import { SystemBarsStyle } from '@capacitor/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { chromiumVersion, goBack, pathIn, systemBarsStyleFor } from './NativeShell';
+import { chromiumVersion, onBackButton, pathIn, systemBarsStyleFor } from './NativeShell';
 
 const minimizeApp = vi.hoisted(() => vi.fn(async () => {}));
 vi.mock('@capacitor/app', () => ({ App: { minimizeApp, addListener: vi.fn() } }));
@@ -16,7 +16,7 @@ describe('the Android back button', () => {
     dialog.setAttribute('open', '');
     const back = vi.spyOn(window.history, 'back').mockImplementation(() => {});
 
-    goBack(true);
+    onBackButton({ canGoBack: true });
 
     expect(dialog.open).toBe(false);
     expect(back).not.toHaveBeenCalled();
@@ -25,14 +25,14 @@ describe('the Android back button', () => {
   it('goes back a page', () => {
     const back = vi.spyOn(window.history, 'back').mockImplementation(() => {});
 
-    goBack(true);
+    onBackButton({ canGoBack: true });
 
     expect(back).toHaveBeenCalled();
     expect(minimizeApp).not.toHaveBeenCalled();
   });
 
   it('leaves the app in the background from its first page', () => {
-    goBack(false);
+    onBackButton({ canGoBack: false });
 
     expect(minimizeApp).toHaveBeenCalled();
   });

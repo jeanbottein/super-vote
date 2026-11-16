@@ -8,7 +8,7 @@ import { useI18n } from '../i18n/i18n';
 import Confirmation from '../ui/Confirmation';
 import { useToast } from '../ui/Toasts';
 import CopyableLink from './CopyableLink';
-import { adminUrl } from './links';
+import { adminUrl, useSiteOrigin } from './links';
 
 interface OwnerActionsProps {
   poll: Poll;
@@ -22,6 +22,7 @@ interface OwnerActionsProps {
  */
 export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
   const { t } = useI18n();
+  const site = useSiteOrigin();
   const navigate = useNavigate();
   const showToast = useToast();
   const titleId = useId();
@@ -69,7 +70,7 @@ export default function OwnerActions({ poll, onChange }: OwnerActionsProps) {
         <div className="owner-admin">
           <p className="hint">{t.owner.adminLinkHint}</p>
           {showingAdminLink
-            ? <CopyableLink url={adminUrl(poll.id, poll.adminToken)} label={t.owner.adminLink} />
+            ? <CopyableLink url={adminUrl(site, poll.id, poll.adminToken)} label={t.owner.adminLink} />
             : (
               <button type="button" className="button secondary admin-reveal" onClick={() => setShowingAdminLink(true)}>
                 {t.owner.showAdminLink}

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <external-path name="my_images" path="." />
-    <cache-path name="my_cache_images" path="." />
+<!-- What the FileProvider may hand to other apps: the app's cache alone, where a results file is written before
+     the share sheet takes it (src/native/share.ts). Capacitor's template also shared all of external storage. -->
+<paths>
+    <cache-path name="cache" path="." />
 </paths>

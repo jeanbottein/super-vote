@@ -1,4 +1,4 @@
-import { App } from '@capacitor/app';
+import { App, type BackButtonListenerEvent } from '@capacitor/app';
 import { SystemBars, SystemBarsStyle } from '@capacitor/core';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
@@ -16,7 +16,7 @@ export default function NativeShell() {
 
   useEffect(() => {
     const listening = [
-      App.addListener('backButton', ({ canGoBack }) => goBack(canGoBack)),
+      App.addListener('backButton', onBackButton),
       App.addListener('appUrlOpen', ({ url }) => navigate(pathIn(url))),
     ];
     return () => listening.forEach((listener) => void listener.then((handle) => handle.remove()));
@@ -29,16 +29,21 @@ export default function NativeShell() {
   return null;
 }
 
-/** Back closes an open dialog first, as Escape does; at the first page, it leaves the app in the background. */
-export function goBack(canGoBack: boolean): void {
+/**
+ * Back closes an open dialog first, as Escape does, then goes back a page; at the first page, it leaves the app
+ * in the background, as Android's own apps do.
+ */
+export function onBackButton({ canGoBack }: BackButtonListenerEvent): void {
   const dialog = document.querySelector<HTMLDialogElement>('dialog[open]');
   if (dialog) {
     dialog.close();
-  } else if (canGoBack) {
-    window.history.back();
-  } else {
-    void App.minimizeApp();
+    return;
   }
+  if (canGoBack) {
+    window.history.back();
+    return;
+  }
+  void App.minimizeApp();
 }
 
 /** Where in the app a link to the site leads: its path, and its fragment, where an invitation travels. */

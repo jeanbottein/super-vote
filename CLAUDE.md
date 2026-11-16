@@ -206,8 +206,9 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
   with CORS, without credentials (`AppOrigins`); the app mints a voter token
   once, keeps it (Capacitor Preferences) and sends it as a bearer token, with
   `Super-Vote-Client: android/<package.json's version>`. Links people share
-  come from `siteOrigin()`, never `window.location`, which is `localhost` in
-  the app. From the first release, API changes are additive only: installed
+  come from `useSiteOrigin()` (the server's `publicUrl` in the app), never
+  `window.location`, which is `localhost` there. The WebView downloads
+  nothing: files go to the share sheet (`shareFile`). From the first release, API changes are additive only: installed
   apps lag for months. See `docs/ARCHITECTURE.md`, "The Android app".
 - **A bearer token beats the cookie, and a bad one is 401.** A client that is
   not a browser sends `Authorization: Bearer <voter token>`, and gets no

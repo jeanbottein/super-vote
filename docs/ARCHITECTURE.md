@@ -711,8 +711,9 @@ same code and the same design. Decided with the owner on 2026-11-16:
   Apple refuses an app that is only a website (guideline 4.2).
 - **The app is another origin.** The server lists it
   (`super-vote.app-origins`), answers it with CORS without credentials
-  (`identity.AppOrigins`), and `VoterIdentityFilter` does not count it as
-  another site; every other site stays refused. It is safe only because
+  (`identity.AppOrigins`, a servlet filter ahead of `VoterIdentityFilter`, so
+  that its refusals reach the app readable too), and `VoterIdentityFilter`
+  does not count it as another site; every other site stays refused. It is safe only because
   those requests carry no credential the browser adds by itself: whatever
   page holds that origin (a local development server holds
   `https://localhost` too) can do no more than a script. Never let a cookie
@@ -721,23 +722,30 @@ same code and the same design. Decided with the owner on 2026-11-16:
   The app mints a token (`POST /api/voters`) on first launch, keeps it in
   Capacitor Preferences, never backed up to the cloud (a new phone gets it
   by transfer), and sends it as `Authorization: Bearer`, with its version:
-  `Super-Vote-Client: android/1.0.0`, package.json's (`callerOf`).
+  `Super-Vote-Client: android/0.1.0`, package.json's (`callerOf`). A token the
+  server refuses is forgotten, and the next call mints another.
 - **Live results over `fetch`.** `EventSource` cannot send a header, and the
   token never goes in a URL, so `api/eventStream.ts` reads server-sent events
   from a fetch answer, in the browser too: one code path behind
-  `PollWatcher`, reconnecting as `EventSource` does.
-- **Links from the public address** (`siteOrigin`: the API's base in the
-  app), never `window.location`, which is `localhost` there. Links to
+  `PollWatcher`, behaving as `EventSource` does: it reconnects after a
+  network error, gives up on an error or on anything but `text/event-stream`,
+  and an update the page cannot take does not end the stream.
+- **Links from the public address** (`useSiteOrigin`: the server's
+  `publicUrl` in the app, which its invitation links use too), never
+  `window.location`, which is `localhost` there. Links to
   `/p/{id}` open the app (App Links, `AndroidManifest.xml`), the
   `#invitation=` fragment kept (`NativeShell`).
 - **What a browser would do, done natively** (`src/native/`, a chunk the
   website never fetches): the back button closes a dialog, goes back a page,
   or leaves the app in the background; the share sheet (Android's WebView
-  has no `navigator.share`); the status bar's icons follow the appearance
+  has no `navigator.share`), which also takes the results file, since the
+  WebView downloads nothing (`shareFile`, through the cache folder, the only
+  one the `FileProvider` shares); the status bar's icons follow the appearance
   chosen in the app.
 - **Application id `org.supervote.app`**, free on Google Play and F-Droid on
   2026-11-16; it can never change after the first release. Its version is
-  `package.json`'s (`android/app/build.gradle`). No Google library, so that
+  `package.json`'s (`android/app/build.gradle`), `major.minor.patch` with minor
+  and patch under 100, so that the versionCode only grows. No Google library, so that
   F-Droid can build it.
 - **The icons** come from the favicon, rendered by `tools/android/icons.mjs`.
 - **CI** builds a debug APK and runs Android lint on every change to the web

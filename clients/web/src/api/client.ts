@@ -28,6 +28,9 @@ const ADMIN_HEADER = 'Super-Vote-Admin';
 const TIME_ZONE_HEADER = 'Super-Vote-Time-Zone';
 const CLIENT_HEADER = 'Super-Vote-Client';
 
+/** A bearer token the server could not have issued (docs/API.md, "Identity"). */
+const UNKNOWN_VOTER = '/problems/unknown-voter';
+
 /** Where the app keeps its voter token (Capacitor Preferences: the app's own storage, never backed up). */
 const TOKEN_KEY = 'voter-token';
 
@@ -125,7 +128,11 @@ async function send(
     throw new ApiError(0); // the server cannot be reached
   }
   if (!response.ok) {
-    throw await problemIn(response);
+    const problem = await problemIn(response);
+    if (problem.type === UNKNOWN_VOTER && 'Authorization' in caller.headers) {
+      await forgetAppToken(); // the next call starts afresh, rather than every call failing alike
+    }
+    throw problem;
   }
   return response;
 }
@@ -175,6 +182,12 @@ async function keptOrMintedToken(): Promise<string> {
   const { token } = (await (await send('POST', '/api/voters', { credentials: 'omit' })).json()) as { token: string };
   await Preferences.set({ key: TOKEN_KEY, value: token });
   return token;
+}
+
+async function forgetAppToken(): Promise<void> {
+  appToken = null;
+  const { Preferences } = await import('@capacitor/preferences');
+  await Preferences.remove({ key: TOKEN_KEY });
 }
 
 /** "Europe/Paris", or what the device says; the server counts a name it does not know nowhere. */
@@ -312,20 +325,28 @@ async function follow(path: string, watcher: PollWatcher, watching: AbortControl
     if (watching.signal.aborted) {
       return;
     }
-    if (response !== null && !response.ok) {
+    if (response !== null && !isEventStream(response)) {
       watcher.onConnectionChange(false);
       watcher.onLost();
       return;
     }
     if (response?.body) {
       watcher.onConnectionChange(true);
-      if (await relay(response.body, watcher, watching)) {
+      if (await relay(response.body, watcher, watching) || watching.signal.aborted) {
         return;
       }
     }
     watcher.onConnectionChange(false);
     await pause(RECONNECT_DELAY_MS, watching.signal);
   }
+}
+
+/**
+ * What EventSource would follow: a successful answer that is a stream of events. Anything else (an error, a
+ * captive portal's page) is a refusal, so that the page loads the poll again rather than show stale results live.
+ */
+function isEventStream(response: Response): boolean {
+  return response.ok && (response.headers.get('Content-Type') ?? '').startsWith('text/event-stream');
 }
 
 /** The stream's answer, or null when the server could not be reached. */
@@ -346,21 +367,37 @@ async function connect(path: string, signal: AbortSignal): Promise<Response | nu
 async function relay(body: ReadableStream<BufferSource>, watcher: PollWatcher, watching: AbortController): Promise<boolean> {
   try {
     for await (const event of eventsIn(body)) {
-      if (event.type === 'update') {
-        watcher.onUpdate(JSON.parse(event.data) as PollUpdate);
-      } else if (event.type === 'deleted') {
+      if (event.type === 'deleted') {
         watching.abort();
         watcher.onDeleted();
         return true;
       }
+      if (event.type === 'update') {
+        passOn(event.data, watcher);
+      }
     }
   } catch {
-    // The connection dropped, or watching stopped: follow tells them apart.
+    // Reading failed: the connection dropped, or watching stopped. follow tells them apart.
   }
   return false;
 }
 
+/**
+ * One update to the page. A payload it cannot read, or a page that throws, is reported and the stream goes on,
+ * as with EventSource: neither is the connection's fault, and reconnecting would only bring the same state back.
+ */
+function passOn(data: string, watcher: PollWatcher): void {
+  try {
+    watcher.onUpdate(JSON.parse(data) as PollUpdate);
+  } catch (error) {
+    reportError(error);
+  }
+}
+
 function pause(milliseconds: number, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) {
+    return Promise.resolve(); // an abort listener added now would never fire
+  }
   return new Promise((resolve) => {
     const timer = setTimeout(resolve, milliseconds);
     signal.addEventListener('abort', () => {

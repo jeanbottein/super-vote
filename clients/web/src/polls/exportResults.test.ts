@@ -2,6 +2,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { lunchPoll, NO_JUDGMENTS, option } from '../test/fixtures';
 import { downloadResults, resultsDocument } from './exportResults';
 
+const writeFile = vi.hoisted(() => vi.fn(async ({ path }: { path: string; data: string }) => ({ uri: `file:///cache/${path}` })));
+const share = vi.hoisted(() => vi.fn(async () => ({})));
+vi.mock('@capacitor/filesystem', () => ({
+  Directory: { Cache: 'CACHE' }, Encoding: { UTF8: 'utf8' }, Filesystem: { writeFile },
+}));
+vi.mock('@capacitor/share', () => ({ Share: { share } }));
+
 const lunch = lunchPoll({
   closedAt: '2026-09-24T12:00:00Z',
   isMine: true,
@@ -75,5 +82,20 @@ describe('downloading the results', () => {
     expect(revokeObjectURL).not.toHaveBeenCalled(); // the browser may still be reading it
     await vi.runAllTimersAsync();
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:results');
+  });
+
+  it("hands them to the share sheet in the app, whose WebView downloads nothing", async () => {
+    vi.stubEnv('MODE', 'android');
+    try {
+      await downloadResults(lunch);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+
+    expect(writeFile).toHaveBeenCalledWith(expect.objectContaining({
+      path: 'super-vote-results-abc.json', directory: 'CACHE', encoding: 'utf8',
+    }));
+    expect(JSON.parse(writeFile.mock.calls[0][0].data).poll.id).toBe('abc');
+    expect(share).toHaveBeenCalledWith({ title: lunch.title, files: ['file:///cache/super-vote-results-abc.json'] });
   });
 });

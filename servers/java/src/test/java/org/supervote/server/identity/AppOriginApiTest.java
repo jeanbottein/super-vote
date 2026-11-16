@@ -70,6 +70,18 @@ class AppOriginApiTest {
         assertThat(result).doesNotContainHeader(HttpHeaders.SET_COOKIE);
     }
 
+    /** The app must be able to read a refusal, or it would take it for a lost network, and never start afresh. */
+    @Test
+    void theAppCanReadThatItsTokenIsRefused() {
+        var result = fromTheApp(mvc.get().uri("/api/polls/mine"))
+            .header(HttpHeaders.AUTHORIZATION, "Bearer not-a-token")
+            .exchange();
+
+        assertThat(result).hasStatus(HttpStatus.UNAUTHORIZED);
+        assertThat(result).hasHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, APP);
+        assertThat(result).bodyJson().extractingPath("$.type").isEqualTo("/problems/unknown-voter");
+    }
+
     @Test
     void stillRefusesAnotherSitesPage() {
         var result = mvc.get().uri("/api/polls/mine")
@@ -78,6 +90,7 @@ class AppOriginApiTest {
             .exchange();
 
         assertThat(result).hasStatus(HttpStatus.FORBIDDEN);
+        assertThat(result).doesNotContainHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
         assertThat(result).bodyJson().extractingPath("$.type").isEqualTo("/problems/cross-site");
     }
 

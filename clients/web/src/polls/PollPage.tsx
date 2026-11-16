@@ -12,7 +12,7 @@ import CopyButton from './CopyButton';
 import DevBallotFeeder from './DevBallotFeeder';
 import Invitations from './Invitations';
 import { formatJoinCode } from './format';
-import { adminIn, adminUrl, handoverIn, invitationIn, pollUrl } from './links';
+import { adminIn, adminUrl, handoverIn, invitationIn, pollUrl, useSiteOrigin } from './links';
 import OwnerActions from './OwnerActions';
 import ResultsSection, { resultsKeptBack } from './ResultsSection';
 import ShareButton from './ShareButton';
@@ -51,6 +51,7 @@ export default function PollPage() {
 
 function PollScreen({ id, invitation }: { id: string; invitation: string | null }) {
   const { t } = useI18n();
+  const site = useSiteOrigin();
   const { poll, failure, deleted, connection, setPoll } = usePoll(id, invitation);
   // Drawn once per visit: a shuffled poll's options keep one order while the page is open.
   const [seed] = useState(newSeed);
@@ -99,7 +100,7 @@ function PollScreen({ id, invitation }: { id: string; invitation: string | null 
             ? <p className="panel callout"><span>{t.poll.readyToInvite}</span></p>
             : <section className="panel callout ready">
               <p>{t.poll.readyToShare}</p>
-              <CopyableLink url={pollUrl(poll.id)} label={t.share.linkLabel}>
+              <CopyableLink url={pollUrl(site, poll.id)} label={t.share.linkLabel}>
                 <ShareButton poll={poll} />
               </CopyableLink>
               <p className="ready-code">
@@ -111,7 +112,7 @@ function PollScreen({ id, invitation }: { id: string; invitation: string | null 
             <section className="panel keep">
               <h2>{t.poll.keepTitle}</h2>
               <p>{t.poll.keepText}</p>
-              <CopyableLink url={adminUrl(poll.id, poll.adminToken)} label={t.owner.adminLink} />
+              <CopyableLink url={adminUrl(site, poll.id, poll.adminToken)} label={t.owner.adminLink} />
             </section>
           )}
         </>

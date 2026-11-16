@@ -11,6 +11,7 @@ vi.mock('@capacitor/preferences', () => ({
   Preferences: {
     get: async ({ key }: { key: string }) => ({ value: kept.get(key) ?? null }),
     set: async ({ key, value }: { key: string; value: string }) => { kept.set(key, value); },
+    remove: async ({ key }: { key: string }) => { kept.delete(key); },
   },
 }));
 
@@ -187,6 +188,7 @@ describe('watching a poll', () => {
     return {
       response: new Response(body, { headers: { 'Content-Type': 'text/event-stream' } }),
       send: (type: string, data: unknown) => controller.enqueue(encoder.encode(`event:${type}\ndata:${JSON.stringify(data)}\n\n`)),
+      sendRaw: (text: string) => controller.enqueue(encoder.encode(text)),
       end: () => controller.close(),
       fail: () => controller.error(new TypeError('network error')),
     };
@@ -283,7 +285,7 @@ describe('watching a poll', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('closes the stream when asked, and never connects again', async () => {
+  it('closes the stream when asked, never connects again, and tells the page nothing more', async () => {
     fetchMock.mockResolvedValue(openStream().response);
     const stop = watchPoll('abc', watcher);
     await vi.waitFor(() => expect(watcher.onConnectionChange).toHaveBeenCalledWith(true));
@@ -293,7 +295,37 @@ describe('watching a poll', () => {
     expect(signalOf(0).aborted).toBe(true);
     await vi.advanceTimersByTimeAsync(RECONNECT_DELAY_MS * 2);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(watcher.onConnectionChange.mock.calls).toEqual([[true]]); // the page that stopped watching is gone
     expect(watcher.onLost).not.toHaveBeenCalled();
+  });
+
+  it('keeps the stream when the page cannot take an update, as EventSource does', async () => {
+    const reportError = vi.fn();
+    vi.stubGlobal('reportError', reportError);
+    const stream = openStream();
+    fetchMock.mockResolvedValue(stream.response);
+    watchPoll('abc', watcher);
+    await vi.waitFor(() => expect(watcher.onConnectionChange).toHaveBeenCalledWith(true));
+
+    stream.sendRaw('event:update\ndata:{not JSON\n\n');
+    watcher.onUpdate.mockImplementationOnce(() => { throw new Error('the page broke'); });
+    stream.send('update', { totalBallots: 4 });
+    stream.send('update', { totalBallots: 5 });
+
+    await vi.waitFor(() => expect(watcher.onUpdate).toHaveBeenCalledWith({ totalBallots: 5 }));
+    expect(reportError).toHaveBeenCalledTimes(2);
+    expect(reportError.mock.calls[0][0]).toBeInstanceOf(SyntaxError);
+    expect(reportError).toHaveBeenCalledWith(new Error('the page broke'));
+    expect(watcher.onConnectionChange.mock.calls).toEqual([[true]]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives up on an answer that is not a stream of events, as a captive portal gives', async () => {
+    fetchMock.mockResolvedValue(new Response('<html>Sign in to the Wi-Fi</html>', { headers: { 'Content-Type': 'text/html' } }));
+    watchPoll('abc', watcher);
+
+    await vi.waitFor(() => expect(watcher.onLost).toHaveBeenCalled());
+    expect(watcher.onConnectionChange.mock.calls).toEqual([[false]]);
   });
 });
 
@@ -360,6 +392,20 @@ describe('in the Android app', () => {
     await app.getPoll('abc');
 
     expect(kept.get('voter-token')).toBe('minted');
+  });
+
+  it('forgets a token the server does not know, so that the next call starts afresh', async () => {
+    kept.set('voter-token', 'refused');
+    fetchMock.mockResolvedValueOnce(Response.json({ type: '/problems/unknown-voter', detail: 'Not a token.' }, { status: 401 }));
+    const app = await launch();
+    await expect(app.getPoll('abc')).rejects.toMatchObject({ status: 401 });
+    expect(kept.has('voter-token')).toBe(false);
+
+    fetchMock.mockImplementation(async (url) =>
+      url === '/api/voters' ? Response.json({ token: 'fresh' }, { status: 201 }) : Response.json({ id: 'abc' }));
+    await app.getPoll('abc');
+
+    expect(fetchMock.mock.calls.at(-1)?.[1]?.headers).toMatchObject({ Authorization: 'Bearer fresh' });
   });
 
   it('watches a poll with its token too', async () => {

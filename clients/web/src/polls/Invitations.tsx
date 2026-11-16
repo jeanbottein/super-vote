@@ -8,7 +8,7 @@ import { useI18n } from '../i18n/i18n';
 import Confirmation from '../ui/Confirmation';
 import { CheckIcon, CloseIcon, ShareIcon } from '../ui/icons';
 import { useToast } from '../ui/Toasts';
-import { invitationUrl } from './links';
+import { invitationUrl, useSiteOrigin } from './links';
 import ShareDialog from './ShareDialog';
 import { useServerInfo } from './useServerInfo';
 
@@ -24,6 +24,7 @@ const MAX_PAGE = 1000;
  */
 export default function Invitations({ poll }: { poll: Poll }) {
   const { t } = useI18n();
+  const site = useSiteOrigin();
   const { limits } = useServerInfo();
   const showToast = useToast();
   const titleId = useId();
@@ -130,7 +131,7 @@ export default function Invitations({ poll }: { poll: Poll }) {
         onClose={() => setSharing(null)}
         title={sharing?.label ? t.invitations.invitationFor(sharing.label) : nameOf(sharing, t)}
         hint={t.invitations.shareHint}
-        url={sharing ? invitationUrl(poll.id, sharing.token) : ''}
+        url={sharing ? invitationUrl(site, poll.id, sharing.token) : ''}
         linkLabel={t.invitations.linkLabel}
         subject={poll.title}
         message={t.invitations.message(poll.title)}

@@ -3,9 +3,14 @@ import groovy.json.JsonSlurper
 apply plugin: 'com.android.application'
 
 // One version for the web app and the app: package.json's, which the app also tells the server
-// (Super-Vote-Client). versionCode must only grow: 1.4.2 is 10402.
+// (Super-Vote-Client). versionCode must only grow, which 1.4.2 as 10402 does as long as minor and patch stay
+// under 100; a pre-release (1.0.0-beta.1) would have no versionCode at all, so neither builds.
 def appVersion = new JsonSlurper().parse(file('../../package.json')).version
-def (major, minor, patch) = appVersion.tokenize('.').collect { it.toInteger() }
+def parts = (appVersion =~ /^(\d+)\.(\d{1,2})\.(\d{1,2})$/)
+if (!parts.matches()) {
+    throw new GradleException("package.json's version must be major.minor.patch, minor and patch under 100: not $appVersion")
+}
+def (major, minor, patch) = (1..3).collect { parts.group(it).toInteger() }
 
 android {
     namespace = "org.supervote.app"

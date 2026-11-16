@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
-import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.supervote.server.common.SuperVoteProperties;
@@ -42,8 +41,8 @@ import java.util.Optional;
  * the statistics. Following a link (a GET navigation) is let through, and so
  * is every client that is not a browser, which sends no such header, and a
  * packaged app's page, from its own origin (super-vote.app-origins; why that
- * is safe: AppOrigins). A CORS preflight is no one's request: it is left to
- * the CORS configuration, and given no identity.
+ * is safe: AppOrigins, which answers the app's CORS preflights before this
+ * filter sees them).
  *
  * The cookie lasts as long as a poll does (super-vote.limits.poll-lifetime-days),
  * counted again from each change this browser makes (any request but GET or
@@ -77,7 +76,7 @@ public class VoterIdentityFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/api/") || CorsUtils.isPreFlightRequest(request);
+        return !request.getRequestURI().startsWith("/api/");
     }
 
     @Override
@@ -101,7 +100,7 @@ public class VoterIdentityFilter extends OncePerRequestFilter {
         var followingALink = "navigate".equals(request.getHeader("Sec-Fetch-Mode"))
             && "GET".equals(request.getMethod());
         var origin = request.getHeader(HttpHeaders.ORIGIN);
-        var fromTheApp = origin != null && appOrigins.contains(origin); // an immutable list throws on null
+        var fromTheApp = origin != null && appOrigins.contains(origin); // checked for null: List.contains(null) throws
         if ("cross-site".equals(request.getHeader("Sec-Fetch-Site")) && !followingALink && !fromTheApp) {
             throw new CrossSiteRequestException();
         }
