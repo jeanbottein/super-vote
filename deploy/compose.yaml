@@ -1,5 +1,6 @@
 # super-vote on one machine (deploy/README.md): Caddy, the Java server and
-# PostgreSQL, from the images CI publishes for each commit on main.
+# PostgreSQL, from the images CI publishes for each commit on main that
+# changes them.
 #
 #   cp .env.example .env && chmod 600 .env    then fill .env in
 #   docker compose up -d --wait

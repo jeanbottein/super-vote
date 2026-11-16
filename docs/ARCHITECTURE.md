@@ -119,7 +119,7 @@ no cache keeps it, the browser's included: `Cache-Control: no-store`, unless
 an endpoint answers the same to everyone and says so (`PrivateAnswers`).
 
 Accounts will plug in at the same place: the filter will resolve a signed-in
-account first and the anonymous token second (see [ROADMAP.md](ROADMAP.md)).
+account first and the anonymous token second (see [Not built yet](#accounts-and-social-sign-in)).
 
 ### Anonymity
 
@@ -173,7 +173,7 @@ Who can tell what someone chose, and what stops them:
   happens. The design keeps nothing linkable at rest, but it does not hide
   ballots from the running server: that would take cryptographic voting
   (blind signatures, mix networks), well beyond deciding where to eat. The
-  operator is trusted, which the privacy page must say (roadmap, phase 6).
+  operator is trusted, which the privacy page says.
 
 The secret is `SUPER_VOTE_VOTER_SECRET` (at least 32 characters). The server
 refuses to start without one; `spring-boot:run` sets a development secret in
@@ -488,11 +488,13 @@ A billion ballots in a day is about 11,600 per second. The database alone
 records over 11,000 per second on this laptop; a production server would
 add CPU. Beyond one PostgreSQL server, ballots split by voter (Citus, or a
 shard key) with folds on each shard. What else stands between super-vote and a
-billion-ballot poll is in [ROADMAP.md](ROADMAP.md#scale): live updates across
-servers, results through a CDN for millions of watchers, and, above all,
-identity: one cookie per browser cannot stop anyone from voting twice.
+billion-ballot poll: live updates across servers and results through a CDN
+for millions of watchers ([Several servers](#several-servers)), and, above
+all, identity: one cookie per browser cannot stop anyone from voting twice.
 Invitations count each person once at any size (a billion of them cost a
-counter), but someone has to hand each link to its person.
+counter), but someone has to hand each link to its person. A billion-ballot
+public poll needs accounts or proof of personhood: of all the limits, that is
+the one technology alone does not remove.
 
 ### Errors
 
@@ -688,8 +690,8 @@ its recovery, a shuffled poll's order through updates, the language switch),
 the formatting in every language, the wording of every problem type, and
 French typography over every message (`fr.test.ts`), and every other language against English (`languages.test.ts`). `npm run coverage` measures them. The
 end-to-end behaviour (two voters, live updates, a server restart, phone and
-desktop layouts) was checked in a real browser; automating that in CI with
-Playwright is on the roadmap.
+desktop layouts) was checked in a real browser; it is not automated yet
+([End-to-end tests](#end-to-end-tests)).
 
 ## Decisions
 
@@ -705,6 +707,8 @@ Playwright is on the roadmap.
 | Tallies stored and folded from a change log, rebuildable from the ballots | Reading them costs the same at any size, and ballots never wait for each other on a counter. |
 | One row per ballot, one byte per option | 183 bytes a ballot, and one row to replace when it changes. |
 | Ranking on the server | One tested implementation (`api/Ranking.java`), computed once per update rather than once per watcher, and sent with the counts it was derived from so it can be checked. It was the client's until agents needed the winner too, and two implementations of a tie-break is one too many. |
+| The majority mention is the lower middle one (the owner's) | With an even number of ballots, more than half the voters must reach it, not half: five `Excellent` and five `Bad` make `Bad`. Classic majority judgment. |
+| Ties broken by the GMJ score alone, else ex aequo (the owner's, 2026-09-26) | Fabre's "usual judgment" score (*Social Choice and Welfare*, 2021), computed exactly from the counts, so that equal scores are equal numbers. No hidden second rule, and the order options were listed in never decides a rank. Other tie-breaks (Balinski and Laraki's majority value, typical or central judgment) favour other parts of the distribution and can disagree. A single-winner poll would break what is still tied in the open: a runoff between the tied options, or a public draw. |
 | `PUT` for ballots | One ballot per voter per poll; cast, revise and withdraw are one operation, and retries are safe. |
 | Share token as the only id | One identifier, unguessable, that doubles as the unlisted-poll secret. |
 | Hashed voter ids | The database alone cannot be used to act as someone. |
@@ -736,7 +740,8 @@ Playwright is on the roadmap.
   is another voter. Fine among friends, and the creation form says so:
   super-vote counts on voters' good faith, and the ballot count shows when
   it is abused. Decisions that must resist ballot stuffing take invitations,
-  which trust the creator instead, or will take accounts (roadmap, phase 7).
+  which trust the creator instead, or will take accounts (see
+  [Not built yet](#accounts-and-social-sign-in)).
 - **An invitation works in one browser.** A voter who changes device, or
   clears their cookies, can no longer change their ballot, and the creator
   cannot give them another link without counting them twice. Accounts will
@@ -744,7 +749,136 @@ Playwright is on the roadmap.
 - **Live updates are single-node** (see above), though folding is not.
 - **Limits are per network.** People behind one address (an office, a phone
   carrier's NAT, an agent platform calling for its users) share one day's
-  polls, and someone with many addresses gets many shares. Accounts (roadmap,
-  phase 7) will let limits follow people instead. Each server counts its own,
+  polls, and someone with many addresses gets many shares. Accounts will let
+  limits follow people instead. Each server counts its own,
   so behind several a network gets each one's share.
 - **Lists are capped** (50 public polls, 100 of your own) and not paginated.
+
+## Open questions
+
+Choices that change results or meaning, deliberately left as they are until
+the owner decides:
+
+1. **Unrated means Bad.** On a live ballot, rating one option counts every
+   unrated option as `Bad` until the voter rates it. That is the method's
+   convention, and the ballot says so, but it can surprise.
+2. **Results before voting.** On a live poll, results are visible before you
+   vote, which can anchor voters. "After voting" would be simple to add, but
+   it shows a voter the tallies just before and after their own ballot.
+3. **The creator votes without an invitation.** On a poll that takes
+   invitations, its creator may vote without one, so there can be one more
+   ballot than invitations used. Making the creator invite themselves would
+   keep the count exact (one condition in `InvitationService`).
+4. **Ballots per connection.** Nothing limits ballots by network, because a
+   room voting together comes from one address. A creator could be offered
+   "one ballot per connection" for polls shared widely, at the price of
+   refusing everyone after the first behind a shared address (an office, a
+   phone carrier's NAT). It changes who can vote, so it is the owner's call.
+
+## Not built yet
+
+How the next pieces should fit, so that each is designed once. Nothing here
+is promised or ordered.
+
+### Accounts and social sign-in
+
+Sign in with Google, Apple and other OpenID Connect providers, keep what was
+done before signing in, bring public polls back for signed-in creators, and
+allow polls restricted to chosen people. Apple needs a paid developer account.
+
+- **Server.** `spring-boot-starter-security-oauth2-client` runs the login
+  (`/oauth2/authorization/{provider}`), with a server-side session in an
+  HttpOnly cookie: tokens never reach the page's JavaScript. An `account`
+  table (provider, subject, created) and `/api/me`. Ask for the `openid` scope
+  only: the subject is all an account needs, so no email or real name is
+  stored.
+- **One place for identity.** `VoterIdentityFilter` resolves the signed-in
+  account first and the anonymous token second; everything else keeps using
+  the `Voter` it puts on the request, whose keys then derive from the
+  account. Accounts are few, so a copy of the database *with* the secret
+  could try each one: one more reason to keep the secret out of backups.
+- **Keep the anonymous past.** At sign-in, in one transaction, move the
+  anonymous voter's polls (`creator_id`) and re-key their ballots, names and
+  used invitations, per poll still alive. Where both identities voted on one
+  poll, ballots record no time to tell which is newer: keep the one cast
+  from this browser, the one its voter just saw.
+- **A voter code, not a receipt.** Before accounts, a code that restores the
+  voter token on another device would answer "revise my ballot elsewhere". It
+  must never show the choices on its own, or someone could demand to see it.
+- **Public polls** back on (`public-polls`), for signed-in creators only.
+- **Polls for accounts only**: one ballot per account rather than per
+  browser. It raises the bar without closing it (anyone can open several
+  accounts), and the form must say so, as it says it of browsers.
+- **Restricted polls**: a `PRIVATE` visibility, only listed accounts or a
+  group, checked in `PollService.find` with the other visibility rules.
+- **Client**: a sign-in button that navigates to the provider (no
+  client-side OAuth), the account in the settings sheet, sign-out.
+
+### Installable web app
+
+A manifest and icons, and a service worker that caches the shell so the app
+opens offline and says so; the layout is already built for phones. A cached
+shell is an old client running against today's server: from then on, API
+changes are additive only. How installing is offered (a home-page button
+listing the channels that exist, the one that suits the device first) is
+still to decide.
+
+### Android app, then iOS (Capacitor)
+
+Capacitor wraps the built web app in a native shell (`clients/web/android`,
+committed), so the app is the same code and the same design. Decided with
+the owner on 2026-11-16:
+
+- **Bundled, not a window on the site.** It opens without the network, and
+  Apple refuses an app that is only a website (guideline 4.2).
+- **The app is another origin**: `https://localhost` on Android,
+  `capacitor://localhost` on iOS. The server lists those origins
+  (`super-vote.app-origins`), answers them with CORS without credentials,
+  and `VoterIdentityFilter` does not count them as other sites; every other
+  site stays refused. It is safe only because those requests carry no
+  credential the browser adds by itself: whatever page holds that origin
+  (a local development server holds `https://localhost` too) can do no more
+  than a script. Never let a cookie through on that path.
+- **A bearer token, no cookie** (iOS's WebView blocks third-party cookies).
+  The app mints one (`POST /api/voters`) on first launch, keeps it in
+  Capacitor Preferences and sends it as `Authorization: Bearer`.
+- **Live results over `fetch`.** `EventSource` cannot send a header, and the
+  token never goes in a URL, so a fetch-based reader of server-sent events
+  replaces it, in the browser too: one code path behind `PollWatcher`.
+- **Links from the public address** (`publicUrl`, or the API's base), never
+  `window.location`, which is `localhost` in the app. App Links
+  (`/.well-known/assetlinks.json`, served by Caddy, with each signing key's
+  fingerprint) open `/p/{id}` in the app, its `#invitation=` kept.
+- **Old versions stay installed for months.** From the first release, API
+  changes are additive only, and the app names its version in every request
+  (`Super-Vote-Client: android/1.0.0`), so that the server can one day answer
+  that it is too old.
+- **Application id `org.supervote.app`**, free on Google Play and F-Droid on
+  2026-11-16; it can never change after the first release.
+- **Releases from a tag**, `app-vX.Y.Z`, which must match `package.json`'s
+  version (F-Droid reads the version from the source): a signed APK on the
+  GitHub release, then Google Play's internal track, promoted by hand; the
+  signing keys in a GitHub environment that needs the owner's approval.
+  Pull requests build a debug APK. GitHub's, Play's and F-Droid's builds are
+  signed with different keys, so nobody can update from one to another.
+- **Native touches**: the back button, the status bar, the share plugin
+  where `navigator.share` is missing, the system share sheet for sending
+  invitations.
+- **iOS** is the same build, with a Mac, Xcode and an Apple developer account.
+
+### Several servers
+
+Folding already runs on every server side by side; live updates do not:
+watchers only hear of their own server's folds. Relay "this poll moved"
+through PostgreSQL `LISTEN/NOTIFY` (or Redis), so that any server can push
+it. Put a CDN in front of `GET /api/polls/{id}/results`, which already says
+`max-age=1`. Past one database server, split ballots by voter (Citus, the
+ballot key as shard key) and fold per shard. Keep "it scales" true with a
+load test in CI on PostgreSQL and a regression threshold: `perf/Load.java`
+already drives it.
+
+### End-to-end tests
+
+Playwright in CI, on a phone viewport and a desktop one: two voters, live
+updates, a server restart. A poll page keeps its stream open, so wait for an
+element, never for the network to go idle.

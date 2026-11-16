@@ -2,7 +2,7 @@
 
 Two studies. [Ballots at scale](#ballots-at-scale) (2026-10-07): can one poll
 take billions of ballots? The runtimes, first (2026-09-27). The question: how should the server run once it is
-deployed (roadmap phase 6)? On the regular JVM, with OpenJDK's new AOT cache
+deployed? On the regular JVM, with OpenJDK's new AOT cache
 (Project Leyden), on Oracle GraalVM's JIT, or as a GraalVM native image, with or
 without profile-guided optimization?
 
@@ -86,7 +86,7 @@ stream's 200 ms coalescing window, not by the runtime.
 
 ## What it means for super-vote
 
-For deployment (phase 6), in order of effort:
+For deployment, in order of effort:
 
 - **Now, for free**: run the JVM with a Leyden AOT cache and Spring AOT, built
   in the image by a training run. 1.1 s startups, the JIT's full speed, no
@@ -105,7 +105,7 @@ For deployment (phase 6), in order of effort:
 ## Making it work natively
 
 H2 in file mode, Flyway and Spring Data JDBC all work in a native image: the
-roadmap's worry about H2 did not hold. Two bugs had to be fixed first, both
+worry about H2 did not hold. Two bugs had to be fixed first, both
 invisible on the JVM:
 
 - **Reading timestamps** failed: H2 returns `OffsetDateTime`, the entities hold
@@ -181,7 +181,7 @@ ballot of 20 options before: about 180 GB per billion ballots instead of
 which the database alone already does on this laptop; a production server,
 with the database on its own machine, adds what the HTTP layer needs. Past
 one database server, ballots split by voter; past millions of live watchers,
-results go through a CDN. Both are in [ROADMAP.md](ROADMAP.md#scale).
+results go through a CDN. Both are in [ARCHITECTURE.md](ARCHITECTURE.md#several-servers).
 
 ## Reproducing
 

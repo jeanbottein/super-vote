@@ -94,14 +94,16 @@ Its settings are four, in `deploy/.env` ([.env.example](.env.example)):
    says when the certificates were obtained.
 6. **The nightly backup:** `sudo crontab -e`, and add
    `30 3 * * * /opt/super-vote/deploy/backup.sh`.
-7. **The legal notices:** the privacy page is written; the publisher's
-   notice (mentions légales) and the record of processing are the
-   operator's ([ROADMAP.md](../docs/ROADMAP.md), phase 6).
+7. **The legal notices:** the privacy page and the legal notice are
+   written; the record of processing, and answering requests and reports,
+   are the operator's ([SECURITY.md](../docs/SECURITY.md#the-law)).
 
 ## Updating, and going back
 
 Each commit on main runs on the VPS by itself, once CI has checked and
-published its images: the last job of
+published its images, unless it changes only what no image holds
+(Markdown, `docs/`, the Android and iOS projects: `paths-ignore` in
+images.yml): the last job of
 [images.yml](../.github/workflows/images.yml) logs in as `deploy`, whose key
 can run nothing but [update.sh](update.sh), with the commit's SHA. It checks
 that commit out, sets `SUPER_VOTE_TAG` to it, and starts its images; if they

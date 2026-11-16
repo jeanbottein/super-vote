@@ -1,15 +1,24 @@
 # The images super-vote runs as (deploy/compose.yaml), and a check that they
 # work together. On every pull request and on main, both are built and started
 # with PostgreSQL as the server runs them, then asked what a browser and an
-# agent ask, and backed up. Each commit on main is then published to GitHub's
-# container registry, as main and as its SHA, and run on the VPS
-# (deploy/README.md).
+# agent ask, and backed up. Each commit on main that changes what goes into
+# them is then published to GitHub's container registry, as main and as its
+# SHA, and run on the VPS (deploy/README.md).
 name: Images
 
 on:
+  # Unfiltered: the branch ruleset requires this check, and a check that
+  # never runs would hold the pull request forever.
   pull_request:
   push:
     branches: [main]
+    # What no image holds: a commit that changes only these neither publishes
+    # nor deploys. The Android and iOS projects ship through the stores.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'clients/web/android/**'
+      - 'clients/web/ios/**'
 
 permissions:
   contents: read

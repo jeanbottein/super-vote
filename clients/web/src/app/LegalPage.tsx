@@ -4,7 +4,7 @@ import { Section } from './AboutPage';
 /**
  * The legal notice: who publishes super-vote, under which law, who hosts it,
  * and where to report unlawful content. The publisher is a private person in
- * Québec, named to the host only (docs/ROADMAP.md, "Legal pages").
+ * Québec, named to the host only (docs/SECURITY.md, "The law").
  */
 export default function LegalPage() {
   const { t } = useI18n();

@@ -45,7 +45,8 @@ Known, stated where they matter, and the way out of each:
    again from another browser; a script can do it a thousand times. Ballots
    are not limited by network, because a room votes from one address. The
    creation form warns, the ballot count shows abuse, and invitations count
-   each person once. Accounts (roadmap, phase 7) will raise the bar.
+   each person once. Accounts (ARCHITECTURE.md, "Not built yet") will raise
+   the bar.
 2. **The operator is trusted.** Whoever runs the server sees requests as they
    happen; nothing hides a ballot from the running server, and the count
    cannot be verified independently (that would take cryptographic voting).
@@ -120,7 +121,30 @@ and the Caddyfile set up (deploy/README.md has the rest):
   host, and a way to report content) are written; acting on reports is the
   operator's.
 
-Follow-ups worth doing when they become cheap: the `__Host-` cookie prefix in
+## The law
+
+A checklist, not legal advice. The publisher is a private person in Québec,
+named to the host only; super-vote is for people everywhere, so it follows
+Québec's and Canada's law, and the GDPR for visitors in the EU (which deems
+Canada adequate). The voter cookie and voter names are personal data.
+
+- **Written**: the privacy page (`/privacy`: what is stored, why, for how
+  long, the rights, a contact through GitHub issues; plainly, that ballots
+  are unlinkable at rest but the operator is trusted, and that the device's
+  time zone is read and kept only as totals), the same for everyone; and the
+  legal notice (`/legal`: the publisher, the law, the host, where to report
+  a poll).
+- **Left**: the record of processing, one page.
+- **The operator's**: answering access and deletion requests, telling of a
+  breach within 72 hours, and acting promptly on reports of illegal content
+  (titles, options, names).
+- **No cookie banner** as long as the only cookie is the one the service
+  needs (strictly necessary). Analytics, or any other cookie, would change
+  that.
+
+## Follow-ups
+
+Worth doing when they become cheap: the `__Host-` cookie prefix in
 production (it needs HTTPS everywhere, which development on a phone lacks),
 HSTS preload once the domain is settled, a cap on event streams per network,
 and an independent review before anything official is decided with

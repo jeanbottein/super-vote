@@ -6,3 +6,5 @@
 clients/web/node_modules/
 clients/web/dist/
 clients/web/coverage/
+clients/web/android/
+clients/web/ios/
