@@ -1,7 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">super-vote</string>
-    <string name="title_activity_main">super-vote</string>
+    <!-- Under the icon and in the app switcher, as other apps are named; the page itself says "super-vote". -->
+    <string name="app_name">Super Vote</string>
+    <string name="title_activity_main">Super Vote</string>
     <string name="package_name">org.supervote.app</string>
     <string name="custom_url_scheme">org.supervote.app</string>
 </resources>
