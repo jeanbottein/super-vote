@@ -19,7 +19,7 @@ const root = new URL('../../', import.meta.url).pathname;
 const res = join(root, 'clients/web/android/app/src/main/res');
 const chrome = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
-const favicon = readFileSync(join(root, 'clients/web/public/favicon.svg'), 'utf8').replace(/<!--[\s\S]*?-->/g, '');
+const favicon = readFileSync(join(root, 'clients/web/public/favicon.svg'), 'utf8');
 const tile = /<rect x="-32" y="-17" width="264" height="264" rx="59" fill="url\(#bg\)"\/>/;
 if (!tile.test(favicon)) {
   throw new Error("favicon.svg's tile is not the one this script knows: update the script with the logo");
