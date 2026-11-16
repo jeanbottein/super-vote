@@ -51,7 +51,7 @@ export default defineConfig({
     host: true, // reachable from a phone on the same network
     proxy: api,
     // The tests read deploy/Caddyfile, whose content security policy must allow index.html's script.
-    fs: { allow: ['.', '../../deploy'] },
+    fs: { allow: ['.', '../deploy'] },
   },
   preview: {
     port: 5173,

@@ -1,6 +1,6 @@
 /**
  * The shapes the super-vote API sends and receives. They mirror the server's DTOs
- * (servers/java/.../api/dto) one to one.
+ * (server/.../api/dto) one to one.
  */
 
 /**

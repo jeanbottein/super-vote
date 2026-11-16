@@ -5,7 +5,7 @@ import androidx.activity.EdgeToEdge;
 import com.getcapacitor.BridgeActivity;
 
 /**
- * The whole app is the web app in Capacitor's WebView (clients/web, npm run build:android). Drawn edge to
+ * The whole app is the web app in Capacitor's WebView (app, npm run build:android). Drawn edge to
  * edge on every Android version, as Android 15 does anyway: the page keeps clear of the bars itself, with
  * the safe areas Capacitor gives it (SystemBars).
  */

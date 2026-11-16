@@ -38,7 +38,7 @@ those areas.
 
 CI (`.github/`): `ci.yml` (server tests on H2 and on PostgreSQL, web lint,
 types, tests, build), `android.yml` (the Android app's debug APK and Android
-lint, on changes to `clients/web`), `codeql.yml` (security-and-quality queries on the
+lint, on changes to `app`), `codeql.yml` (security-and-quality queries on the
 workflows, Java, TypeScript, Python), `dependencies.yml` (dependency review
 on pull requests; the server's Maven tree submitted from `main`, so that
 Dependabot sees transitive CVEs), `images.yml` (both images built, started
@@ -53,7 +53,7 @@ merging. Actions are pinned by commit SHA and images by digest, with the
 version beside: keep it so (Dependabot bumps them), and `actionlint` the
 workflows before pushing.
 
-Server (`servers/java`, Java 25, Maven wrapper; Maven itself is not needed):
+Server (`server`, Java 25, Maven wrapper; Maven itself is not needed):
 
 ```bash
 ./mvnw test                         # silent when green; see src/test for the classes
@@ -66,7 +66,7 @@ SPRING_DATASOURCE_URL='jdbc:postgresql://localhost:5432/super_vote_test?options=
 ./mvnw -PnativeTest test            # the tests as a native image (~20 min); perf/: docs/PERFORMANCE.md
 ```
 
-Web app (`clients/web`, Node 24.15+ or 22.22+; 24 LTS pinned):
+Web app (`app`, Node 24.15+ or 22.22+; 24 LTS pinned):
 
 ```bash
 npm run dev          # Vite on :5173
@@ -79,17 +79,29 @@ npm run build        # typecheck + production bundle
 npm run build:android  # the Android app's build (--mode android), copied into android/ (cap sync)
 ```
 
-Android app (`clients/web/android`, Capacitor 8; the Android SDK, and a JDK
+Android app (`app/android`, Capacitor 8; the Android SDK, and a JDK
 17 to 24 for Gradle 8, 21 recommended, as `ANDROID_JAVA_HOME` for `dev.sh`):
 
 ```bash
-./gradlew assembleDebug :app:lintDebug   # in clients/web/android, after npm run build:android
+./gradlew assembleDebug :app:lintDebug   # in app/android, after npm run build:android
 node tools/android/icons.mjs             # the launcher icons, from public/favicon.svg (headless Chrome)
 ```
 
 ## Architecture
 
-Read `docs/ARCHITECTURE.md` for the reasoning; the essentials:
+Read `docs/ARCHITECTURE.md` for the reasoning; the essentials. The layout (the
+owner's choice, 2026-11-16, for the industry's usual one):
+
+```
+server/    the Java server
+app/       the one UI, React: the website, and the Android app (app/android, Capacitor), later iOS (app/ios)
+deploy/    the edge and the machine: Caddyfile, compose, the web image (web.Dockerfile), scripts
+docs/      the why: architecture, API, design, security, performance
+tools/     generators (time zones and the map, the Android icons)
+```
+
+`app` is not named after a platform because it ships to all of them; what
+serves and proxies it is Caddy, configured in `deploy/`, not the app.
 
 **Server**: one Spring Modulith module per package under `org.supervote.server`:
 `polls` (the question; every poll rule is in `PollService`, who may vote in
@@ -110,7 +122,7 @@ reach into another module's sub-packages (Spring Modulith), and if a
 repository is public or used by anything but a `*Service`, a DTO or entity is
 not a record, or anything imports Reactor (ArchUnit).
 
-**Client**: `src/api` is the only code that talks to the server.
+**App** (`app/`): `src/api` is the only code that talks to the server.
 `src/polls` holds the screens and their hooks (`usePoll`: load, then watch;
 `useBallot`: live or envelope ballot; `shownOptions`: a shuffled poll's order
 for this visit). `src/features/VotingSystem/*` holds
@@ -129,14 +141,14 @@ stylesheet.
 the built web app and passes `/api`, `/v3/api-docs`, `/llms.txt` and
 `/actuator/health` (for uptime monitors), and `/p/{id}` when a messaging app's robot asks for a link's preview
 (`LinkPreviewController`), to the server, which only the machine reaches (`127.0.0.1:8080`). It runs as
-`deploy/compose.yaml` says, from two images (`servers/java/Dockerfile`, and
-`clients/web/Dockerfile`: Caddy with the Caddyfile and the built app) that
+`deploy/compose.yaml` says, from two images (`server/Dockerfile`, and
+`deploy/web.Dockerfile`: Caddy with the Caddyfile and the built app) that
 `.github/workflows/images.yml` starts together and checks on every pull
 request, and publishes to GHCR for every commit on main that changes them.
 `deploy/README.md` covers the VPS, updates, backups.
 
 **Contract**: `docs/API.md`. Mirror every DTO change in
-`clients/web/src/api/types.ts`. A poll's `id` is its share token, the only id
+`app/src/api/types.ts`. A poll's `id` is its share token, the only id
 that leaves the server. Errors are RFC 9457 problem documents whose `detail` is
 an English sentence for a person or an agent: write it as one. The web app
 words what people read from the `type` instead (`errorMessage`), in their
@@ -313,7 +325,7 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
   only because of `@EnableScheduling` on `SuperVoteServerApplication`; with
   virtual threads enabled, each flush and heartbeat gets a virtual thread.
 - **Maven 3.9 on JDK 24+** warns that its own Guice calls `sun.misc.Unsafe`:
-  `servers/java/.mvn/jvm.config` allows it (that file cannot hold comments).
+  `server/.mvn/jvm.config` allows it (that file cannot hold comments).
 - **Casting holds a shared lock on the poll** (`PollService.findOpen`, which
   demands a transaction: `BallotService.cast`). Without it, a ballot could be
   counted after the poll closed, or reported counted on a poll being deleted.
@@ -482,14 +494,14 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
   on a narrow card.
 - **Tests wait for their fold** (`super-vote.fold-patience: 10s`), so a ballot's
   answer counts it; in production the wait is 250 ms. The server's tests
-  also pass on PostgreSQL: see `servers/java/README.md`.
+  also pass on PostgreSQL: see `server/README.md`.
 - **`EdgeToEdge.enable` goes after `super.onCreate`** in `MainActivity`.
   Before it, the window's views were built under the launch theme, whose
   `android:background` (the splash) every view inherits: an action bar with
   the app's name drawn over the page's header.
 - **Android refuses plain http** (`ERR_CLEARTEXT_NOT_PERMITTED`, which the
   page only sees as "Failed to fetch"). Debug builds allow `localhost` alone
-  (`app/src/debug`), for `./dev.sh android` and `adb reverse`; release builds
+  (`app/android/app/src/debug`), for `./dev.sh android` and `adb reverse`; release builds
   stay https only.
 - **Gradle 8 does not run on Java 25** ("Unsupported class file major version
   69"): the Android build uses a JDK 17 to 24, the server 25.

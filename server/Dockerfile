@@ -1,5 +1,5 @@
 # The server as it runs in production (deploy/compose.yaml): the JVM, on Temurin 25.
-# Built from source, so that `docker build servers/java` needs nothing but Docker.
+# Built from source, so that `docker build server` needs nothing but Docker.
 # Base images are pinned by digest, which Dependabot keeps current.
 
 FROM eclipse-temurin:25-jdk-noble@sha256:95e350ad1eb738f943e141640f7e3d797e483359a3b33c3864255bfd1ad71f8a AS build

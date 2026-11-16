@@ -29,7 +29,7 @@ brought nothing on this workload.
   existing database. (The very first launch of a freshly built native
   executable took 0.5 to 2.8 s: macOS checks a new binary once.) **Memory**: the process's resident size, 1 s after
   startup and after the workload.
-- **Workload** (`servers/java/perf/Load.java`): 200 viewers follow a majority
+- **Workload** (`server/perf/Load.java`): 200 viewers follow a majority
   judgment poll live while 3,000 new voters each cast a ballot on its 5
   options, 32 at a time. Five rounds on a running server; the first is
   "cold", the median of the other four "warm". **Fan-out**: from the last
@@ -190,7 +190,7 @@ With a Java 25 JDK in `JAVA_HOME` and Oracle GraalVM 25 in `GRAALVM_HOME`
 for your platform):
 
 ```bash
-cd servers/java
+cd server
 ./mvnw -Pnative native:compile        # the native image alone: target/super-vote-server
 ./mvnw -PnativeTest test              # the test suite, compiled and run as a native image
 perf/bench.py prepare [--pgo]         # every variant, under target/perf (long: native builds)
@@ -203,7 +203,7 @@ busy machine are not worth much.
 Ballots at scale, against a PostgreSQL of your own:
 
 ```bash
-cd servers/java
+cd server
 ./mvnw -DskipTests package
 SUPER_VOTE_VOTER_SECRET=$(openssl rand -base64 48) \
   SPRING_DATASOURCE_URL='jdbc:postgresql://localhost:5432/super_vote?options=-c%20lock_timeout%3D2s' \

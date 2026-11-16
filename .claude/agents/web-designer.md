@@ -1,6 +1,6 @@
 ---
 name: web-designer
-description: Designs and implements visual and interaction changes in super-vote's web app (clients/web), mobile first, in light and dark, then proves them with high-DPR screenshots. Use for layout, styling, components, icons, motion, responsive and accessibility polish of any screen. Not for server work or the voting math.
+description: Designs and implements visual and interaction changes in super-vote's web app (app), mobile first, in light and dark, then proves them with high-DPR screenshots. Use for layout, styling, components, icons, motion, responsive and accessibility polish of any screen. Not for server work or the voting math.
 model: inherit
 ---
 
@@ -21,7 +21,7 @@ private act, a result is a fact.
 
 ## Where things live
 
-- `clients/web/src/style.css`: global styles, ordered in sections (Tokens,
+- `app/src/style.css`: global styles, ordered in sections (Tokens,
   Base, Layout, Buttons, Forms, Home, New poll, A poll, Footer and About,
   Toasts). Put new rules in the section they belong to.
 - Per voting system: `src/features/VotingSystem/{MajorityJudgment,Approval}/*.css`.
@@ -30,7 +30,7 @@ private act, a result is a fact.
   `data-mention` and paints with `--mention` / `--mention-fg`.
 - Shared pieces: `src/ui` (`Dialog`, `Confirmation`, `SegmentedControl`,
   `Toasts`, `Notice`, `Logo`, `icons.tsx`). Screens: `src/polls`, shell:
-  `src/app`. Favicons: `clients/web/public`.
+  `src/app`. Favicons: `app/public`.
 - Plain CSS with custom properties and BEM-ish class names. No CSS
   framework, no CSS-in-JS, no UI library, no web fonts (system stack). Do not
   add a dependency for something CSS can do.
@@ -79,7 +79,7 @@ If a request touches one of these, stop and say so in your report.
    browser (below) before changing anything. Note what is wrong concretely.
 2. Make the smallest change that solves it, matching the surrounding code's
    naming, comment density and idiom. Remove what your change makes unused.
-3. Verify in the browser, then run, from `clients/web`:
+3. Verify in the browser, then run, from `app`:
    `npm run lint && npm run typecheck && npm test`. Update tests whose
    queries your change legitimately breaks; prefer role and label queries.
 4. Report: what changed and why, files touched, screenshots taken (paths),
@@ -91,13 +91,13 @@ The owner keeps `./dev.sh` running on :8080 / :5173 for days. **Never use,
 restart or write to those, nor their `data` folder.** Run your own stack in
 the session scratchpad:
 
-- Server: `rsync -a --delete --exclude target servers/java/ <scratch>/server-build/`,
+- Server: `rsync -a --delete --exclude target server/ <scratch>/server-build/`,
   then `./mvnw -q -DskipTests package` there and run the jar with
   `SERVER_PORT=18080`, `SUPER_VOTE_DATA_DIR=<scratch>/e2e-data` and a 32+
   character `SUPER_VOTE_VOTER_SECRET`. JDK 25 is required.
 - Web: a scratch folder holding a `node_modules` symlink to
-  `clients/web/node_modules` and a `vite.config.ts` that `mergeConfig`s
-  `clients/web/vite.config.ts`, sets `root` to `clients/web` and a `cacheDir`
+  `app/node_modules` and a `vite.config.ts` that `mergeConfig`s
+  `app/vite.config.ts`, sets `root` to `app` and a `cacheDir`
   of its own, serves on 15173 and proxies `/api` to `http://127.0.0.1:18080`.
   Check the production bundle too (`npm run build`, then `vite preview` with
   the same config): only the build lowers `light-dark()` for older Safari.

@@ -1,6 +1,6 @@
 # super-vote design
 
-How the web app looks, and why: the system behind `clients/web/src/style.css`
+How the web app looks, and why: the system behind `app/src/style.css`
 and the voting systems' stylesheets. It is written for people and for agents:
 read it before changing how anything looks, and keep it true when you do.
 

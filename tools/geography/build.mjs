@@ -4,10 +4,10 @@
  * and keeps it out of politics: no country, no border, only land, sea and the
  * cities that name time zones.
  *
- * - servers/java/.../statistics/TimeZones.java: every IANA time zone name a
+ * - server/.../statistics/TimeZones.java: every IANA time zone name a
  *   browser may report, old ones included (Asia/Calcutta), and the zone it
  *   stands for (Asia/Kolkata), from tzdata's zone.tab and backward links.
- * - clients/web/src/statistics/worldMap.json: the land, in the Equal Earth
+ * - app/src/statistics/worldMap.json: the land, in the Equal Earth
  *   projection, from Natural Earth; and for each zone, its city, its region
  *   (the first part of its name: Europe, Pacific...) and where the city is on
  *   that map, from the coordinates zone.tab gives it.
@@ -23,8 +23,8 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const JAVA_OUT = join(ROOT, 'servers/java/src/main/java/org/supervote/server/statistics/TimeZones.java');
-const MAP_OUT = join(ROOT, 'clients/web/src/statistics/worldMap.json');
+const JAVA_OUT = join(ROOT, 'server/src/main/java/org/supervote/server/statistics/TimeZones.java');
+const MAP_OUT = join(ROOT, 'app/src/statistics/worldMap.json');
 
 const LAND = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_land.geojson';
 const TZDATA = 'https://data.iana.org/time-zones/tzdata-latest.tar.gz';

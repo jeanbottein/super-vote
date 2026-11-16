@@ -39,7 +39,7 @@ jobs:
             build-mode: manual
           - language: javascript-typescript
             build-mode: none
-          # servers/java/perf/bench.py
+          # server/perf/bench.py
           - language: python
             build-mode: none
     steps:
@@ -53,14 +53,14 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
-          cache-dependency-path: servers/java/pom.xml
+          cache-dependency-path: server/pom.xml
       - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
           queries: security-and-quality
       - if: matrix.build-mode == 'manual'
-        working-directory: servers/java
+        working-directory: server
         run: ./mvnw -B -ntp -DskipTests test-compile
       - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:

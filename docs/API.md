@@ -1,8 +1,8 @@
 # super-vote HTTP API
 
-The contract between the server (`servers/java`) and its clients. JSON over
+The contract between the server (`server`) and its clients. JSON over
 HTTP, plus one server-sent event stream per poll. The TypeScript mirror of
-these shapes is `clients/web/src/api/types.ts`.
+these shapes is `app/src/api/types.ts`.
 
 In development the web client reaches the API through the Vite dev server
 (`http://localhost:5173/api/...`, proxied to `:8080`), so every call is
@@ -206,7 +206,7 @@ draw more support than the others:
 
 The server ranks, and sends the counts it ranked from, so the ranking can be
 checked rather than believed. It is computed in one place
-(`servers/java/.../api/Ranking.java`, pinned by `RankingTest`): the majority
+(`server/.../api/Ranking.java`, pinned by `RankingTest`): the majority
 mention first - the best mention more than half the voters give an option or
 better, which with an even number of ballots is the lower of the two middle
 mentions - then the GMJ Usual score for options sharing one, as the exact

@@ -9,12 +9,12 @@ layer below exists because something needed it.
 ```
  phone / desktop browser
  ┌──────────────────────────────────┐
- │ React client (clients/web)       │  draws the results and the ballots
+ │ React client (app)       │  draws the results and the ballots
  └────────────────┬─────────────────┘
                   │ same origin: JSON over HTTP, and one event stream per open poll
  ┌────────────────┴─────────────────┐
  │ Spring Boot server               │  rules, identity, tallies, live pushes
- │ (servers/java)                   │
+ │ (server)                   │
  └────────────────┬─────────────────┘
                   │ JDBC
  ┌────────────────┴─────────────────┐
@@ -701,7 +701,7 @@ desktop layouts) was checked in a real browser; it is not automated yet
 ## The Android app
 
 Capacitor wraps the web app's own build in a native shell
-(`clients/web/android`, committed; `capacitor.config.ts`), so the app is the
+(`app/android`, committed; `capacitor.config.ts`), so the app is the
 same code and the same design. Decided with the owner on 2026-11-16:
 
 - **Bundled, not a window on the site.** `npm run build:android` builds the

@@ -1,4 +1,4 @@
-# The Android app (clients/web/android): the web app's own build, wrapped by
+# The Android app (app/android): the web app's own build, wrapped by
 # Capacitor. Each change to either is built into a debug APK and checked by
 # Android lint, so that a broken native project shows before it merges; the
 # APK is kept for two weeks, to try on a phone. Signed releases come from tags,
@@ -11,10 +11,10 @@ name: Android
 
 on:
   pull_request:
-    paths: ['clients/web/**', '.github/workflows/android.yml']
+    paths: ['app/**', '.github/workflows/android.yml']
   push:
     branches: [main]
-    paths: ['clients/web/**', '.github/workflows/android.yml']
+    paths: ['app/**', '.github/workflows/android.yml']
 
 permissions:
   contents: read
@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 25
     defaults:
       run:
-        working-directory: clients/web
+        working-directory: app
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -41,7 +41,7 @@ jobs:
         with:
           node-version-file: .tool-versions
           cache: npm
-          cache-dependency-path: clients/web/package-lock.json
+          cache-dependency-path: app/package-lock.json
       # Gradle 8 does not run on the server's Java 25: the Android toolchain's LTS.
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
@@ -49,15 +49,15 @@ jobs:
           java-version: '21'
           cache: gradle
           cache-dependency-path: |
-            clients/web/android/**/*.gradle
-            clients/web/android/gradle/wrapper/gradle-wrapper.properties
+            app/android/**/*.gradle
+            app/android/gradle/wrapper/gradle-wrapper.properties
       - run: npm ci
       # The app's build (super-vote.org's API), copied into the Android project.
       - run: npm run build:android
-      - working-directory: clients/web/android
+      - working-directory: app/android
         run: ./gradlew --no-daemon assembleDebug :app:lintDebug
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: super-vote-debug-apk
-          path: clients/web/android/app/build/outputs/apk/debug/app-debug.apk
+          path: app/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14

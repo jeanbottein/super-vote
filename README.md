@@ -91,9 +91,9 @@ path to keep it elsewhere. The schema is migrated automatically at startup.
 
 | | |
 |---|---|
-| Server (`servers/java`) | Java 25, Spring Boot 4.1: Spring MVC on virtual threads, Spring Data JDBC, Spring Modulith, Flyway, H2 or PostgreSQL. A REST API, plus server-sent events for live results. |
-| Web app (`clients/web`) | React 19, TypeScript, Vite; Vitest and Testing Library; plain CSS. |
-| Android app (`clients/web/android`) | The web app itself, in Capacitor 8's native shell. |
+| Server (`server`) | Java 25, Spring Boot 4.1: Spring MVC on virtual threads, Spring Data JDBC, Spring Modulith, Flyway, H2 or PostgreSQL. A REST API, plus server-sent events for live results. |
+| Web app (`app`) | React 19, TypeScript, Vite; Vitest and Testing Library; plain CSS. |
+| Android app (`app/android`) | The web app itself, in Capacitor 8's native shell. |
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how it fits together, and why;
   the questions left to the owner, and how what is not built yet should fit.
@@ -142,7 +142,7 @@ live in a separate repository under a different licence.
 
 This is an early-stage project, and contributions are welcome: bug reports,
 ideas and patches, especially about correctness, usability and live behaviour,
-and translations (one file in `clients/web/src/i18n`). Before sending code,
+and translations (one file in `app/src/i18n`). Before sending code,
 run `./dev.sh test`; every pull request also runs the tests on PostgreSQL,
 CodeQL and a review of new dependencies, and must pass them to be merged.
 

@@ -12,7 +12,7 @@ set -euo pipefail
 #
 # Requires a JDK (25+) and Node (24.15+ or 22.22+). Versions are pinned in .tool-versions:
 # with mise or asdf installed, `mise install` provisions both. Maven is NOT
-# required: the committed wrapper (servers/java/mvnw) is used instead.
+# required: the committed wrapper (server/mvnw) is used instead.
 #
 # The Android app needs the Android SDK (ANDROID_HOME, or Android Studio's default place), and a JDK
 # Gradle 8 runs on, 17 to 24 (21 recommended): ANDROID_JAVA_HOME, or JAVA_HOME if that one fits.
@@ -22,8 +22,8 @@ set -euo pipefail
 # can be copied between machines with its data intact.
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SERVER_DIR="$ROOT/servers/java"
-CLIENT_DIR="$ROOT/clients/web"
+SERVER_DIR="$ROOT/server"
+APP_DIR="$ROOT/app"
 
 # Absolute, repo-rooted data directory. Exported so the server never depends on
 # the working directory it happens to be launched from.
@@ -87,9 +87,9 @@ require_node() {
     echo "Error: the client does not run on Node $(node --version): it needs 24.15+, 22.22+ or 26+ (24 LTS recommended)." >&2
     exit 1
   }
-  if [ ! -d "$CLIENT_DIR/node_modules" ]; then
+  if [ ! -d "$APP_DIR/node_modules" ]; then
     echo "Installing client dependencies..."
-    (cd "$CLIENT_DIR" && npm ci)
+    (cd "$APP_DIR" && npm ci)
   fi
 }
 
@@ -144,7 +144,7 @@ start_client() {
   require_node
   free_port 5173
   echo "Starting the web client on http://localhost:5173"
-  (cd "$CLIENT_DIR" && npm run dev) &
+  (cd "$APP_DIR" && npm run dev) &
   CLIENT_PID=$!
 }
 
@@ -173,9 +173,9 @@ run_android() {
     echo "Error: no device: start an emulator (Android Studio's Device Manager) or plug a phone in." >&2
     exit 1
   }
-  (cd "$CLIENT_DIR" && VITE_API_BASE_URL=http://localhost:8080 npx vite build --mode android && npx cap sync android)
+  (cd "$APP_DIR" && VITE_API_BASE_URL=http://localhost:8080 npx vite build --mode android && npx cap sync android)
   "$ADB" reverse tcp:8080 tcp:8080
-  (cd "$CLIENT_DIR/android" && JAVA_HOME="$GRADLE_JAVA_HOME" ./gradlew -q installDebug)
+  (cd "$APP_DIR/android" && JAVA_HOME="$GRADLE_JAVA_HOME" ./gradlew -q installDebug)
   "$ADB" shell am start -n org.supervote.app/.MainActivity
 }
 
@@ -185,7 +185,7 @@ run_checks() {
   echo "== Server: architecture, API and live-stream tests"
   (cd "$SERVER_DIR" && ./mvnw -q test)
   echo "== Client: lint, production build (with types), tests"
-  (cd "$CLIENT_DIR" && npm run lint && npm run build && npm test)
+  (cd "$APP_DIR" && npm run lint && npm run build && npm test)
   echo "All checks passed."
 }
 

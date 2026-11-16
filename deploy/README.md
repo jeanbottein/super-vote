@@ -38,8 +38,8 @@ the VPS pulls them without logging in:
 
 | Image | What | Built by |
 |---|---|---|
-| `ghcr.io/jeanbottein/super-vote-web` | Caddy, with this Caddyfile and the built web app | [clients/web/Dockerfile](../clients/web/Dockerfile) |
-| `ghcr.io/jeanbottein/super-vote-server` | the Java server, on the JVM | [servers/java/Dockerfile](../servers/java/Dockerfile) |
+| `ghcr.io/jeanbottein/super-vote-web` | Caddy, with this Caddyfile and the built web app | [web.Dockerfile](web.Dockerfile) |
+| `ghcr.io/jeanbottein/super-vote-server` | the Java server, on the JVM | [server/Dockerfile](../server/Dockerfile) |
 
 Caddy uses the machine's own network rather than one of Docker's. Behind
 Docker's port publishing, a visitor coming over IPv6 shows as Docker's own
@@ -144,7 +144,7 @@ By hand: put the SHA of the commit to run in `.env` (`SUPER_VOTE_TAG`), then
 `sudo docker compose up -d --wait`; the next commit on main comes forward. An
 older server starts on a database a newer one migrated: Flyway skips the
 migrations it does not know, and since migrations only ever add, with
-defaults ([servers/java/README.md](../servers/java/README.md#schema-changes)),
+defaults ([server/README.md](../server/README.md#schema-changes)),
 what it reads and writes is still there.
 
 ## Backups, and restoring one
@@ -230,8 +230,8 @@ the images, then start them on `localhost`, where Caddy signs its own
 certificate.
 
 ```bash
-docker build -t ghcr.io/jeanbottein/super-vote-server:local servers/java
-docker build -t ghcr.io/jeanbottein/super-vote-web:local -f clients/web/Dockerfile .
+docker build -t ghcr.io/jeanbottein/super-vote-server:local server
+docker build -t ghcr.io/jeanbottein/super-vote-web:local -f deploy/web.Dockerfile .
 cd deploy && printf '%s\n' SUPER_VOTE_DOMAIN=localhost SUPER_VOTE_TAG=local \
   "SUPER_VOTE_VOTER_SECRET=$(openssl rand -base64 48)" "POSTGRES_PASSWORD=$(openssl rand -hex 32)" > .env
 docker compose up -d --wait   # https://localhost
@@ -243,7 +243,7 @@ run it over plain HTTP, in front of `./dev.sh server` and a built web app:
 ```bash
 sed -e 's|^{$SUPER_VOTE_DOMAIN:super-vote.org} {|http://localhost:8443 {|' -e '/^www\./,/^}/d' \
   deploy/Caddyfile > /tmp/Caddyfile.local
-SUPER_VOTE_WEB=clients/web/dist caddy run --config /tmp/Caddyfile.local
+SUPER_VOTE_WEB=app/dist caddy run --config /tmp/Caddyfile.local
 ```
 
 Its Content Security Policy lets `index.html`'s inline script run by its

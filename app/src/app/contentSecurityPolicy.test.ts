@@ -1,4 +1,4 @@
-import caddyfile from '../../../../deploy/Caddyfile?raw';
+import caddyfile from '../../../deploy/Caddyfile?raw';
 import indexHtml from '../../index.html?raw';
 
 /**

@@ -2,7 +2,7 @@
 
 Java 25, Spring Boot 4.1. Spring MVC on virtual threads, Spring Data JDBC,
 Flyway, H2 in file mode or PostgreSQL, Spring Modulith. It serves the REST API
-and the live-results streams described in [docs/API.md](../../docs/API.md).
+and the live-results streams described in [docs/API.md](../docs/API.md).
 
 ## Run and test
 
@@ -34,7 +34,7 @@ export SPRING_DATASOURCE_USERNAME=super_vote SPRING_DATASOURCE_PASSWORD=...
 
 The lock timeout matches H2's: a ballot waiting longer than that for a poll
 being closed or deleted is told to try again, rather than waiting as long as
-it takes. Load tests: [docs/PERFORMANCE.md](../../docs/PERFORMANCE.md).
+it takes. Load tests: [docs/PERFORMANCE.md](../docs/PERFORMANCE.md).
 
 ## Configuration
 
@@ -80,7 +80,7 @@ org.supervote.server
 
 Each package is a Spring Modulith module: its `package-info.java` says which
 modules it may use, and `ArchitectureTest` verifies it.
-[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) explains the boundaries.
+[docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) explains the boundaries.
 
 ## Schema changes
 

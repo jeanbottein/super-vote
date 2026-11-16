@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// The Android app's launcher icons, rendered from the web app's favicon (clients/web/public/favicon.svg, the
+// The Android app's launcher icons, rendered from the web app's favicon (app/public/favicon.svg, the
 // owner's icon.svg without the editor's data) with headless Chrome, as docs/DESIGN.md renders the other PNGs:
 // there stays one copy of the drawing. Run it after the logo changes:
 //
 //   node tools/android/icons.mjs            (CHROME=/path/to/chrome if it is not in the usual place)
 //
-// It writes, under clients/web/android/app/src/main/res:
+// It writes, under app/android/app/src/main/res:
 // - mipmap-*/ic_launcher_foreground.png: the mark alone, on transparency, for the adaptive icon (Android 8+),
 //   whose background is the tile's gradient (drawable/ic_launcher_background.xml, written by hand). The tile's
 //   264 units span the 72 dp a launcher shows of the 108, so the mark stays within the 66 dp safe circle.
@@ -16,10 +16,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const root = new URL('../../', import.meta.url).pathname;
-const res = join(root, 'clients/web/android/app/src/main/res');
+const res = join(root, 'app/android/app/src/main/res');
 const chrome = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
-const favicon = readFileSync(join(root, 'clients/web/public/favicon.svg'), 'utf8');
+const favicon = readFileSync(join(root, 'app/public/favicon.svg'), 'utf8');
 const tile = /<rect x="-32" y="-17" width="264" height="264" rx="59" fill="url\(#bg\)"\/>/;
 if (!tile.test(favicon)) {
   throw new Error("favicon.svg's tile is not the one this script knows: update the script with the logo");
