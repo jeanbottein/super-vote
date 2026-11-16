@@ -93,9 +93,9 @@ describe('downloading the results', () => {
     }
 
     expect(writeFile).toHaveBeenCalledWith(expect.objectContaining({
-      path: 'super-vote-results-abc.json', directory: 'CACHE', encoding: 'utf8',
+      path: 'shared/super-vote-results-abc.json', directory: 'CACHE', encoding: 'utf8', recursive: true,
     }));
     expect(JSON.parse(writeFile.mock.calls[0][0].data).poll.id).toBe('abc');
-    expect(share).toHaveBeenCalledWith({ title: lunch.title, files: ['file:///cache/super-vote-results-abc.json'] });
+    expect(share).toHaveBeenCalledWith({ title: lunch.title, files: ['file:///cache/shared/super-vote-results-abc.json'] });
   });
 });

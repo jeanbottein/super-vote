@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- What the FileProvider may hand to other apps: the app's cache alone, where a results file is written before
-     the share sheet takes it (src/native/share.ts). Capacitor's template also shared all of external storage. -->
+<!-- What the FileProvider may hand to other apps: the cache's shared/ folder alone, where a results file is
+     written before the share sheet takes it (src/native/share.ts). Not the whole cache, which holds the
+     WebView's own; Capacitor's template also shared all of external storage. -->
 <paths>
-    <cache-path name="cache" path="." />
+    <cache-path name="shared" path="shared/" />
 </paths>

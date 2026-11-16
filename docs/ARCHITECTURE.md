@@ -721,9 +721,8 @@ same code and the same design. Decided with the owner on 2026-11-16:
 - **A bearer token, no cookie**: the cookie would be a third party's there.
   The app mints a token (`POST /api/voters`) on first launch, keeps it in
   Capacitor Preferences, never backed up to the cloud (a new phone gets it
-  by transfer), and sends it as `Authorization: Bearer`, with its version:
-  `Super-Vote-Client: android/0.1.0`, package.json's (`callerOf`). A token the
-  server refuses is forgotten, and the next call mints another.
+  by transfer), and sends it as `Authorization: Bearer` (`callerOf`). A token
+  the server refuses is forgotten, and the next call mints another.
 - **Live results over `fetch`.** `EventSource` cannot send a header, and the
   token never goes in a URL, so `api/eventStream.ts` reads server-sent events
   from a fetch answer, in the browser too: one code path behind
@@ -739,8 +738,8 @@ same code and the same design. Decided with the owner on 2026-11-16:
   website never fetches): the back button closes a dialog, goes back a page,
   or leaves the app in the background; the share sheet (Android's WebView
   has no `navigator.share`), which also takes the results file, since the
-  WebView downloads nothing (`shareFile`, through the cache folder, the only
-  one the `FileProvider` shares); the status bar's icons follow the appearance
+  WebView downloads nothing (`shareFile`, through the cache's `shared/`
+  folder, the only one the `FileProvider` hands out); the status bar's icons follow the appearance
   chosen in the app.
 - **Application id `org.supervote.app`**, free on Google Play and F-Droid on
   2026-11-16; it can never change after the first release. Its version is
@@ -897,8 +896,10 @@ needs to reach people:
   poll's link opens the browser, unless the person allows the app in
   Android's settings.
 - **Old versions stay installed for months.** From the first release, API
-  changes are additive only; the server can tell an app too old from its
-  `Super-Vote-Client` header once that is needed.
+  changes are additive only. The app does not say its version (the owner's
+  call, 2026-11-16: nothing would read it yet); one that ships without a way
+  to tell it apart can only be told it is too old by the shape of what it
+  sends, so decide before the first release whether that is enough.
 - **iOS** is the same build, with a Mac, Xcode and an Apple developer account:
   add `capacitor://localhost` to `super-vote.app-origins`, and an iOS mode
   beside `android` (`appPlatform`).

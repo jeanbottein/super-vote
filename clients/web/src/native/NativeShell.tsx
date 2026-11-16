@@ -1,4 +1,4 @@
-import { App, type BackButtonListenerEvent } from '@capacitor/app';
+import { App } from '@capacitor/app';
 import { SystemBars, SystemBarsStyle } from '@capacitor/core';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
@@ -16,7 +16,18 @@ export default function NativeShell() {
 
   useEffect(() => {
     const listening = [
-      App.addListener('backButton', onBackButton),
+      // Back closes an open dialog first, as Escape does, then goes back a page; at the first page, it leaves
+      // the app in the background, as Android's own apps do.
+      App.addListener('backButton', ({ canGoBack }) => {
+        const dialog = openDialog();
+        if (dialog) {
+          dialog.close();
+        } else if (canGoBack) {
+          goBackAPage();
+        } else {
+          leaveTheApp();
+        }
+      }),
       App.addListener('appUrlOpen', ({ url }) => navigate(pathIn(url))),
     ];
     return () => listening.forEach((listener) => void listener.then((handle) => handle.remove()));
@@ -29,20 +40,15 @@ export default function NativeShell() {
   return null;
 }
 
-/**
- * Back closes an open dialog first, as Escape does, then goes back a page; at the first page, it leaves the app
- * in the background, as Android's own apps do.
- */
-export function onBackButton({ canGoBack }: BackButtonListenerEvent): void {
-  const dialog = document.querySelector<HTMLDialogElement>('dialog[open]');
-  if (dialog) {
-    dialog.close();
-    return;
-  }
-  if (canGoBack) {
-    window.history.back();
-    return;
-  }
+function openDialog(): HTMLDialogElement | null {
+  return document.querySelector<HTMLDialogElement>('dialog[open]');
+}
+
+function goBackAPage(): void {
+  window.history.back();
+}
+
+function leaveTheApp(): void {
   void App.minimizeApp();
 }
 

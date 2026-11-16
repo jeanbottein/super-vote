@@ -1,9 +1,32 @@
 import { SystemBarsStyle } from '@capacitor/core';
+import { render } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { chromiumVersion, onBackButton, pathIn, systemBarsStyleFor } from './NativeShell';
+import { PreferencesProvider } from '../preferences/preferences';
+import NativeShell, { chromiumVersion, pathIn, systemBarsStyleFor } from './NativeShell';
 
+/** What the app's listeners receive from Android, captured as NativeShell registers them. */
+const listeners = vi.hoisted(() => new Map<string, (event: never) => void>());
 const minimizeApp = vi.hoisted(() => vi.fn(async () => {}));
-vi.mock('@capacitor/app', () => ({ App: { minimizeApp, addListener: vi.fn() } }));
+vi.mock('@capacitor/app', () => ({
+  App: {
+    minimizeApp,
+    addListener: async (name: string, listener: (event: never) => void) => {
+      listeners.set(name, listener);
+      return { remove: async () => { listeners.delete(name); } };
+    },
+  },
+}));
+vi.mock('@capacitor/core', async (actual) => ({
+  ...(await actual<typeof import('@capacitor/core')>()),
+  SystemBars: { setStyle: async () => {} },
+}));
+
+/** Android's back button, as the app is told of it. */
+function pressBack(canGoBack: boolean) {
+  render(<PreferencesProvider><MemoryRouter><NativeShell /></MemoryRouter></PreferencesProvider>);
+  (listeners.get('backButton') as (event: { canGoBack: boolean }) => void)({ canGoBack });
+}
 
 describe('the Android back button', () => {
   afterEach(() => {
@@ -16,7 +39,7 @@ describe('the Android back button', () => {
     dialog.setAttribute('open', '');
     const back = vi.spyOn(window.history, 'back').mockImplementation(() => {});
 
-    onBackButton({ canGoBack: true });
+    pressBack(true);
 
     expect(dialog.open).toBe(false);
     expect(back).not.toHaveBeenCalled();
@@ -25,14 +48,14 @@ describe('the Android back button', () => {
   it('goes back a page', () => {
     const back = vi.spyOn(window.history, 'back').mockImplementation(() => {});
 
-    onBackButton({ canGoBack: true });
+    pressBack(true);
 
     expect(back).toHaveBeenCalled();
     expect(minimizeApp).not.toHaveBeenCalled();
   });
 
   it('leaves the app in the background from its first page', () => {
-    onBackButton({ canGoBack: false });
+    pressBack(false);
 
     expect(minimizeApp).toHaveBeenCalled();
   });
@@ -51,7 +74,7 @@ describe('the status bar', () => {
     expect(systemBarsStyleFor('system', 140)).toBe(SystemBarsStyle.Default);
   });
 
-  it("follows the phone under a WebView that keeps the page out from under the bars", () => {
+  it('follows the phone under a WebView that keeps the page out from under the bars', () => {
     expect(systemBarsStyleFor('dark', 139)).toBe(SystemBarsStyle.Default);
   });
 

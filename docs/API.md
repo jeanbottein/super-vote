@@ -72,14 +72,8 @@ networks from codes for a day, or hand each of them an identity.
 The Android app is a page served from an origin of its own (`https://localhost`,
 listed in `super-vote.app-origins`): its requests are let through, and
 answered with CORS, without credentials, `RateLimit`, `RateLimit-Policy` and
-`Retry-After` readable. It sends a bearer token, and says which version it is:
-
-```
-Super-Vote-Client: android/0.1.0
-```
-
-The server reads nothing from it yet; it is there so that a version too old
-can one day be told so. Any other origin gets no CORS. Every answer to the
+`Retry-After` readable. It sends a bearer token. Any other origin gets no
+CORS. Every answer to the
 app's origin carries CORS, refusals included, so that the app can read a
 `401` for its token, forget it, and ask for another.
 

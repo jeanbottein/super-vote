@@ -32,12 +32,12 @@ class AppOriginApiTest {
 
     @Test
     void answersTheAppsPreflightWithoutAnIdentity() {
-        var result = preflight(APP, "PUT", "authorization, content-type, super-vote-time-zone, super-vote-client");
+        var result = preflight(APP, "PUT", "authorization, content-type, super-vote-time-zone");
 
         assertThat(result).hasStatus(HttpStatus.OK);
         assertThat(result).hasHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, APP);
         assertThat(result.getResponse().getHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS))
-            .containsIgnoringCase("authorization").containsIgnoringCase("super-vote-client");
+            .containsIgnoringCase("authorization").containsIgnoringCase("super-vote-time-zone");
         assertThat(result).doesNotContainHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS);
         assertThat(result).doesNotContainHeader(HttpHeaders.SET_COOKIE);
     }

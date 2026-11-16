@@ -352,7 +352,7 @@ describe('in the Android app', () => {
     fetchMock.mockReset();
   });
 
-  it('asks for a voter token once, keeps it, and sends it instead of the cookie, with its version', async () => {
+  it('asks for a voter token once, keeps it, and sends it instead of the cookie', async () => {
     fetchMock.mockImplementation(async (url) =>
       url === '/api/voters' ? Response.json({ token: 'minted' }, { status: 201 }) : Response.json({ id: 'abc' }));
     const app = await launch();
@@ -364,10 +364,7 @@ describe('in the Android app', () => {
     expect(kept.get('voter-token')).toBe('minted');
     expect(fetchMock).toHaveBeenCalledWith('/api/polls/abc', expect.objectContaining({
       credentials: 'omit',
-      headers: expect.objectContaining({
-        Authorization: 'Bearer minted',
-        'Super-Vote-Client': `android/${__SUPER_VOTE_APP_VERSION__}`,
-      }),
+      headers: expect.objectContaining({ Authorization: 'Bearer minted' }),
     }));
   });
 

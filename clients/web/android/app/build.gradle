@@ -2,8 +2,7 @@ import groovy.json.JsonSlurper
 
 apply plugin: 'com.android.application'
 
-// One version for the web app and the app: package.json's, which the app also tells the server
-// (Super-Vote-Client). versionCode must only grow, which 1.4.2 as 10402 does as long as minor and patch stay
+// One version for the web app and the app: package.json's. versionCode must only grow, which 1.4.2 as 10402 does as long as minor and patch stay
 // under 100; a pre-release (1.0.0-beta.1) would have no versionCode at all, so neither builds.
 def appVersion = new JsonSlurper().parse(file('../../package.json')).version
 def parts = (appVersion =~ /^(\d+)\.(\d{1,2})\.(\d{1,2})$/)

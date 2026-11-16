@@ -6,7 +6,7 @@
  * voter: polls would stop being "mine" and ballots could not be revised. The
  * Android app is another origin, where the cookie would be a third party's: it
  * asks for a voter token of its own once, keeps it, and sends it as a bearer
- * token instead, with the app's version (`callerOf`).
+ * token instead (`callerOf`).
  *
  * A voter's invitation travels in a header, never in a URL, so that no log
  * along the way keeps it.
@@ -26,7 +26,6 @@ const INVITATION_HEADER = 'Super-Vote-Invitation';
 const HANDOVER_HEADER = 'Super-Vote-Handover';
 const ADMIN_HEADER = 'Super-Vote-Admin';
 const TIME_ZONE_HEADER = 'Super-Vote-Time-Zone';
-const CLIENT_HEADER = 'Super-Vote-Client';
 
 /** A bearer token the server could not have issued (docs/API.md, "Identity"). */
 const UNKNOWN_VOTER = '/problems/unknown-voter';
@@ -144,17 +143,10 @@ interface Caller {
 
 /** Who a request comes from: the browser's cookie, the app's token, or nobody. */
 async function callerOf(credentials: RequestCredentials): Promise<Caller> {
-  const platform = appPlatform();
-  if (credentials === 'omit' || platform === null) {
+  if (credentials === 'omit' || appPlatform() === null) {
     return { credentials, headers: {} };
   }
-  return {
-    credentials: 'omit',
-    headers: {
-      Authorization: `Bearer ${await appVoterToken()}`,
-      [CLIENT_HEADER]: `${platform}/${__SUPER_VOTE_APP_VERSION__}`,
-    },
-  };
+  return { credentials: 'omit', headers: { Authorization: `Bearer ${await appVoterToken()}` } };
 }
 
 let appToken: Promise<string> | null = null;

@@ -204,8 +204,7 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
 - **The Android app is another origin** (`https://localhost`): the server
   lets `super-vote.app-origins` through `VoterIdentityFilter` and answers them
   with CORS, without credentials (`AppOrigins`); the app mints a voter token
-  once, keeps it (Capacitor Preferences) and sends it as a bearer token, with
-  `Super-Vote-Client: android/<package.json's version>`. Links people share
+  once, keeps it (Capacitor Preferences) and sends it as a bearer token. Links people share
   come from `useSiteOrigin()` (the server's `publicUrl` in the app), never
   `window.location`, which is `localhost` there. The WebView downloads
   nothing: files go to the share sheet (`shareFile`). From the first release, API changes are additive only: installed

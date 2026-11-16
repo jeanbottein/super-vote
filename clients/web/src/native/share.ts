@@ -30,11 +30,14 @@ export interface SharedFile {
 
 /**
  * Hands a file to another app through the share sheet: the app's way to download, since its WebView saves
- * nothing. Written to the app's cache, the one folder its FileProvider shares (res/xml/file_paths.xml).
+ * nothing. Written to the cache's shared/ folder, the one its FileProvider may hand out (res/xml/file_paths.xml):
+ * the rest of the cache holds the WebView's own, which no other app should be able to ask for.
  */
 export async function shareFile({ name, text, title }: SharedFile): Promise<void> {
   const { Directory, Encoding, Filesystem } = await import('@capacitor/filesystem');
-  const { uri } = await Filesystem.writeFile({ path: name, data: text, directory: Directory.Cache, encoding: Encoding.UTF8 });
+  const { uri } = await Filesystem.writeFile({
+    path: `shared/${name}`, data: text, directory: Directory.Cache, encoding: Encoding.UTF8, recursive: true,
+  });
   const { Share } = await import('@capacitor/share');
   await Share.share({ title, files: [uri] });
 }
