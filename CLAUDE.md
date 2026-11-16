@@ -20,10 +20,11 @@ creator's choice too), ballots unlinkable at rest, polls deleted after 30
 days, public polls off until accounts. The web app speaks fourteen languages (English, French,
 Spanish, Portuguese, German, Italian, Russian, Turkish, Chinese, Japanese, Korean, Indonesian, Hindi, Arabic);
 the server, its errors and everything agents read stay English. Under it, one poll must scale to billions of
-ballots (docs/ROADMAP.md, "Scale"): never let a request's cost grow with a
-poll's size. Next phases (in order): deployment on
-OVHcloud with PostgreSQL, accounts and social sign-in, installable web app,
-Android through Capacitor. See `docs/ROADMAP.md` before designing anything in
+ballots (docs/ARCHITECTURE.md, "Scale"): never let a request's cost grow with a
+poll's size. It runs on super-vote.org (OVHcloud, PostgreSQL) since
+2026-10-21. Not built yet: the Android app through Capacitor (next), then
+accounts and social sign-in, an installable web app, iOS. `docs/ARCHITECTURE.md`
+("Not built yet") says how each should fit: read it before designing in
 those areas.
 
 ## Commands
@@ -40,7 +41,8 @@ workflows, Java, TypeScript, Python), `dependencies.yml` (dependency review
 on pull requests; the server's Maven tree submitted from `main`, so that
 Dependabot sees transitive CVEs), `images.yml` (both images built, started
 with PostgreSQL as `deploy/compose.yaml` runs them, and checked over HTTPS;
-published to GHCR from `main`, then run on the VPS by `deploy/update.sh`,
+published to GHCR from `main` (unless a commit changes only Markdown,
+`docs/` or the mobile projects), then run on the VPS by `deploy/update.sh`,
 through SSH as a user that can run nothing else), `scorecard.yml`, `dependabot.yml` (one
 weekly pull request for Maven, npm, actions and base images together, majors
 included but PostgreSQL's, Java's and Node's; security updates come at once,
@@ -117,8 +119,8 @@ the built web app and passes `/api`, `/v3/api-docs`, `/llms.txt` and
 `deploy/compose.yaml` says, from two images (`servers/java/Dockerfile`, and
 `clients/web/Dockerfile`: Caddy with the Caddyfile and the built app) that
 `.github/workflows/images.yml` starts together and checks on every pull
-request, and publishes to GHCR for every commit on main. `deploy/README.md`
-covers the VPS, updates, backups.
+request, and publishes to GHCR for every commit on main that changes them.
+`deploy/README.md` covers the VPS, updates, backups.
 
 **Contract**: `docs/API.md`. Mirror every DTO change in
 `clients/web/src/api/types.ts`. A poll's `id` is its share token, the only id
@@ -140,8 +142,8 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
   with `majority-judgment.css`, and `api/Ranking.java` with `RankingTest`.
   Change them only when the owner asks (the graph was revised at his request
   on 2026-09-24, and mirrored right to left for Arabic on 2026-11-04; the ranking moved to the server at his request on
-  2026-10-09). How results are ranked is his call: see "Questions for the
-  owner" in the roadmap. Decided so far: with an even number of ballots the
+  2026-10-09). How results are ranked is his call: see "Open questions"
+  in `docs/ARCHITECTURE.md`. Decided so far: with an even number of ballots the
   majority mention is the lower of the two middle mentions (more than half the
   voters, not half); ties on the majority mention are broken by the GMJ score
   alone, computed from the counts so that equal scores stay equal, and what is
@@ -429,8 +431,8 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
   cause is its own root. The sentence is right, just printed twice; it is not
   worth code to work around.
 - **A new voter token is one request away** (`POST /api/voters`), so anything
-  that assumed "a voter costs a cookie round-trip" no longer holds. Rate
-  limits, keyed by network, are phase 6 (docs/ROADMAP.md).
+  that assumed "a voter costs a cookie round-trip" no longer holds: only the
+  limits by network do (see "Limits are per network").
 - **Every test calls from 127.0.0.1**, so `application-test.yml` puts the
   rate limits out of reach; `RateLimitApiTest` sets its own and gives each
   test addresses of its own. In development every request comes through

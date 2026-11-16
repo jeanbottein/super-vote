@@ -24,9 +24,9 @@ import java.util.regex.Pattern;
  * for a token of its own (POST /api/voters) and sends it as a bearer token
  * instead of a cookie. It is the same credential either way.
  *
- * Signing in with an account (see docs/ROADMAP.md) will resolve to a voter id
- * in this same place, and must carry the anonymous token over to the account
- * so that ballots cast before signing in keep their owner.
+ * Signing in with an account (docs/ARCHITECTURE.md, "Not built yet") will
+ * resolve to a voter id in this same place, and must carry the anonymous token
+ * over to the account so that ballots cast before signing in keep their owner.
  */
 public final class VoterIdentity {
 

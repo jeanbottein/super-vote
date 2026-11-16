@@ -90,10 +90,9 @@ path to keep it elsewhere. The schema is migrated automatically at startup.
 | Server (`servers/java`) | Java 25, Spring Boot 4.1: Spring MVC on virtual threads, Spring Data JDBC, Spring Modulith, Flyway, H2 or PostgreSQL. A REST API, plus server-sent events for live results. |
 | Web app (`clients/web`) | React 19, TypeScript, Vite; Vitest and Testing Library; plain CSS. |
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how it fits together, and why.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how it fits together, and why;
+  the questions left to the owner, and how what is not built yet should fit.
 - [docs/API.md](docs/API.md): the HTTP API.
-- [docs/ROADMAP.md](docs/ROADMAP.md): deployment, accounts and social sign-in,
-  installable app, Android, and billions of ballots per poll.
 - [docs/PERFORMANCE.md](docs/PERFORMANCE.md): the JVM, Leyden's AOT cache and
   GraalVM native images, and ballots at scale, measured.
 - [deploy/README.md](deploy/README.md): on the internet: one HTTPS address,

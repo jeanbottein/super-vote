@@ -142,7 +142,7 @@ public class PollController {
     /**
      * A poll's results, the same for everyone: what a watcher receives, for a
      * client that asks instead. Cacheable for a second, so a crowd of readers
-     * costs one read (docs/ROADMAP.md, "Results for millions of watchers").
+     * costs one read (docs/ARCHITECTURE.md, "Several servers").
      */
     @GetMapping("/{id}/results")
     public ResponseEntity<PollUpdate> results(@PathVariable String id) {
