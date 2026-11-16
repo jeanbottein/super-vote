@@ -19,6 +19,10 @@ on:
       - 'docs/**'
       - 'clients/web/android/**'
       - 'clients/web/ios/**'
+      - 'clients/web/capacitor.config.ts'
+      - 'clients/web/.env.android'
+      - 'tools/android/**'
+      - '.github/workflows/android.yml'
 
 permissions:
   contents: read

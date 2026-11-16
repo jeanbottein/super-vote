@@ -35,6 +35,14 @@ updates:
       - dependency-name: typescript
         update-types: ['version-update:semver-major']
 
+  # The Android app's build (Capacitor's own Android code comes with its npm packages).
+  - package-ecosystem: gradle
+    directory: /clients/web/android
+    multi-ecosystem-group: dependencies
+    patterns: ['*']
+    cooldown:
+      default-days: 7
+
   - package-ecosystem: github-actions
     directory: /
     multi-ecosystem-group: dependencies

@@ -1,7 +1,21 @@
 /** The addresses people share: a poll's, and an invitation's. */
 
+/**
+ * Where people reach super-vote: the page's own origin on the website, the
+ * API's in the Android app, whose pages run on https://localhost, an address
+ * that leads nowhere for anyone else.
+ */
+export function siteOrigin(): string {
+  return import.meta.env.VITE_API_BASE_URL || window.location.origin;
+}
+
+/** The site's address as people type it: "super-vote.org". */
+export function siteHost(): string {
+  return new URL(siteOrigin()).host;
+}
+
 export function pollUrl(pollId: string): string {
-  return `${window.location.origin}/p/${pollId}`;
+  return `${siteOrigin()}/p/${pollId}`;
 }
 
 /**

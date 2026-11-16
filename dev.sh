@@ -7,10 +7,15 @@ set -euo pipefail
 #   ./dev.sh server     start only the Java server
 #   ./dev.sh client     start only the web client
 #   ./dev.sh test       run every check: server tests, client lint, build (with types) and tests
+#   ./dev.sh android    start the server, and the Android app on the emulator or phone adb sees,
+#                       calling that server (through adb reverse)
 #
 # Requires a JDK (25+) and Node (24.15+ or 22.22+). Versions are pinned in .tool-versions:
 # with mise or asdf installed, `mise install` provisions both. Maven is NOT
 # required: the committed wrapper (servers/java/mvnw) is used instead.
+#
+# The Android app needs the Android SDK (ANDROID_HOME, or Android Studio's default place), and a JDK
+# Gradle 8 runs on, 17 to 24 (21 recommended): ANDROID_JAVA_HOME, or JAVA_HOME if that one fits.
 #
 # No database setup is needed. H2 runs inside the server process and stores its
 # data in SUPER_VOTE_DATA_DIR below, so the repo folder stays self-contained and
@@ -143,6 +148,37 @@ start_client() {
   CLIENT_PID=$!
 }
 
+# The Android SDK and a JDK for Gradle, which does not run on the server's Java 25 yet.
+require_android() {
+  export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
+  ADB="$ANDROID_HOME/platform-tools/adb"
+  [ -x "$ADB" ] || {
+    echo "Error: no Android SDK at $ANDROID_HOME: install Android Studio, or set ANDROID_HOME." >&2
+    exit 1
+  }
+  GRADLE_JAVA_HOME="${ANDROID_JAVA_HOME:-${JAVA_HOME:-}}"
+  local version
+  version=$("${GRADLE_JAVA_HOME:+$GRADLE_JAVA_HOME/bin/}java" -XshowSettings:properties -version 2>&1 \
+    | awk -F'= ' '/java.specification.version/ {print $2}')
+  if [ -z "$version" ] || [ "${version%%.*}" -lt 17 ] || [ "${version%%.*}" -gt 24 ]; then
+    echo "Error: Gradle needs a JDK 17 to 24 (21 recommended), not ${version:-none}: set ANDROID_JAVA_HOME to one." >&2
+    exit 1
+  fi
+}
+
+# The app's build, calling this machine's server: adb reverse makes the device's localhost:8080 this one's,
+# and a page served from https://localhost may call http://localhost (a loopback address is trusted).
+run_android() {
+  "$ADB" get-state >/dev/null 2>&1 || {
+    echo "Error: no device: start an emulator (Android Studio's Device Manager) or plug a phone in." >&2
+    exit 1
+  }
+  (cd "$CLIENT_DIR" && VITE_API_BASE_URL=http://localhost:8080 npx vite build --mode android && npx cap sync android)
+  "$ADB" reverse tcp:8080 tcp:8080
+  (cd "$CLIENT_DIR/android" && JAVA_HOME="$GRADLE_JAVA_HOME" ./gradlew -q installDebug)
+  "$ADB" shell am start -n org.supervote.app/.MainActivity
+}
+
 run_checks() {
   require_java
   require_node
@@ -171,8 +207,16 @@ case "$MODE" in
   test)
     run_checks
     ;;
+  android)
+    require_node
+    require_android
+    start_server
+    wait_for_server
+    run_android
+    wait
+    ;;
   *)
-    echo "Usage: ./dev.sh [server|client|test]" >&2
+    echo "Usage: ./dev.sh [server|client|test|android]" >&2
     exit 2
     ;;
 esac

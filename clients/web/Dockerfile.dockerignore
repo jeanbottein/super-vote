@@ -8,3 +8,5 @@ clients/web/dist/
 clients/web/coverage/
 clients/web/android/
 clients/web/ios/
+clients/web/capacitor.config.ts
+clients/web/.env.android

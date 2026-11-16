@@ -1,0 +1,63 @@
+# The Android app (clients/web/android): the web app's own build, wrapped by
+# Capacitor. Each change to either is built into a debug APK and checked by
+# Android lint, so that a broken native project shows before it merges; the
+# APK is kept for two weeks, to try on a phone. Signed releases come from tags,
+# later (docs/ARCHITECTURE.md, "The Android app").
+#
+# Filtered by path, which a required check must not be: if the ruleset ever
+# requires this one, drop the paths, or pull requests that skip it will wait
+# for it forever.
+name: Android
+
+on:
+  pull_request:
+    paths: ['clients/web/**', '.github/workflows/android.yml']
+  push:
+    branches: [main]
+    paths: ['clients/web/**', '.github/workflows/android.yml']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  apk:
+    name: Android app
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: clients/web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The committed gradle-wrapper.jar runs on CI and on every machine: check it is Gradle's own.
+      - uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+          cache-dependency-path: clients/web/package-lock.json
+      # Gradle 8 does not run on the server's Java 25: the Android toolchain's LTS.
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            clients/web/android/**/*.gradle
+            clients/web/android/gradle/wrapper/gradle-wrapper.properties
+      - run: npm ci
+      # The app's build (super-vote.org's API), copied into the Android project.
+      - run: npm run build:android
+      - working-directory: clients/web/android
+        run: ./gradlew --no-daemon assembleDebug :app:lintDebug
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: super-vote-debug-apk
+          path: clients/web/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14

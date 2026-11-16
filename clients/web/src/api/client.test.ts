@@ -1,8 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  ApiError, castBallot, castBallotAsNewVoter, createPoll, deletePoll, getPoll, revokeInvitation, watchPoll,
+  ApiError, castBallot, castBallotAsNewVoter, createPoll, deletePoll, getPoll, RECONNECT_DELAY_MS, revokeInvitation, watchPoll,
 } from './client';
 import type { NewPoll } from './types';
+
+/** The app's own storage (Capacitor Preferences), in memory. */
+const kept = new Map<string, string>();
+
+vi.mock('@capacitor/preferences', () => ({
+  Preferences: {
+    get: async ({ key }: { key: string }) => ({ value: kept.get(key) ?? null }),
+    set: async ({ key, value }: { key: string; value: string }) => { kept.set(key, value); },
+  },
+}));
 
 const lunch: NewPoll = {
   title: 'Lunch?', options: ['Ramen', 'Tacos'], votingSystem: 'APPROVAL', visibility: 'UNLISTED',
@@ -166,86 +176,203 @@ describe('the API client', () => {
 });
 
 describe('watching a poll', () => {
-  class FakeEventSource extends EventTarget {
-    static readonly CLOSED = 2;
-    static last: FakeEventSource;
-    readyState = 0;
-    closed = false;
-
-    constructor(readonly url: string, readonly init?: EventSourceInit) {
-      super();
-      FakeEventSource.last = this;
-    }
-
-    emit(type: string, data?: unknown) {
-      this.dispatchEvent(new MessageEvent(type, { data: JSON.stringify(data) }));
-    }
-
-    close() {
-      this.closed = true;
-    }
-  }
-
+  const fetchMock = vi.fn<typeof fetch>();
   const watcher = { onUpdate: vi.fn(), onDeleted: vi.fn(), onConnectionChange: vi.fn(), onLost: vi.fn() };
 
+  /** A stream the test writes to, as the server would, and ends or breaks. */
+  function openStream() {
+    const encoder = new TextEncoder();
+    let controller!: ReadableStreamDefaultController<Uint8Array>;
+    const body = new ReadableStream<Uint8Array>({ start: (opened) => { controller = opened; } });
+    return {
+      response: new Response(body, { headers: { 'Content-Type': 'text/event-stream' } }),
+      send: (type: string, data: unknown) => controller.enqueue(encoder.encode(`event:${type}\ndata:${JSON.stringify(data)}\n\n`)),
+      end: () => controller.close(),
+      fail: () => controller.error(new TypeError('network error')),
+    };
+  }
+
+  const signalOf = (call: number) => fetchMock.mock.calls[call][1]?.signal as AbortSignal;
+
   beforeEach(() => {
-    vi.stubGlobal('EventSource', FakeEventSource);
+    vi.stubGlobal('fetch', fetchMock);
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
-    vi.clearAllMocks();
+    fetchMock.mockReset();
   });
 
-  it('subscribes to the poll with credentials', () => {
+  it('subscribes to the poll with credentials', async () => {
+    fetchMock.mockResolvedValue(openStream().response);
+
     watchPoll('abc', watcher);
 
-    expect(FakeEventSource.last.url).toBe('/api/polls/abc/events');
-    expect(FakeEventSource.last.init).toEqual({ withCredentials: true });
+    await vi.waitFor(() => expect(watcher.onConnectionChange).toHaveBeenCalledWith(true));
+    expect(fetchMock).toHaveBeenCalledWith('/api/polls/abc/events', expect.objectContaining({
+      credentials: 'include',
+      headers: { Accept: 'text/event-stream' },
+    }));
   });
 
-  it('passes updates on', () => {
+  it('passes updates on', async () => {
+    const stream = openStream();
+    fetchMock.mockResolvedValue(stream.response);
     watchPoll('abc', watcher);
 
-    FakeEventSource.last.emit('update', { closedAt: null, totalBallots: 3, options: [] });
+    await vi.waitFor(() => expect(watcher.onConnectionChange).toHaveBeenCalledWith(true));
+    stream.send('update', { closedAt: null, totalBallots: 3, options: [] });
 
-    expect(watcher.onUpdate).toHaveBeenCalledWith({ closedAt: null, totalBallots: 3, options: [] });
+    await vi.waitFor(() => expect(watcher.onUpdate).toHaveBeenCalledWith({ closedAt: null, totalBallots: 3, options: [] }));
   });
 
-  it('stops listening once the poll is deleted', () => {
+  it('stops listening once the poll is deleted, for good', async () => {
+    const stream = openStream();
+    fetchMock.mockResolvedValue(stream.response);
     watchPoll('abc', watcher);
 
-    FakeEventSource.last.emit('deleted', {});
+    await vi.waitFor(() => expect(watcher.onConnectionChange).toHaveBeenCalledWith(true));
+    stream.send('deleted', {});
 
-    expect(watcher.onDeleted).toHaveBeenCalled();
-    expect(FakeEventSource.last.closed).toBe(true);
+    await vi.waitFor(() => expect(watcher.onDeleted).toHaveBeenCalled());
+    expect(signalOf(0).aborted).toBe(true);
+    await vi.advanceTimersByTimeAsync(RECONNECT_DELAY_MS * 2);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('reports the state of the connection', () => {
+  it('connects again when the stream ends or breaks, and the connection says so', async () => {
+    const first = openStream();
+    const second = openStream();
+    fetchMock.mockResolvedValueOnce(first.response).mockResolvedValueOnce(second.response).mockResolvedValue(openStream().response);
     watchPoll('abc', watcher);
 
-    FakeEventSource.last.dispatchEvent(new Event('open'));
-    FakeEventSource.last.dispatchEvent(new Event('error'));
+    await vi.waitFor(() => expect(watcher.onConnectionChange).toHaveBeenCalledWith(true));
+    first.end(); // as the server does when it shuts down
+    await vi.waitFor(() => expect(watcher.onConnectionChange).toHaveBeenLastCalledWith(false));
+    await vi.advanceTimersByTimeAsync(RECONNECT_DELAY_MS);
+    await vi.waitFor(() => expect(watcher.onConnectionChange).toHaveBeenLastCalledWith(true));
+    second.fail();
+    await vi.waitFor(() => expect(watcher.onConnectionChange).toHaveBeenLastCalledWith(false));
+    await vi.advanceTimersByTimeAsync(RECONNECT_DELAY_MS);
 
-    expect(watcher.onConnectionChange.mock.calls).toEqual([[true], [false]]);
-    expect(watcher.onLost).not.toHaveBeenCalled(); // the browser is reconnecting
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(watcher.onConnectionChange.mock.calls).toEqual([[true], [false], [true], [false], [true]]);
+    expect(watcher.onLost).not.toHaveBeenCalled();
   });
 
-  it('says when the browser gives up reconnecting', () => {
+  it('tries again when the server cannot be reached', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch')).mockResolvedValue(openStream().response);
     watchPoll('abc', watcher);
 
-    FakeEventSource.last.readyState = FakeEventSource.CLOSED; // what an error answer does
-    FakeEventSource.last.dispatchEvent(new Event('error'));
+    await vi.waitFor(() => expect(watcher.onConnectionChange).toHaveBeenCalledWith(false));
+    await vi.advanceTimersByTimeAsync(RECONNECT_DELAY_MS);
 
+    await vi.waitFor(() => expect(watcher.onConnectionChange).toHaveBeenLastCalledWith(true));
+    expect(watcher.onLost).not.toHaveBeenCalled();
+  });
+
+  it('gives up when the server answers with an error, as while it restarts', async () => {
+    fetchMock.mockResolvedValue(new Response('Bad Gateway', { status: 502 }));
+    watchPoll('abc', watcher);
+
+    await vi.waitFor(() => expect(watcher.onLost).toHaveBeenCalled());
     expect(watcher.onConnectionChange).toHaveBeenCalledWith(false);
-    expect(watcher.onLost).toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(RECONNECT_DELAY_MS * 2);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('closes the stream when asked', () => {
+  it('closes the stream when asked, and never connects again', async () => {
+    fetchMock.mockResolvedValue(openStream().response);
     const stop = watchPoll('abc', watcher);
+    await vi.waitFor(() => expect(watcher.onConnectionChange).toHaveBeenCalledWith(true));
 
     stop();
 
-    expect(FakeEventSource.last.closed).toBe(true);
+    expect(signalOf(0).aborted).toBe(true);
+    await vi.advanceTimersByTimeAsync(RECONNECT_DELAY_MS * 2);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(watcher.onLost).not.toHaveBeenCalled();
+  });
+});
+
+describe('in the Android app', () => {
+  const fetchMock = vi.fn<typeof fetch>();
+
+  /** A fresh launch of the app: nothing asked for yet. */
+  async function launch() {
+    vi.resetModules();
+    return import('./client');
+  }
+
+  const minting = (call: unknown[]) => call[0] === '/api/voters';
+
+  beforeEach(() => {
+    vi.stubEnv('MODE', 'android');
+    vi.stubGlobal('fetch', fetchMock);
+    kept.clear();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    fetchMock.mockReset();
+  });
+
+  it('asks for a voter token once, keeps it, and sends it instead of the cookie, with its version', async () => {
+    fetchMock.mockImplementation(async (url) =>
+      url === '/api/voters' ? Response.json({ token: 'minted' }, { status: 201 }) : Response.json({ id: 'abc' }));
+    const app = await launch();
+
+    await Promise.all([app.getPoll('abc'), app.getPoll('def')]);
+
+    expect(fetchMock.mock.calls.filter(minting)).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledWith('/api/voters', expect.objectContaining({ method: 'POST', credentials: 'omit' }));
+    expect(kept.get('voter-token')).toBe('minted');
+    expect(fetchMock).toHaveBeenCalledWith('/api/polls/abc', expect.objectContaining({
+      credentials: 'omit',
+      headers: expect.objectContaining({
+        Authorization: 'Bearer minted',
+        'Super-Vote-Client': `android/${__SUPER_VOTE_APP_VERSION__}`,
+      }),
+    }));
+  });
+
+  it('uses the token it kept', async () => {
+    kept.set('voter-token', 'kept');
+    fetchMock.mockResolvedValue(Response.json({ id: 'abc' }));
+    const app = await launch();
+
+    await app.getPoll('abc');
+
+    expect(fetchMock.mock.calls.filter(minting)).toHaveLength(0);
+    expect(fetchMock.mock.calls[0][1]?.headers).toMatchObject({ Authorization: 'Bearer kept' });
+  });
+
+  it('asks again after a first launch without a network', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    const app = await launch();
+    await expect(app.getPoll('abc')).rejects.toMatchObject({ status: 0 });
+
+    fetchMock.mockImplementation(async (url) =>
+      url === '/api/voters' ? Response.json({ token: 'minted' }, { status: 201 }) : Response.json({ id: 'abc' }));
+    await app.getPoll('abc');
+
+    expect(kept.get('voter-token')).toBe('minted');
+  });
+
+  it('watches a poll with its token too', async () => {
+    kept.set('voter-token', 'kept');
+    fetchMock.mockResolvedValue(new Response(new ReadableStream(), { headers: { 'Content-Type': 'text/event-stream' } }));
+    const app = await launch();
+
+    const stop = app.watchPoll('abc', { onUpdate() {}, onDeleted() {}, onConnectionChange() {}, onLost() {} });
+
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/polls/abc/events', expect.objectContaining({
+      credentials: 'omit',
+      headers: expect.objectContaining({ Authorization: 'Bearer kept', Accept: 'text/event-stream' }),
+    })));
+    stop();
   });
 });

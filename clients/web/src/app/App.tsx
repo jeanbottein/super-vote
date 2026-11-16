@@ -6,6 +6,7 @@ import PollPage from '../polls/PollPage';
 import { useDocumentLanguage, useI18n } from '../i18n/i18n';
 import { PreferencesProvider } from '../preferences/preferences';
 import { ToastProvider } from '../ui/Toasts';
+import { appPlatform } from '../native/platform';
 import AboutPage from './AboutPage';
 import Footer from './Footer';
 import Header from './Header';
@@ -15,6 +16,9 @@ import PrivacyPage from './PrivacyPage';
 
 /** Loaded when opened: the world map is most of its weight, and few visitors open it. */
 const StatisticsPage = lazy(() => import('../statistics/StatisticsPage'));
+
+/** The Android app's back button, links and status bar: a chunk the website never fetches. */
+const NativeShell = lazy(() => import('../native/NativeShell'));
 
 /**
  * Three screens: the polls you can see, a form to create one, and a poll -
@@ -29,6 +33,7 @@ export default function App() {
     <PreferencesProvider>
       <ToastProvider>
         <BrowserRouter>
+          {appPlatform() && <Suspense><NativeShell /></Suspense>}
           <Routes>
             <Route element={<Layout />}>
               <Route index element={<HomePage />} />

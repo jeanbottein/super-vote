@@ -24,8 +24,9 @@ and every request that changes something (anything but `GET` or `HEAD`) sets it
 again for as long: every poll a browser voted on or created is gone before its
 cookie. Reading changes nothing, so it renews nothing.
 
-Send it back on every request (`fetch(..., { credentials: 'include' })`,
-`new EventSource(url, { withCredentials: true })`). Without it each request
+Send it back on every request (`fetch(..., { credentials: 'include' })`, or
+`new EventSource(url, { withCredentials: true })` for the live stream; the web
+app reads the stream with `fetch`, which can send a header). Without it each request
 counts as a brand new voter: your polls stop being yours and your ballots
 cannot be revised. A cookie the server could not have issued is replaced.
 
@@ -67,6 +68,18 @@ A request that another website's page made is refused before it is anyone's:
 through, and clients that are not browsers send no such header. Without this,
 another site could have its visitors' browsers try join codes, barring their
 networks from codes for a day, or hand each of them an identity.
+
+The Android app is a page served from an origin of its own (`https://localhost`,
+listed in `super-vote.app-origins`): its requests are let through, and
+answered with CORS, without credentials, `RateLimit`, `RateLimit-Policy` and
+`Retry-After` readable. It sends a bearer token, and says which version it is:
+
+```
+Super-Vote-Client: android/1.0.0
+```
+
+The server reads nothing from it yet; it is there so that a version too old
+can one day be told so. Any other origin gets no CORS.
 
 A bearer token comes before the cookie, and no cookie is set when one is sent.
 A bearer token this server could not have issued answers `401` with

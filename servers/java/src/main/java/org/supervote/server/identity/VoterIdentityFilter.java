@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
+import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.supervote.server.common.SuperVoteProperties;
@@ -19,6 +20,7 @@ import org.supervote.server.statistics.StatisticsService;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -38,7 +40,10 @@ import java.util.Optional;
  * cookie it would still try join codes from its visitor's network, which a
  * few wrong ones bar for a day, and hand each visitor an identity, counted in
  * the statistics. Following a link (a GET navigation) is let through, and so
- * is every client that is not a browser, which sends no such header.
+ * is every client that is not a browser, which sends no such header, and a
+ * packaged app's page, from its own origin (super-vote.app-origins; why that
+ * is safe: AppOrigins). A CORS preflight is no one's request: it is left to
+ * the CORS configuration, and given no identity.
  *
  * The cookie lasts as long as a poll does (super-vote.limits.poll-lifetime-days),
  * counted again from each change this browser makes (any request but GET or
@@ -58,6 +63,7 @@ public class VoterIdentityFilter extends OncePerRequestFilter {
     private final StatisticsService statistics;
     private final HandlerExceptionResolver resolver;
     private final Duration cookieLifetime;
+    private final List<String> appOrigins;
 
     public VoterIdentityFilter(VoterSecret secret, StatisticsService statistics,
                                @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver,
@@ -66,11 +72,12 @@ public class VoterIdentityFilter extends OncePerRequestFilter {
         this.statistics = statistics;
         this.resolver = resolver;
         this.cookieLifetime = Duration.ofDays(settings.limits().pollLifetimeDays());
+        this.appOrigins = settings.appOrigins();
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/api/");
+        return !request.getRequestURI().startsWith("/api/") || CorsUtils.isPreFlightRequest(request);
     }
 
     @Override
@@ -90,10 +97,12 @@ public class VoterIdentityFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    private static void refuseOtherSites(HttpServletRequest request) {
+    private void refuseOtherSites(HttpServletRequest request) {
         var followingALink = "navigate".equals(request.getHeader("Sec-Fetch-Mode"))
             && "GET".equals(request.getMethod());
-        if ("cross-site".equals(request.getHeader("Sec-Fetch-Site")) && !followingALink) {
+        var origin = request.getHeader(HttpHeaders.ORIGIN);
+        var fromTheApp = origin != null && appOrigins.contains(origin); // an immutable list throws on null
+        if ("cross-site".equals(request.getHeader("Sec-Fetch-Site")) && !followingALink && !fromTheApp) {
             throw new CrossSiteRequestException();
         }
     }

@@ -33,10 +33,12 @@ those areas.
 ./dev.sh               # server :8080 + web app :5173 (proxies /api to :8080)
 ./dev.sh server|client # one half
 ./dev.sh test          # what CI runs, but PostgreSQL (.github/workflows/ci.yml)
+./dev.sh android       # server + the Android app on the emulator or phone adb sees, calling it
 ```
 
 CI (`.github/`): `ci.yml` (server tests on H2 and on PostgreSQL, web lint,
-types, tests, build), `codeql.yml` (security-and-quality queries on the
+types, tests, build), `android.yml` (the Android app's debug APK and Android
+lint, on changes to `clients/web`), `codeql.yml` (security-and-quality queries on the
 workflows, Java, TypeScript, Python), `dependencies.yml` (dependency review
 on pull requests; the server's Maven tree submitted from `main`, so that
 Dependabot sees transitive CVEs), `images.yml` (both images built, started
@@ -74,6 +76,15 @@ npm run coverage     # + V8 coverage report: coverage/index.html
 npm run lint         # ESLint 10 flat config, incl. react-hooks 7 (React Compiler rules)
 npm run typecheck    # tsc
 npm run build        # typecheck + production bundle
+npm run build:android  # the Android app's build (--mode android), copied into android/ (cap sync)
+```
+
+Android app (`clients/web/android`, Capacitor 8; the Android SDK, and a JDK
+17 to 24 for Gradle 8, 21 recommended, as `ANDROID_JAVA_HOME` for `dev.sh`):
+
+```bash
+./gradlew assembleDebug :app:lintDebug   # in clients/web/android, after npm run build:android
+node tools/android/icons.mjs             # the launcher icons, from public/favicon.svg (headless Chrome)
 ```
 
 ## Architecture
@@ -108,7 +119,9 @@ pieces, `src/preferences` the voter's settings, `src/i18n` everything people
 read (`en.tsx`, one file per language, `useI18n`, `errorMessage`), `src/app` the shell
 and routes (`/`, `/new`, `/p/:id`, `/about`, `/privacy`, `/statistics`). `src/statistics` holds the
 statistics page, its chart and world map, and a poll's places, loaded only
-when opened. How it looks (tokens, light/dark and
+when opened. `src/native` is the Android app's: `appPlatform` (null on the
+website), the share sheet, and `NativeShell` (back button, App Links, status
+bar), loaded in the app only, so the website never downloads Capacitor. How it looks (tokens, light/dark and
 themes, components, contrast) is `docs/DESIGN.md`: read it before changing a
 stylesheet.
 
@@ -182,9 +195,20 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
   are English for agents and machine clients, and the web app words each
   problem `type` itself, showing the server's `detail` only for
   `invalid-request`, which the forms prevent by checking the same rules.
-- **Every fetch sends credentials**, and so does `EventSource`: identity is an
-  HttpOnly cookie. Without it, every request is a new voter, silently. (The
-  dev ballot feeder leaves it out on purpose: `castBallotAsNewVoter`.)
+- **Every request says who is calling** (`callerOf` in `api/client.ts`, the
+  live stream included): the HttpOnly cookie on the website, the app's bearer
+  token in the Android app. Without it, every request is a new voter,
+  silently. (The dev ballot feeder leaves it out on purpose:
+  `castBallotAsNewVoter`.) Live results are read with `fetch`
+  (`api/eventStream.ts`), never `EventSource`, which cannot send the token.
+- **The Android app is another origin** (`https://localhost`): the server
+  lets `super-vote.app-origins` through `VoterIdentityFilter` and answers them
+  with CORS, without credentials (`AppOrigins`); the app mints a voter token
+  once, keeps it (Capacitor Preferences) and sends it as a bearer token, with
+  `Super-Vote-Client: android/<package.json's version>`. Links people share
+  come from `siteOrigin()`, never `window.location`, which is `localhost` in
+  the app. From the first release, API changes are additive only: installed
+  apps lag for months. See `docs/ARCHITECTURE.md`, "The Android app".
 - **A bearer token beats the cookie, and a bad one is 401.** A client that is
   not a browser sends `Authorization: Bearer <voter token>`, and gets no
   cookie back. A *cookie* the server did not issue is replaced in silence,
@@ -299,9 +323,10 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
 - **A new watcher's first state is computed after it joins**, under its poll's
   lock (`PollStream.join`). Computed before, a ballot landing in between was
   lost until the next one.
-- **`EventSource` gives up for good when the server answers an error**, as the
-  dev proxy does while the server restarts; it only retries network errors.
-  `usePoll` then loads and watches the poll again (`PollWatcher.onLost`).
+- **A live stream gives up for good when the server answers an error**, as the
+  dev proxy does while the server restarts; it only reconnects after network
+  errors and streams that end, as `EventSource` did (`watchPoll`). `usePoll`
+  then loads and watches the poll again (`PollWatcher.onLost`).
 - **Browser tests**: a poll page keeps its event stream open, so "network
   idle" never comes. Wait for an element instead.
 - **Vitest runs with `globals: true`** because Testing Library unmounts
@@ -458,3 +483,23 @@ language. Security, what is protected and what is not: `docs/SECURITY.md`.
 - **Tests wait for their fold** (`super-vote.fold-patience: 10s`), so a ballot's
   answer counts it; in production the wait is 250 ms. The server's tests
   also pass on PostgreSQL: see `servers/java/README.md`.
+- **`EdgeToEdge.enable` goes after `super.onCreate`** in `MainActivity`.
+  Before it, the window's views were built under the launch theme, whose
+  `android:background` (the splash) every view inherits: an action bar with
+  the app's name drawn over the page's header.
+- **Android refuses plain http** (`ERR_CLEARTEXT_NOT_PERMITTED`, which the
+  page only sees as "Failed to fetch"). Debug builds allow `localhost` alone
+  (`app/src/debug`), for `./dev.sh android` and `adb reverse`; release builds
+  stay https only.
+- **Gradle 8 does not run on Java 25** ("Unsupported class file major version
+  69"): the Android build uses a JDK 17 to 24, the server 25.
+- **WebViews before Chromium 140 keep the page out from under the bars**:
+  Capacitor pads it, and the window behind the status bar follows the phone's
+  dark mode, not the app's, so the status bar's icons follow the phone there
+  (`systemBarsStyleFor`). Emulator images often ship such a WebView.
+- **App code paths are tested with `vi.stubEnv('MODE', 'android')`** and a
+  fresh module (`vi.resetModules`): `appPlatform()` reads the mode when called,
+  and the app's token is kept per module.
+- **The app's WebView can be inspected from the command line** in a debug
+  build: `adb forward tcp:9333 localabstract:webview_devtools_remote_<pid>`,
+  then the DevTools protocol at `localhost:9333` (or `chrome://inspect`).

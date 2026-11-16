@@ -48,6 +48,7 @@ still reads at 16 px in a browser tab.
 | Browser tab | `public/favicon.svg` | The whole icon, tile included: the tile is its background in light and dark browser chrome alike. |
 | Safari before 26 | `public/favicon-32.png` | 32 px, rounded tile on transparency: Safari only shows SVG favicons since 26. |
 | iOS home screen | `public/apple-touch-icon.png` | 180 px, square tile without its rounded corners: iOS rounds them itself, and paints transparency black. |
+| Android launcher | `android/app/src/main/res/mipmap-*` | `tools/android/icons.mjs` renders them from the favicon: the mark alone over the tile's gradient (an adaptive icon, the tile's 264 units in the 72 dp a launcher shows), and the whole icon for Android 7. Run it again when the logo changes. |
 
 - The mark always stands beside the name, "super-vote", in lowercase, 750
   weight, tight tracking (`.brand`). It is decorative (`alt=""`): the

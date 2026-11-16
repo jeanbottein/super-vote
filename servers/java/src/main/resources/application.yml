@@ -58,6 +58,13 @@ super-vote:
   # development the app is the Vite server, which proxies /api here.
   public-url: ${SUPER_VOTE_PUBLIC_URL:http://localhost:5173}
 
+  # Where the packaged apps' pages run: the Android app's WebView serves the
+  # bundled web app from https://localhost. Their requests come from another
+  # origin than the server's, so they are let through and answered with CORS,
+  # without credentials: the app sends its voter token as a bearer token.
+  app-origins:
+    - https://localhost
+
   # Keys who owns each ballot, so that the database never says (see Voter.java),
   # and signs invitation links (InvitationLinks.java). No default: a server must
   # not run on a secret everyone can read here. ./mvnw spring-boot:run (and so

@@ -1,9 +1,11 @@
 import react from '@vitejs/plugin-react';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 
-// The client always calls the API on its own origin. In development Vite
+// The website always calls the API on its own origin (the Android app's build,
+// --mode android, calls VITE_API_BASE_URL instead). In development Vite
 // forwards /api to the Java server, so the voter cookie and the live-results
 // streams work without any CORS setup. Server-sent events are plain HTTP, so
 // the proxy needs no WebSocket support. What the server writes for agents
@@ -14,6 +16,9 @@ const api = { '/api': server, '/llms.txt': server, '/v3/api-docs': server };
 
 /** The version the footer shows: "v" and the time of the build, to the minute, in UTC (v202610212030). */
 const version = 'v' + new Date().toISOString().slice(0, 16).replace(/\D/g, '');
+
+/** package.json's: the Android app's versionName too (android/app/build.gradle reads it), which the app tells the server. */
+const appVersion: string = JSON.parse(readFileSync(new URL('package.json', import.meta.url), 'utf8')).version;
 
 /**
  * src/i18n/early.ts, an entry of its own, runs before the app's: its few kilobytes start fetching the
@@ -44,7 +49,7 @@ export default defineConfig({
       },
     },
   },
-  define: { __SUPER_VOTE_VERSION__: JSON.stringify(version) },
+  define: { __SUPER_VOTE_VERSION__: JSON.stringify(version), __SUPER_VOTE_APP_VERSION__: JSON.stringify(appVersion) },
   server: {
     port: 5173,
     host: true, // reachable from a phone on the same network

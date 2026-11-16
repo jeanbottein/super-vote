@@ -3,7 +3,10 @@
  *
  * Who is voting is decided by an HttpOnly cookie the server sets, so every call
  * carries credentials. A call without them would silently count as a brand new
- * voter: polls would stop being "mine" and ballots could not be revised.
+ * voter: polls would stop being "mine" and ballots could not be revised. The
+ * Android app is another origin, where the cookie would be a third party's: it
+ * asks for a voter token of its own once, keeps it, and sends it as a bearer
+ * token instead, with the app's version (`callerOf`).
  *
  * A voter's invitation travels in a header, never in a URL, so that no log
  * along the way keeps it.
@@ -14,6 +17,8 @@
 import type {
   BallotRequest, InvitationPage, NewPoll, Poll, PollPlaces, PollsLeft, PollSummary, PollUpdate, ServerInfo, Statistics,
 } from './types';
+import { eventsIn } from './eventStream';
+import { appPlatform } from '../native/platform';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
@@ -21,6 +26,10 @@ const INVITATION_HEADER = 'Super-Vote-Invitation';
 const HANDOVER_HEADER = 'Super-Vote-Handover';
 const ADMIN_HEADER = 'Super-Vote-Admin';
 const TIME_ZONE_HEADER = 'Super-Vote-Time-Zone';
+const CLIENT_HEADER = 'Super-Vote-Client';
+
+/** Where the app keeps its voter token (Capacitor Preferences: the app's own storage, never backed up). */
+const TOKEN_KEY = 'voter-token';
 
 /**
  * A failed call: its status (0 when the server could not be reached), and
@@ -52,6 +61,7 @@ interface RequestOptions {
   handover?: string | null;
   /** The token from an admin link, which makes the caller the poll's creator, every time. */
   admin?: string | null;
+  /** 'omit': as nobody, a brand new voter (the ballot feeder, and the app asking for its token). */
   credentials?: RequestCredentials;
   /** Where the request says it comes from, instead of this device's time zone (the ballot feeder). */
   timeZone?: string;
@@ -89,7 +99,8 @@ async function send(
   path: string,
   { body, invitation, handover, admin, credentials = 'include', timeZone = deviceTimeZone() }: RequestOptions,
 ): Promise<Response> {
-  const headers: Record<string, string> = { [TIME_ZONE_HEADER]: timeZone };
+  const caller = await callerOf(credentials);
+  const headers: Record<string, string> = { ...caller.headers, [TIME_ZONE_HEADER]: timeZone };
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json';
   }
@@ -106,7 +117,7 @@ async function send(
   try {
     response = await fetch(BASE_URL + path, {
       method,
-      credentials,
+      credentials: caller.credentials,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
     });
@@ -117,6 +128,53 @@ async function send(
     throw await problemIn(response);
   }
   return response;
+}
+
+interface Caller {
+  credentials: RequestCredentials;
+  headers: Record<string, string>;
+}
+
+/** Who a request comes from: the browser's cookie, the app's token, or nobody. */
+async function callerOf(credentials: RequestCredentials): Promise<Caller> {
+  const platform = appPlatform();
+  if (credentials === 'omit' || platform === null) {
+    return { credentials, headers: {} };
+  }
+  return {
+    credentials: 'omit',
+    headers: {
+      Authorization: `Bearer ${await appVoterToken()}`,
+      [CLIENT_HEADER]: `${platform}/${__SUPER_VOTE_APP_VERSION__}`,
+    },
+  };
+}
+
+let appToken: Promise<string> | null = null;
+
+/**
+ * The app's voter token: the one it keeps, or, the first time, one the server
+ * mints. Asked for once however many calls start together; asked again after
+ * a failure, so that a first launch offline does not stay without one.
+ */
+function appVoterToken(): Promise<string> {
+  appToken ??= keptOrMintedToken().catch((error: unknown) => {
+    appToken = null;
+    throw error;
+  });
+  return appToken;
+}
+
+async function keptOrMintedToken(): Promise<string> {
+  const { Preferences } = await import('@capacitor/preferences');
+  const kept = (await Preferences.get({ key: TOKEN_KEY })).value;
+  if (kept) {
+    return kept;
+  }
+  // Straight to send: through call, it would wait for the first call, which waits for this token.
+  const { token } = (await (await send('POST', '/api/voters', { credentials: 'omit' })).json()) as { token: string };
+  await Preferences.set({ key: TOKEN_KEY, value: token });
+  return token;
 }
 
 /** "Europe/Paris", or what the device says; the server counts a name it does not know nowhere. */
@@ -230,28 +288,84 @@ export interface PollWatcher {
   onLost(): void;
 }
 
+/** How long a lost stream waits before connecting again, as browsers' `EventSource` does. */
+export const RECONNECT_DELAY_MS = 3000;
+
 /**
  * Follows a poll live, over server-sent events. The first update is the poll's
- * current state. After a network hiccup the browser reconnects by itself, and
- * the new connection starts with the current state again; but an error from
- * the server, while it restarts for instance, ends the stream for good.
+ * current state. After a network hiccup, or the stream ending, it connects
+ * again, and the new connection starts with the current state again; but an
+ * error from the server, while it restarts for instance, ends it for good,
+ * as `EventSource` does. Read with fetch, which can send the app's token.
  * Returns a function that stops watching.
  */
 export function watchPoll(id: string, watcher: PollWatcher): () => void {
-  const source = new EventSource(`${BASE_URL}${pollPath(id)}/events`, { withCredentials: true });
-  source.addEventListener('update', (event: MessageEvent<string>) => {
-    watcher.onUpdate(JSON.parse(event.data) as PollUpdate);
-  });
-  source.addEventListener('deleted', () => {
-    source.close();
-    watcher.onDeleted();
-  });
-  source.addEventListener('open', () => watcher.onConnectionChange(true));
-  source.addEventListener('error', () => {
-    watcher.onConnectionChange(false);
-    if (source.readyState === EventSource.CLOSED) {
-      watcher.onLost();
+  const watching = new AbortController();
+  void follow(`${pollPath(id)}/events`, watcher, watching);
+  return () => watching.abort();
+}
+
+async function follow(path: string, watcher: PollWatcher, watching: AbortController): Promise<void> {
+  // A loop: each pass is one connection, until the poll is deleted, the server refuses, or watching stops.
+  while (!watching.signal.aborted) {
+    const response = await connect(path, watching.signal);
+    if (watching.signal.aborted) {
+      return;
     }
+    if (response !== null && !response.ok) {
+      watcher.onConnectionChange(false);
+      watcher.onLost();
+      return;
+    }
+    if (response?.body) {
+      watcher.onConnectionChange(true);
+      if (await relay(response.body, watcher, watching)) {
+        return;
+      }
+    }
+    watcher.onConnectionChange(false);
+    await pause(RECONNECT_DELAY_MS, watching.signal);
+  }
+}
+
+/** The stream's answer, or null when the server could not be reached. */
+async function connect(path: string, signal: AbortSignal): Promise<Response | null> {
+  try {
+    const caller = await callerOf('include');
+    return await fetch(BASE_URL + path, {
+      credentials: caller.credentials,
+      headers: { ...caller.headers, Accept: 'text/event-stream' },
+      signal,
+    });
+  } catch {
+    return null;
+  }
+}
+
+/** Passes the stream's events on until it ends; true once the poll is deleted, which ends the watch too. */
+async function relay(body: ReadableStream<BufferSource>, watcher: PollWatcher, watching: AbortController): Promise<boolean> {
+  try {
+    for await (const event of eventsIn(body)) {
+      if (event.type === 'update') {
+        watcher.onUpdate(JSON.parse(event.data) as PollUpdate);
+      } else if (event.type === 'deleted') {
+        watching.abort();
+        watcher.onDeleted();
+        return true;
+      }
+    }
+  } catch {
+    // The connection dropped, or watching stopped: follow tells them apart.
+  }
+  return false;
+}
+
+function pause(milliseconds: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(resolve, milliseconds);
+    signal.addEventListener('abort', () => {
+      clearTimeout(timer);
+      resolve();
+    }, { once: true });
   });
-  return () => source.close();
 }
