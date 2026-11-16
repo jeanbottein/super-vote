@@ -8,7 +8,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  */
 const config: CapacitorConfig = {
   appId: 'org.supervote.app',
-  appName: 'super-vote',
+  appName: 'Super Vote', // under the icon, as other apps are named (docs/DESIGN.md, "The logo")
   webDir: 'dist',
 };
 

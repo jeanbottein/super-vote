@@ -53,6 +53,11 @@ still reads at 16 px in a browser tab.
 - The mark always stands beside the name, "super-vote", in lowercase, 750
   weight, tight tracking (`.brand`). It is decorative (`alt=""`): the
   name is the link's text.
+- On a phone's home screen and in its app switcher, the Android app is
+  "Super Vote", two capitalised words, as the apps around it are named (the
+  owner's choice, 2026-11-16): `capacitor.config.ts` and Android's
+  `strings.xml`. Store listings follow it. Inside the app, the page keeps
+  "super-vote".
 - In running text the name is `<AppName />`, which keeps it on one line: a
   line ending in "super-" reads as two words. The header's name may still
   wrap below 280 px, rather than push the buttons off screen.
