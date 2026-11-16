@@ -1,6 +1,6 @@
 import { SystemBarsStyle } from '@capacitor/core';
-import { render } from '@testing-library/react';
-import { MemoryRouter } from 'react-router';
+import { act, render } from '@testing-library/react';
+import { MemoryRouter, useNavigate } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PreferencesProvider } from '../preferences/preferences';
 import NativeShell, { chromiumVersion, pathIn, systemBarsStyleFor } from './NativeShell';
@@ -8,15 +8,11 @@ import NativeShell, { chromiumVersion, pathIn, systemBarsStyleFor } from './Nati
 /** What the app's listeners receive from Android, captured as NativeShell registers them. */
 const listeners = vi.hoisted(() => new Map<string, (event: never) => void>());
 const minimizeApp = vi.hoisted(() => vi.fn(async () => {}));
-vi.mock('@capacitor/app', () => ({
-  App: {
-    minimizeApp,
-    addListener: async (name: string, listener: (event: never) => void) => {
-      listeners.set(name, listener);
-      return { remove: async () => { listeners.delete(name); } };
-    },
-  },
+const addListener = vi.hoisted(() => vi.fn(async (name: string, listener: (event: never) => void) => {
+  listeners.set(name, listener);
+  return { remove: async () => { listeners.delete(name); } };
 }));
+vi.mock('@capacitor/app', () => ({ App: { minimizeApp, addListener } }));
 vi.mock('@capacitor/core', async (actual) => ({
   ...(await actual<typeof import('@capacitor/core')>()),
   SystemBars: { setStyle: async () => {} },
@@ -58,6 +54,21 @@ describe('the Android back button', () => {
     pressBack(false);
 
     expect(minimizeApp).toHaveBeenCalled();
+  });
+
+  it('is listened to once, however many pages the app goes through', () => {
+    let goTo: (path: string) => void = () => {};
+    function Navigator() {
+      goTo = useNavigate();
+      return null;
+    }
+    addListener.mockClear();
+    render(<PreferencesProvider><MemoryRouter><NativeShell /><Navigator /></MemoryRouter></PreferencesProvider>);
+
+    act(() => goTo('/new'));
+    act(() => goTo('/about'));
+
+    expect(addListener.mock.calls.filter(([name]) => name === 'backButton')).toHaveLength(1);
   });
 });
 

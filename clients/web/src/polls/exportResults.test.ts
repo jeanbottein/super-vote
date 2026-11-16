@@ -3,7 +3,7 @@ import { lunchPoll, NO_JUDGMENTS, option } from '../test/fixtures';
 import { downloadResults, resultsDocument } from './exportResults';
 
 const writeFile = vi.hoisted(() => vi.fn(async ({ path }: { path: string; data: string }) => ({ uri: `file:///cache/${path}` })));
-const share = vi.hoisted(() => vi.fn(async () => ({})));
+const share = vi.hoisted(() => vi.fn<() => Promise<object>>(async () => ({})));
 vi.mock('@capacitor/filesystem', () => ({
   Directory: { Cache: 'CACHE' }, Encoding: { UTF8: 'utf8' }, Filesystem: { writeFile },
 }));
@@ -97,5 +97,18 @@ describe('downloading the results', () => {
     }));
     expect(JSON.parse(writeFile.mock.calls[0][0].data).poll.id).toBe('abc');
     expect(share).toHaveBeenCalledWith({ title: lunch.title, files: ['file:///cache/shared/super-vote-results-abc.json'] });
+  });
+
+  it('takes a share sheet closed without choosing for no failure, and anything else for one', async () => {
+    vi.stubEnv('MODE', 'android');
+    try {
+      share.mockRejectedValueOnce(new Error('Share canceled'));
+      await expect(downloadResults(lunch)).resolves.toBeUndefined();
+
+      share.mockRejectedValueOnce(new Error('No space left on device'));
+      await expect(downloadResults(lunch)).rejects.toThrow('No space left on device');
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

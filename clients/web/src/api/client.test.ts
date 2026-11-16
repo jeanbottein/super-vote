@@ -299,6 +299,20 @@ describe('watching a poll', () => {
     expect(watcher.onLost).not.toHaveBeenCalled();
   });
 
+  it('leaves no listener behind from the waits between connections', async () => {
+    const added = vi.spyOn(AbortSignal.prototype, 'addEventListener');
+    const removed = vi.spyOn(AbortSignal.prototype, 'removeEventListener');
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+    watchPoll('abc', watcher);
+
+    await vi.advanceTimersByTimeAsync(RECONNECT_DELAY_MS * 3 + 100); // three waits over, the fourth under way
+
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(added.mock.calls.length - removed.mock.calls.length).toBe(1);
+    added.mockRestore();
+    removed.mockRestore();
+  });
+
   it('keeps the stream when the page cannot take an update, as EventSource does', async () => {
     const reportError = vi.fn();
     vi.stubGlobal('reportError', reportError);
@@ -403,6 +417,28 @@ describe('in the Android app', () => {
     await app.getPoll('abc');
 
     expect(fetchMock.mock.calls.at(-1)?.[1]?.headers).toMatchObject({ Authorization: 'Bearer fresh' });
+  });
+
+  it('keeps a token minted since, when the old one is refused again late', async () => {
+    kept.set('voter-token', 'refused');
+    let refuseLate: (response: Response) => void = () => {};
+    fetchMock
+      .mockResolvedValueOnce(Response.json({ id: 'abc' })) // the page's first call, which the others wait for
+      .mockResolvedValueOnce(Response.json({ type: '/problems/unknown-voter' }, { status: 401 }))
+      .mockReturnValueOnce(new Promise((resolve) => { refuseLate = resolve; }));
+    const app = await launch();
+    await app.getPoll('abc');
+    const first = app.getPoll('abc');
+    const second = app.getServerInfo(); // out at the same time, with the same token
+    await expect(first).rejects.toMatchObject({ status: 401 });
+
+    fetchMock.mockImplementation(async (url) =>
+      url === '/api/voters' ? Response.json({ token: 'fresh' }, { status: 201 }) : Response.json({ id: 'abc' }));
+    await app.getPoll('abc');
+    refuseLate(Response.json({ type: '/problems/unknown-voter' }, { status: 401 }));
+    await expect(second).rejects.toMatchObject({ status: 401 });
+
+    expect(kept.get('voter-token')).toBe('fresh');
   });
 
   it('watches a poll with its token too', async () => {

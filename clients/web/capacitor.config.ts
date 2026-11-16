@@ -10,10 +10,6 @@ const config: CapacitorConfig = {
   appId: 'org.supervote.app',
   appName: 'super-vote',
   webDir: 'dist',
-  android: {
-    // The bundled pages only: links to anywhere else open in the browser.
-    allowMixedContent: false,
-  },
 };
 
 export default config;

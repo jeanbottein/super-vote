@@ -33,15 +33,6 @@ export function invitationUrl(site: string, pollId: string, token: string): stri
 }
 
 /**
- * The poll's address, with the token that hands it over in its fragment. A
- * client that created a poll for somebody sends them this, and opening it
- * makes them its creator. Like an invitation, it stays out of every log.
- */
-export function handoverUrl(site: string, pollId: string, token: string): string {
-  return `${pollUrl(site, pollId)}#handover=${token}`;
-}
-
-/**
  * The poll's address, with its admin token in the fragment: opening it makes
  * that browser the poll's creator, every time. Its creator's to keep.
  */

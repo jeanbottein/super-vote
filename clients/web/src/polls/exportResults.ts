@@ -34,7 +34,7 @@ export function resultsDocument(poll: Poll, exportedAt = new Date()) {
 
 /**
  * The results as a JSON file: downloaded in a browser; in the app, whose WebView downloads nothing, handed to the
- * share sheet, to save or to send. Rejects when the share sheet is closed without choosing.
+ * share sheet, to save or to send. Rejects when that fails, not when the share sheet is closed without choosing.
  */
 export async function downloadResults(poll: Poll): Promise<void> {
   const name = `super-vote-results-${poll.id}.json`;

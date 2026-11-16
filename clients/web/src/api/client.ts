@@ -128,8 +128,8 @@ async function send(
   }
   if (!response.ok) {
     const problem = await problemIn(response);
-    if (problem.type === UNKNOWN_VOTER && 'Authorization' in caller.headers) {
-      await forgetAppToken(); // the next call starts afresh, rather than every call failing alike
+    if (problem.type === UNKNOWN_VOTER && caller.token) {
+      await forgetAppToken(caller.token); // the next call starts afresh, rather than every call failing alike
     }
     throw problem;
   }
@@ -139,6 +139,8 @@ async function send(
 interface Caller {
   credentials: RequestCredentials;
   headers: Record<string, string>;
+  /** The app's token, when the request carries it. */
+  token?: string;
 }
 
 /** Who a request comes from: the browser's cookie, the app's token, or nobody. */
@@ -146,7 +148,8 @@ async function callerOf(credentials: RequestCredentials): Promise<Caller> {
   if (credentials === 'omit' || appPlatform() === null) {
     return { credentials, headers: {} };
   }
-  return { credentials: 'omit', headers: { Authorization: `Bearer ${await appVoterToken()}` } };
+  const token = await appVoterToken();
+  return { credentials: 'omit', headers: { Authorization: `Bearer ${token}` }, token };
 }
 
 let appToken: Promise<string> | null = null;
@@ -176,9 +179,16 @@ async function keptOrMintedToken(): Promise<string> {
   return token;
 }
 
-async function forgetAppToken(): Promise<void> {
-  appToken = null;
+/**
+ * Forgets the token the server refused, and only that one: calls that went out together with it are refused
+ * too, later, by which time a new token may have been minted, which must stay.
+ */
+async function forgetAppToken(refused: string): Promise<void> {
   const { Preferences } = await import('@capacitor/preferences');
+  if ((await Preferences.get({ key: TOKEN_KEY })).value !== refused) {
+    return;
+  }
+  appToken = null;
   await Preferences.remove({ key: TOKEN_KEY });
 }
 
@@ -391,10 +401,15 @@ function pause(milliseconds: number, signal: AbortSignal): Promise<void> {
     return Promise.resolve(); // an abort listener added now would never fire
   }
   return new Promise((resolve) => {
-    const timer = setTimeout(resolve, milliseconds);
-    signal.addEventListener('abort', () => {
+    const stop = () => {
       clearTimeout(timer);
       resolve();
-    }, { once: true });
+    };
+    // Removed when the time is up: the signal lives as long as the watch, through every reconnection.
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', stop);
+      resolve();
+    }, milliseconds);
+    signal.addEventListener('abort', stop, { once: true });
   });
 }

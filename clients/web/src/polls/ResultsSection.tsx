@@ -3,7 +3,9 @@ import type { Poll, PollOption } from '../api/types';
 import ApprovalResults from '../features/VotingSystem/Approval/ApprovalResults';
 import MajorityJudgmentResults from '../features/VotingSystem/MajorityJudgment/MajorityJudgmentResults';
 import type { Messages } from '../i18n/en';
+import { errorMessage } from '../i18n/errorMessage';
 import { useI18n } from '../i18n/i18n';
+import { useToast } from '../ui/Toasts';
 import { downloadResults } from './exportResults';
 import type { Connection } from './usePoll';
 import VoterNames from './VoterNames';
@@ -22,6 +24,7 @@ export function resultsKeptBack(poll: Poll): boolean {
 
 export default function ResultsSection({ poll, options, connection }: ResultsSectionProps) {
   const { t } = useI18n();
+  const showToast = useToast();
   const titleId = useId();
   const hidden = resultsKeptBack(poll);
 
@@ -45,7 +48,7 @@ export default function ResultsSection({ poll, options, connection }: ResultsSec
       )}
       {!hidden && poll.totalBallots > 0 && (
         <div className="results-footer">
-          <button type="button" className="button link" onClick={() => void downloadResults(poll).catch(() => {})}>
+          <button type="button" className="button link" onClick={() => void downloadResults(poll).catch((error) => showToast(errorMessage(error, t), 'error'))}>
             {t.results.download}
           </button>
         </div>

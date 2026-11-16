@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import fc from 'fast-check';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { handoverIn, handoverUrl, invitationIn, invitationUrl, useSiteOrigin } from './links';
+import { handoverIn, invitationIn, invitationUrl, useSiteOrigin } from './links';
 
 const serverInfo = vi.hoisted(() => ({ publicUrl: null as string | null }));
 vi.mock('./useServerInfo', () => ({ useServerInfo: () => serverInfo }));
@@ -14,7 +14,8 @@ describe('links', () => {
     fc.assert(fc.property(base64url, fc.nat(), base64url, (pollId, number, secret) => {
       const invitation = `${number}.${secret}`; // an invitation's number, then its signature
       const invited = new URL(invitationUrl(window.location.origin, pollId, invitation));
-      const handedOver = new URL(handoverUrl(window.location.origin, pollId, secret));
+      // As the server writes a handover link (docs/API.md, "Creating a poll for somebody else").
+      const handedOver = new URL(`${window.location.origin}/p/${pollId}#handover=${secret}`);
 
       expect(invited.pathname).toBe(`/p/${pollId}`);
       expect(invitationIn(invited.hash)).toBe(invitation);

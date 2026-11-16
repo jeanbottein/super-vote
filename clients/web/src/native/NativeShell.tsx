@@ -1,6 +1,6 @@
 import { App } from '@capacitor/app';
 import { SystemBars, SystemBarsStyle } from '@capacitor/core';
-import { useEffect } from 'react';
+import { useEffect, useEffectEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { usePreferences, type Preferences } from '../preferences/preferences';
 
@@ -13,6 +13,9 @@ import { usePreferences, type Preferences } from '../preferences/preferences';
 export default function NativeShell() {
   const navigate = useNavigate();
   const [{ appearance }] = usePreferences();
+  // navigate changes with every page: read through an effect event, so that the native listeners are added once.
+  // Added again on each page, two back listeners were live for a moment, and one press did two things.
+  const openLink = useEffectEvent((url: string) => navigate(pathIn(url)));
 
   useEffect(() => {
     const listening = [
@@ -28,10 +31,10 @@ export default function NativeShell() {
           leaveTheApp();
         }
       }),
-      App.addListener('appUrlOpen', ({ url }) => navigate(pathIn(url))),
+      App.addListener('appUrlOpen', ({ url }) => openLink(url)),
     ];
     return () => listening.forEach((listener) => void listener.then((handle) => handle.remove()));
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     void SystemBars.setStyle({ style: systemBarsStyleFor(appearance, chromiumVersion(navigator.userAgent)) });
