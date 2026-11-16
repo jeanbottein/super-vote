@@ -1,8 +1,8 @@
 # super-vote HTTP API
 
-The contract between the server (`servers/java`) and its clients. JSON over
+The contract between the server (`server`) and its clients. JSON over
 HTTP, plus one server-sent event stream per poll. The TypeScript mirror of
-these shapes is `clients/web/src/api/types.ts`.
+these shapes is `app/src/api/types.ts`.
 
 In development the web client reaches the API through the Vite dev server
 (`http://localhost:5173/api/...`, proxied to `:8080`), so every call is
@@ -24,8 +24,9 @@ and every request that changes something (anything but `GET` or `HEAD`) sets it
 again for as long: every poll a browser voted on or created is gone before its
 cookie. Reading changes nothing, so it renews nothing.
 
-Send it back on every request (`fetch(..., { credentials: 'include' })`,
-`new EventSource(url, { withCredentials: true })`). Without it each request
+Send it back on every request (`fetch(..., { credentials: 'include' })`, or
+`new EventSource(url, { withCredentials: true })` for the live stream; the web
+app reads the stream with `fetch`, which can send a header). Without it each request
 counts as a brand new voter: your polls stop being yours and your ballots
 cannot be revised. A cookie the server could not have issued is replaced.
 
@@ -67,6 +68,14 @@ A request that another website's page made is refused before it is anyone's:
 through, and clients that are not browsers send no such header. Without this,
 another site could have its visitors' browsers try join codes, barring their
 networks from codes for a day, or hand each of them an identity.
+
+The Android app is a page served from an origin of its own (`https://localhost`,
+listed in `super-vote.app-origins`): its requests are let through, and
+answered with CORS, without credentials, `RateLimit`, `RateLimit-Policy` and
+`Retry-After` readable. It sends a bearer token. Any other origin gets no
+CORS. Every answer to the
+app's origin carries CORS, refusals included, so that the app can read a
+`401` for its token, forget it, and ask for another.
 
 A bearer token comes before the cookie, and no cookie is set when one is sent.
 A bearer token this server could not have issued answers `401` with
@@ -197,7 +206,7 @@ draw more support than the others:
 
 The server ranks, and sends the counts it ranked from, so the ranking can be
 checked rather than believed. It is computed in one place
-(`servers/java/.../api/Ranking.java`, pinned by `RankingTest`): the majority
+(`server/.../api/Ranking.java`, pinned by `RankingTest`): the majority
 mention first - the best mention more than half the voters give an option or
 better, which with an even number of ballots is the lower of the two middle
 mentions - then the GMJ Usual score for options sharing one, as the exact

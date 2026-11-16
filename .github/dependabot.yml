@@ -17,14 +17,14 @@ multi-ecosystem-groups:
 
 updates:
   - package-ecosystem: maven
-    directory: /servers/java
+    directory: /server
     multi-ecosystem-group: dependencies
     patterns: ['*']
     cooldown:
       default-days: 7
 
   - package-ecosystem: npm
-    directory: /clients/web
+    directory: /app
     multi-ecosystem-group: dependencies
     patterns: ['*']
     cooldown:
@@ -35,6 +35,14 @@ updates:
       - dependency-name: typescript
         update-types: ['version-update:semver-major']
 
+  # The Android app's build (Capacitor's own Android code comes with its npm packages).
+  - package-ecosystem: gradle
+    directory: /app/android
+    multi-ecosystem-group: dependencies
+    patterns: ['*']
+    cooldown:
+      default-days: 7
+
   - package-ecosystem: github-actions
     directory: /
     multi-ecosystem-group: dependencies
@@ -44,7 +52,7 @@ updates:
 
   # The images the Dockerfiles build on, pinned by digest.
   - package-ecosystem: docker
-    directories: [/servers/java, /clients/web]
+    directories: [/server, /deploy]
     multi-ecosystem-group: dependencies
     patterns: ['*']
     cooldown:

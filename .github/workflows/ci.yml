@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 20
     defaults:
       run:
-        working-directory: servers/java
+        working-directory: server
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -34,7 +34,7 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
-          cache-dependency-path: servers/java/pom.xml
+          cache-dependency-path: server/pom.xml
       - run: ./mvnw -B -ntp test
 
   server-postgresql:
@@ -56,13 +56,13 @@ jobs:
           --health-timeout 5s
           --health-retries 12
     env:
-      # The lock timeout production sets too (servers/java/README.md).
+      # The lock timeout production sets too (server/README.md).
       SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/super_vote_test?options=-c%20lock_timeout%3D2s
       SPRING_DATASOURCE_USERNAME: super_vote
       SPRING_DATASOURCE_PASSWORD: super_vote
     defaults:
       run:
-        working-directory: servers/java
+        working-directory: server
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -73,7 +73,7 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
-          cache-dependency-path: servers/java/pom.xml
+          cache-dependency-path: server/pom.xml
       - run: ./mvnw -B -ntp test
 
   web:
@@ -82,7 +82,7 @@ jobs:
     timeout-minutes: 15
     defaults:
       run:
-        working-directory: clients/web
+        working-directory: app
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -91,7 +91,7 @@ jobs:
         with:
           node-version-file: .tool-versions
           cache: npm
-          cache-dependency-path: clients/web/package-lock.json
+          cache-dependency-path: app/package-lock.json
       - run: npm ci
       - run: npm run lint
       # Type checks, then the production bundle.

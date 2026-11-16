@@ -9,12 +9,12 @@ layer below exists because something needed it.
 ```
  phone / desktop browser
  ┌──────────────────────────────────┐
- │ React client (clients/web)       │  draws the results and the ballots
+ │ React client (app)       │  draws the results and the ballots
  └────────────────┬─────────────────┘
                   │ same origin: JSON over HTTP, and one event stream per open poll
  ┌────────────────┴─────────────────┐
  │ Spring Boot server               │  rules, identity, tallies, live pushes
- │ (servers/java)                   │
+ │ (server)                   │
  └────────────────┬─────────────────┘
                   │ JDBC
  ┌────────────────┴─────────────────┐
@@ -26,7 +26,9 @@ In development the Vite dev server serves the client on `:5173` and forwards
 `/api` to the Java server on `:8080`, so the browser only ever talks to one
 origin: cookies and event streams need no CORS. Deployed, Caddy does the
 same on `:443`, HTTPS only, and the Java server is reachable through it
-alone ([deploy/README.md](../deploy/README.md)).
+alone ([deploy/README.md](../deploy/README.md)). The Android app is the one
+exception: its pages run on `https://localhost`, and the server answers that
+origin, alone, with CORS ([The Android app](#the-android-app)).
 
 ## Vocabulary
 
@@ -102,8 +104,9 @@ Anonymous first: a friend who opens a share link can vote at once. The cookie
 holds 256 random bits, and the database never holds them, so a copy of it is
 not enough to act as a voter. The cookie is
 `HttpOnly` (scripts cannot read it) and `SameSite=Lax` (other sites cannot send
-it with a `POST`, `PUT`, `PATCH` or `DELETE`), and no CORS is enabled, which is
-what protects against cross-site request forgery.
+it with a `POST`, `PUT`, `PATCH` or `DELETE`), and CORS answers only the
+Android app's origin, without credentials, which is what protects against
+cross-site request forgery.
 
 Before anything, the filter refuses a request another website's page made,
 as its browser says (Fetch Metadata, `Sec-Fetch-Site: cross-site`), unless
@@ -547,7 +550,8 @@ src/
   index.tsx            entry: applies saved preferences, renders <App>
   app/                 the shell: routes, header, footer, settings, about, privacy, not-found pages
   i18n/                what people read: en.tsx (the source), one file per language, useI18n, Intl formatting, errorMessage
-  api/                 the only code that talks to the server (fetch + EventSource)
+  api/                 the only code that talks to the server (fetch, the live streams included)
+  native/              the Android app: its platform, share sheet, back button, links and status bar
   polls/               the screens (home, new poll, poll) and their hooks
   statistics/          the statistics page, its chart and world map, a poll's places; loaded when opened
   features/VotingSystem/
@@ -621,9 +625,10 @@ loaded, so an update can neither be missed nor rolled back. Updates are merged
 into the loaded poll; they are the same for every watcher, so `isMine` and
 `myBallot` survive. After a ballot, the server's answer replaces the poll.
 
-Browsers reconnect a dropped stream by themselves, but only after a network
-error: when the server answers with an error (a proxy does while the server
-restarts), `EventSource` gives up for good. `usePoll` then loads the poll and
+A dropped stream is connected again three seconds later (`watchPoll`, read
+with fetch so that the Android app can send its token), but, as `EventSource`
+does, not when the server answers with an error (a proxy does while the
+server restarts): watching stops for good. `usePoll` then loads the poll and
 watches it again every few seconds, until that works or the poll turns out to
 have been deleted.
 
@@ -683,7 +688,7 @@ lightness, lighter is better, readable whatever colours a person can tell apart.
 
 ### Tests
 
-Vitest runs in jsdom: the API client (with fake `fetch` and `EventSource`),
+Vitest runs in jsdom: the API client (with a fake `fetch` and its streams), the app's token,
 the ballot state machine, the form rules, the ballots and results, the
 preferences, the toasts, every screen with the API mocked (a lost stream and
 its recovery, a shuffled poll's order through updates, the language switch),
@@ -692,6 +697,58 @@ French typography over every message (`fr.test.ts`), and every other language ag
 end-to-end behaviour (two voters, live updates, a server restart, phone and
 desktop layouts) was checked in a real browser; it is not automated yet
 ([End-to-end tests](#end-to-end-tests)).
+
+## The Android app
+
+Capacitor wraps the web app's own build in a native shell
+(`app/android`, committed; `capacitor.config.ts`), so the app is the
+same code and the same design. Decided with the owner on 2026-11-16:
+
+- **Bundled, not a window on the site.** `npm run build:android` builds the
+  web app with `--mode android` (`.env.android`: the API at
+  `https://super-vote.org`) and copies it into the Android project, which
+  serves it from `https://localhost`. It opens without the network, and
+  Apple refuses an app that is only a website (guideline 4.2).
+- **The app is another origin.** The server lists it
+  (`super-vote.app-origins`), answers it with CORS without credentials
+  (`identity.AppOrigins`, a servlet filter ahead of `VoterIdentityFilter`, so
+  that its refusals reach the app readable too), and `VoterIdentityFilter`
+  does not count it as another site; every other site stays refused. It is safe only because
+  those requests carry no credential the browser adds by itself: whatever
+  page holds that origin (a local development server holds
+  `https://localhost` too) can do no more than a script. Never let a cookie
+  through on that path. A CORS preflight is given no identity.
+- **A bearer token, no cookie**: the cookie would be a third party's there.
+  The app mints a token (`POST /api/voters`) on first launch, keeps it in
+  Capacitor Preferences, never backed up to the cloud (a new phone gets it
+  by transfer), and sends it as `Authorization: Bearer` (`callerOf`). A token
+  the server refuses is forgotten, and the next call mints another.
+- **Live results over `fetch`.** `EventSource` cannot send a header, and the
+  token never goes in a URL, so `api/eventStream.ts` reads server-sent events
+  from a fetch answer, in the browser too: one code path behind
+  `PollWatcher`, behaving as `EventSource` does: it reconnects after a
+  network error, gives up on an error or on anything but `text/event-stream`,
+  and an update the page cannot take does not end the stream.
+- **Links from the public address** (`useSiteOrigin`: the server's
+  `publicUrl` in the app, which its invitation links use too), never
+  `window.location`, which is `localhost` there. Links to
+  `/p/{id}` open the app (App Links, `AndroidManifest.xml`), the
+  `#invitation=` fragment kept (`NativeShell`).
+- **What a browser would do, done natively** (`src/native/`, a chunk the
+  website never fetches): the back button closes a dialog, goes back a page,
+  or leaves the app in the background; the share sheet (Android's WebView
+  has no `navigator.share`), which also takes the results file, since the
+  WebView downloads nothing (`shareFile`, through the cache's `shared/`
+  folder, the only one the `FileProvider` hands out); the status bar's icons follow the appearance
+  chosen in the app.
+- **Application id `org.supervote.app`**, free on Google Play and F-Droid on
+  2026-11-16; it can never change after the first release. Its version is
+  `package.json`'s (`android/app/build.gradle`), `major.minor.patch` with minor
+  and patch under 100, so that the versionCode only grows. No Google library, so that
+  F-Droid can build it.
+- **The icons** come from the favicon, rendered by `tools/android/icons.mjs`.
+- **CI** builds a debug APK and runs Android lint on every change to the web
+  app (`android.yml`); changes to the app alone do not deploy the site.
 
 ## Decisions
 
@@ -823,48 +880,29 @@ changes are additive only. How installing is offered (a home-page button
 listing the channels that exist, the one that suits the device first) is
 still to decide.
 
-### Android app, then iOS (Capacitor)
+### Android releases, then iOS
 
-Capacitor wraps the built web app in a native shell (`clients/web/android`,
-committed), so the app is the same code and the same design. Decided with
-the owner on 2026-11-16:
+The Android app runs ([The Android app](#the-android-app)); what it still
+needs to reach people:
 
-- **Bundled, not a window on the site.** It opens without the network, and
-  Apple refuses an app that is only a website (guideline 4.2).
-- **The app is another origin**: `https://localhost` on Android,
-  `capacitor://localhost` on iOS. The server lists those origins
-  (`super-vote.app-origins`), answers them with CORS without credentials,
-  and `VoterIdentityFilter` does not count them as other sites; every other
-  site stays refused. It is safe only because those requests carry no
-  credential the browser adds by itself: whatever page holds that origin
-  (a local development server holds `https://localhost` too) can do no more
-  than a script. Never let a cookie through on that path.
-- **A bearer token, no cookie** (iOS's WebView blocks third-party cookies).
-  The app mints one (`POST /api/voters`) on first launch, keeps it in
-  Capacitor Preferences and sends it as `Authorization: Bearer`.
-- **Live results over `fetch`.** `EventSource` cannot send a header, and the
-  token never goes in a URL, so a fetch-based reader of server-sent events
-  replaces it, in the browser too: one code path behind `PollWatcher`.
-- **Links from the public address** (`publicUrl`, or the API's base), never
-  `window.location`, which is `localhost` in the app. App Links
-  (`/.well-known/assetlinks.json`, served by Caddy, with each signing key's
-  fingerprint) open `/p/{id}` in the app, its `#invitation=` kept.
-- **Old versions stay installed for months.** From the first release, API
-  changes are additive only, and the app names its version in every request
-  (`Super-Vote-Client: android/1.0.0`), so that the server can one day answer
-  that it is too old.
-- **Application id `org.supervote.app`**, free on Google Play and F-Droid on
-  2026-11-16; it can never change after the first release.
 - **Releases from a tag**, `app-vX.Y.Z`, which must match `package.json`'s
   version (F-Droid reads the version from the source): a signed APK on the
   GitHub release, then Google Play's internal track, promoted by hand; the
   signing keys in a GitHub environment that needs the owner's approval.
-  Pull requests build a debug APK. GitHub's, Play's and F-Droid's builds are
-  signed with different keys, so nobody can update from one to another.
-- **Native touches**: the back button, the status bar, the share plugin
-  where `navigator.share` is missing, the system share sheet for sending
-  invitations.
-- **iOS** is the same build, with a Mac, Xcode and an Apple developer account.
+  GitHub's, Play's and F-Droid's builds are signed with different keys, so
+  nobody can update from one to another.
+- **App Links verified**: Caddy serves `/.well-known/assetlinks.json`, naming
+  `org.supervote.app` with each signing key's fingerprint. Until then a
+  poll's link opens the browser, unless the person allows the app in
+  Android's settings.
+- **Old versions stay installed for months.** From the first release, API
+  changes are additive only. The app does not say its version (the owner's
+  call, 2026-11-16: nothing would read it yet); one that ships without a way
+  to tell it apart can only be told it is too old by the shape of what it
+  sends, so decide before the first release whether that is enough.
+- **iOS** is the same build, with a Mac, Xcode and an Apple developer account:
+  add `capacitor://localhost` to `super-vote.app-origins`, and an iOS mode
+  beside `android` (`appPlatform`).
 
 ### Several servers
 

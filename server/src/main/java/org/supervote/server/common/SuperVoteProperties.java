@@ -1,0 +1,90 @@
+package org.supervote.server.common;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.util.List;
+
+/**
+ * What this server instance offers, from the {@code super-vote} section of
+ * application.yml.
+ *
+ * Clients read it at GET /api/server-info to adapt their UI, and PollService
+ * enforces it, so the advertisement can never promise more than the server does.
+ */
+@ConfigurationProperties(prefix = "super-vote")
+public record SuperVoteProperties(Features features, Limits limits, String publicUrl, List<String> appOrigins) {
+
+    /**
+     * publicUrl: where people reach this server's polls, without a trailing
+     * slash - what a share link and an invitation link are built from, for a
+     * client that does not know its own address (an agent) or runs on another
+     * one (a packaged app). Left out, those links are left to the client.
+     *
+     * appOrigins: the origins a packaged app's pages run on, such as
+     * https://localhost for the Android app. Their requests are not refused
+     * as another site's (VoterIdentityFilter), and are answered with CORS
+     * (AppOrigins): the app is the only one of super-vote's pages served
+     * from elsewhere. Left out, none.
+     */
+    public SuperVoteProperties {
+        appOrigins = appOrigins == null ? List.of() : List.copyOf(appOrigins);
+        appOrigins.forEach(SuperVoteProperties::requireOrigin);
+        publicUrl = publicUrl == null || publicUrl.isBlank() ? null : publicUrl.strip();
+        if (publicUrl != null) {
+            if (!publicUrl.startsWith("http://") && !publicUrl.startsWith("https://")) {
+                throw new IllegalArgumentException("super-vote.public-url must start with http:// or https://");
+            }
+            while (publicUrl.endsWith("/")) {
+                publicUrl = publicUrl.substring(0, publicUrl.length() - 1);
+            }
+        }
+    }
+
+    /** An origin is a scheme and a host, perhaps a port: no path, not even a slash. */
+    private static void requireOrigin(String origin) {
+        if (!origin.matches("[a-z][a-z0-9+.-]*://[^/\\s]+")) {
+            throw new IllegalArgumentException("super-vote.app-origins holds origins, such as https://localhost: not " + origin);
+        }
+    }
+
+    public record Features(
+        boolean publicPolls,
+        boolean unlistedPolls,
+        boolean approvalVoting,
+        boolean majorityJudgment
+    ) {}
+
+    /**
+     * maxVoterNameLength holds for the names on invitations too.
+     * maxInvitations: per poll; any number costs the same (see
+     * polls.InvitationService). pollLifetimeDays: a poll is deleted, with its
+     * ballots, this many days after it was created. A limit left out binds to
+     * 0, which for the lifetime would delete every poll at the next retention
+     * run: the server refuses to start instead. Texts must fit their columns
+     * (V1__init.sql).
+     */
+    public record Limits(
+        int maxOptions,
+        int maxTitleLength,
+        int maxOptionLength,
+        int maxVoterNameLength,
+        long maxInvitations,
+        int pollLifetimeDays
+    ) {
+        public Limits {
+            require(maxOptions >= 2, "super-vote.limits.max-options must be at least 2");
+            require(maxTitleLength >= 1 && maxTitleLength <= 500, "super-vote.limits.max-title-length must be 1 to 500");
+            require(maxOptionLength >= 1 && maxOptionLength <= 500, "super-vote.limits.max-option-length must be 1 to 500");
+            require(maxVoterNameLength >= 1 && maxVoterNameLength <= 100,
+                "super-vote.limits.max-voter-name-length must be 1 to 100");
+            require(maxInvitations >= 1, "super-vote.limits.max-invitations must be at least 1");
+            require(pollLifetimeDays >= 1, "super-vote.limits.poll-lifetime-days must be at least 1");
+        }
+
+        private static void require(boolean valid, String problem) {
+            if (!valid) {
+                throw new IllegalArgumentException(problem);
+            }
+        }
+    }
+}

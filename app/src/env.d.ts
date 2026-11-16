@@ -1,0 +1,17 @@
+interface ImportMetaEnv {
+  /**
+   * Where the API lives, when it is not on the page's own origin: the
+   * Android app's build (.env.android). Unset, the API is same-origin. The
+   * app's links fall back on it until the server gives its public address
+   * (`useSiteOrigin`).
+   */
+  readonly VITE_API_BASE_URL?: string;
+}
+
+/** "v202610212030", the time of the build (vite.config.ts). */
+declare const __SUPER_VOTE_VERSION__: string;
+
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}

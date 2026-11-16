@@ -1,0 +1,71 @@
+import { QRCodeSVG } from 'qrcode.react';
+import type { ReactNode } from 'react';
+import { useI18n } from '../i18n/i18n';
+import { canShareLinks, shareLink } from '../native/share';
+import Dialog from '../ui/Dialog';
+import { MailIcon, ShareIcon } from '../ui/icons';
+import CopyableLink from './CopyableLink';
+import { formatJoinCode } from './format';
+import { hostOf, useSiteOrigin } from './links';
+
+interface ShareDialogProps {
+  open: boolean;
+  onClose(): void;
+  title: string;
+  /** Who can do what with the link. */
+  hint: ReactNode;
+  url: string;
+  /** What the link is called, for screen readers. */
+  linkLabel: string;
+  /** The poll's title: the subject of a message carrying the link. */
+  subject: string;
+  /** What a message says before the link: in a text message or an email, the only words the person reads. */
+  message?: string;
+  /** A poll's own link has a join code, to read out or show. */
+  joinCode?: string;
+}
+
+/**
+ * A link to share: as text to copy, as a QR code, by email, and through the
+ * device's own share sheet where there is one (most phones, and the app). A poll's own
+ * link comes with its join code, large enough to read from across a room.
+ */
+export default function ShareDialog(props: ShareDialogProps) {
+  const { open, onClose, title, hint, url, linkLabel, subject, message, joinCode } = props;
+  const { t } = useI18n();
+  const siteHost = hostOf(useSiteOrigin());
+  const body = [message, url, joinCode && t.share.orCode(formatJoinCode(joinCode), siteHost)]
+    .filter(Boolean).join('\n\n');
+
+  return (
+    <Dialog open={open} onClose={onClose} title={title}>
+      <p className="hint">{hint}</p>
+      {joinCode && (
+        <div className="share-code">
+          <span className="share-code-label">{t.share.joinCode}</span>
+          <strong className="join-code">{formatJoinCode(joinCode)}</strong>
+          <span className="hint">{t.share.toEnterAt(siteHost)}</span>
+        </div>
+      )}
+      <CopyableLink url={url} label={linkLabel} />
+      <div className="share-qr">
+        <QRCodeSVG value={url} size={192} marginSize={2} title={t.share.qrCode(url)} />
+      </div>
+      {canShareLinks() && (
+        <button
+          type="button"
+          className="button secondary wide"
+          onClick={() => shareLink({ title: subject, text: message, url }).catch(() => {})}
+        >
+          <ShareIcon /> {t.share.throughAnApp}
+        </button>
+      )}
+      <a
+        className="button secondary wide"
+        href={`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}
+      >
+        <MailIcon /> {t.share.byEmail}
+      </a>
+    </Dialog>
+  );
+}

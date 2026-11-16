@@ -17,8 +17,12 @@ on:
     paths-ignore:
       - '**.md'
       - 'docs/**'
-      - 'clients/web/android/**'
-      - 'clients/web/ios/**'
+      - 'app/android/**'
+      - 'app/ios/**'
+      - 'app/capacitor.config.ts'
+      - 'app/.env.android'
+      - 'tools/android/**'
+      - '.github/workflows/android.yml'
 
 permissions:
   contents: read
@@ -48,7 +52,7 @@ jobs:
       - name: Build the server's image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: servers/java
+          context: server
           load: true
           tags: ${{ env.SERVER_IMAGE }}:ci
           cache-from: type=gha,scope=server
@@ -57,7 +61,7 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
-          file: clients/web/Dockerfile
+          file: deploy/web.Dockerfile
           load: true
           tags: ${{ env.WEB_IMAGE }}:ci
           cache-from: type=gha,scope=web
@@ -169,7 +173,7 @@ jobs:
       - name: Publish the server's image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: servers/java
+          context: server
           push: true
           tags: |
             ${{ env.SERVER_IMAGE }}:main
@@ -179,7 +183,7 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
-          file: clients/web/Dockerfile
+          file: deploy/web.Dockerfile
           push: true
           tags: |
             ${{ env.WEB_IMAGE }}:main

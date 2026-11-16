@@ -1,0 +1,12 @@
+# What the image build reads (deploy/web.Dockerfile, run from the repository's root): the web app's
+# sources and deploy/Caddyfile, without what a local install or build left beside them.
+*
+!app/
+!deploy/Caddyfile
+app/node_modules/
+app/dist/
+app/coverage/
+app/android/
+app/ios/
+app/capacitor.config.ts
+app/.env.android
