@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getServerInfo, getStatistics, listMyPolls, listPublicPolls } from '../api/client';
@@ -155,7 +155,7 @@ describe('the language', () => {
 
     expect(await screen.findByRole('dialog', { name: 'Réglages' })).toBeInTheDocument();
     expect(screen.getByText('Les maths disent que c’est plus juste.')).toBeInTheDocument();
-    expect(document.documentElement.lang).toBe('fr');
+    await waitFor(() => expect(document.documentElement.lang).toBe('fr'));
     expect(loadPreferences().language).toBe('fr');
   });
 

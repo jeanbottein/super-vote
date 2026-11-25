@@ -3,14 +3,14 @@
 # One image, so the Content Security Policy and the inline script it allows by its hash always ship together.
 # Base images are pinned by digest, which Dependabot keeps current.
 
-FROM node:24-trixie-slim@sha256:7f486cabe892bff8fef04c0f7da8dba84a560be3e4e2740b7a86afc57ebec315 AS build
+FROM node:24-trixie-slim@sha256:af02d57b57719b9657a45199a79264a9437940cd55b3c7b3fc99615654f124a0 AS build
 WORKDIR /web
 COPY app/package.json app/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY app/ ./
 RUN npm run build
 
-FROM caddy:2.11.7-alpine@sha256:e70b164da81ef698b3ad19af799ea6086ce6d9e48ed4079eb9fe26f6fbf14ee5
+FROM caddy:2.11.9-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0
 LABEL org.opencontainers.image.source="https://github.com/jeanbottein/super-vote" \
       org.opencontainers.image.description="super-vote web app, served by Caddy with its HTTPS edge" \
       org.opencontainers.image.licenses="MIT"
